@@ -1,3 +1,3 @@
-# CarBot V1.0
+# CarBot V2
 
-Digitale Serviceberatung für die Automobilbranche.
+Produktionsreife Plattform mit CI, Supabase, Blog, SEO, DSGVO & Chatbot Demo.
