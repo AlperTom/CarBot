@@ -1,1 +1,3 @@
-// This is a placeholder for the respective file.
+# CarBot V2
+
+Produktionsreife Plattform mit CI, Supabase, Blog, SEO, DSGVO & Chatbot Demo.
