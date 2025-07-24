@@ -1,3 +1,4 @@
+// app/demo/workshop/page.jsx
 'use client';
 import { useState } from 'react';
 
@@ -12,7 +13,6 @@ export default function ChatDemo() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
-
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -24,7 +24,7 @@ export default function ChatDemo() {
         ...prev,
         { role: 'assistant', content: data.choices[0].message.content },
       ]);
-    } catch {
+    } catch (err) {
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: 'Fehler beim Chat.' },
@@ -36,7 +36,7 @@ export default function ChatDemo() {
 
   return (
     <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-2xl shadow-lg flex flex-col">
-      <div className="flex-1 p-3 overflow-auto">
+      <div className="flex-1 p-3 overflow-auto space-y-2">
         {messages.map((msg, i) => (
           <div
             key={i}
