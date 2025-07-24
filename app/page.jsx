@@ -1,5 +1,7 @@
 'use client';
-export const prerender = false;
+
+// Verhindert Static‑Prerendering und erzwingt always‑SSR
+export const dynamic = 'force-dynamic';
 
 import Hero from '../components/Hero';
 import FeatureGrid from '../components/FeatureGrid';
