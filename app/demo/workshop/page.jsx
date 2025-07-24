@@ -20,9 +20,15 @@ export default function ChatDemo() {
         body: JSON.stringify({ messages: [...messages, userMessage] }),
       });
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
-    } catch (err) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Fehler beim Chat.' }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: data.choices[0].message.content },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Fehler beim Chat.' },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -32,8 +38,13 @@ export default function ChatDemo() {
     <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-2xl shadow-lg flex flex-col">
       <div className="flex-1 p-3 overflow-auto">
         {messages.map((msg, i) => (
-          <div key={i} className={`mb-2 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}\`}>
-            <span className="inline-block p-2 rounded-lg bg-gray-100">{msg.content}</span>
+          <div
+            key={i}
+            className={`mb-2 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}
+          >
+            <span className="inline-block p-2 rounded-lg bg-gray-100">
+              {msg.content}
+            </span>
           </div>
         ))}
       </div>
@@ -45,7 +56,11 @@ export default function ChatDemo() {
           onChange={(e) => setInput(e.target.value)}
           className="flex-1 p-2 border rounded-l-lg"
         />
-        <button onClick={sendMessage} disabled={loading} className="p-2 bg-blue-600 text-white rounded-r-lg">
+        <button
+          onClick={sendMessage}
+          disabled={loading}
+          className="p-2 bg-blue-600 text-white rounded-r-lg"
+        >
           {loading ? '...' : 'Senden'}
         </button>
       </div>
