@@ -1,10 +1,9 @@
 'use client';
-import dynamic from 'next/dynamic';
+export const prerender = false;
 
-// Client‑Only: wird erst im Browser (nicht SSR) geladen
-const Hero = dynamic(() => import('../components/Hero'), { ssr: false });
-const FeatureGrid = dynamic(() => import('../components/FeatureGrid'), { ssr: false });
-const LeadForm = dynamic(() => import('../components/LeadForm'), { ssr: false });
+import Hero from '../components/Hero';
+import FeatureGrid from '../components/FeatureGrid';
+import LeadForm from '../components/LeadForm';
 
 export default function Home() {
   return (
