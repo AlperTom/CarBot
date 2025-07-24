@@ -1,3 +1,4 @@
+'use client';
 import Hero from '../components/Hero';
 import FeatureGrid from '../components/FeatureGrid';
 import LeadForm from '../components/LeadForm';
