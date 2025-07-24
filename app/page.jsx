@@ -1,17 +1,7 @@
-'use client';
-export const prerender = false;
-export const dynamic = 'force-dynamic';
-
-import Hero from '../components/Hero';
-import FeatureGrid from '../components/FeatureGrid';
-import LeadForm from '../components/LeadForm';
+// app/page.jsx
+import ClientHome from '../components/ClientHome';
 
 export default function Home() {
-  return (
-    <>
-      <Hero />
-      <FeatureGrid />
-      <LeadForm />
-    </>
-  );
+  // Home bleibt eine Server Component
+  return <ClientHome />;
 }
