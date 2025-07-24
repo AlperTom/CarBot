@@ -1,6 +1,5 @@
-// File: app/page.jsx
-// Erzwinge dynamisches Rendering (keine statische Vorab-Generierung)
 export const dynamic = 'force-dynamic';
+export const prerender = false;
 
 import ClientHome from '../components/ClientHome';
 
