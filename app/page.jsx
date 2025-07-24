@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import Hero from '../components/Hero';
 import FeatureGrid from '../components/FeatureGrid';
