@@ -1,15 +1,21 @@
+// app/api/chat/route.js
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { Configuration, OpenAIApi } from 'openai';
+
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('Missing OPENAI_API_KEY environment variable');
+}
+
+const config = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(config);
 
 export async function POST(request) {
   const { messages } = await request.json();
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  const chat = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+  const completion = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
     messages,
-    stream: true,
   });
-  return NextResponse.json(chat);
+  return NextResponse.json(completion.data);
 }

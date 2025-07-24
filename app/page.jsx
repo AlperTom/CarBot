@@ -1,8 +1,17 @@
+// app/page.jsx
+// Erzwinge SSR und deaktiviere statisches Prerendering
 export const dynamic = 'force-dynamic';
-export const prerender = false;
 
-import ClientHome from '../components/ClientHome';
+import Hero from '../components/Hero';
+import FeatureGrid from '../components/FeatureGrid';
+import LeadForm from '../components/LeadForm';
 
 export default function Home() {
-  return <ClientHome />;
+  return (
+    <>
+      <Hero />
+      <FeatureGrid />
+      <LeadForm />
+    </>
+  );
 }
