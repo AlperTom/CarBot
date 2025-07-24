@@ -32,7 +32,7 @@ export default function ChatDemo() {
     <div className="fixed bottom-4 right-4 w-80 h-96 bg-white rounded-2xl shadow-lg flex flex-col">
       <div className="flex-1 p-3 overflow-auto">
         {messages.map((msg, i) => (
-          <div key={i} className={`mb-2 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+          <div key={i} className={`mb-2 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}\`}>
             <span className="inline-block p-2 rounded-lg bg-gray-100">{msg.content}</span>
           </div>
         ))}
