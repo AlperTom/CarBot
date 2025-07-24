@@ -1,4 +1,4 @@
-// components/ClientHome.jsx
+// File: components/ClientHome.jsx
 'use client';
 
 import Hero from './Hero';
