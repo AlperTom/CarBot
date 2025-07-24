@@ -1,18 +1,15 @@
-'use client';
+// app/page.jsx
 
-// Verhindert Static‑Prerendering und erzwingt always‑SSR
+import dynamic from 'next/dynamic';
+
+// Verhindert Static‑Prerendering – zwingt zu SSR
 export const dynamic = 'force-dynamic';
 
-import Hero from '../components/Hero';
-import FeatureGrid from '../components/FeatureGrid';
-import LeadForm from '../components/LeadForm';
+// Wir laden nur eine Client‑Wrapper‑Komponente
+const ClientHome = dynamic(() => import('../components/ClientHome'), {
+  ssr: false,  // dynamischer Import im Browser
+});
 
 export default function Home() {
-  return (
-    <>
-      <Hero />
-      <FeatureGrid />
-      <LeadForm />
-    </>
-  );
+  return <ClientHome />;
 }

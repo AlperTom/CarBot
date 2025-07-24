@@ -1,4 +1,6 @@
+// components/ClientHome.jsx
 'use client';
+
 import Hero from './Hero';
 import FeatureGrid from './FeatureGrid';
 import LeadForm from './LeadForm';
