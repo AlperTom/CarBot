@@ -766,7 +766,7 @@ export default function PricingPage() {
               </div>
               <h3 className="font-bold text-gray-900 mb-2">24/7 Premium Support</h3>
               <p className="text-gray-600 text-sm">Deutscher Support-Team</p>
-              <div className="mt-3 text-xs text-yellow-600 font-medium">✓ <2min Response</div>
+              <div className="mt-3 text-xs text-yellow-600 font-medium">✓ &lt;2min Response</div>
             </div>
           </div>
           

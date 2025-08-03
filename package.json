@@ -1,25 +1,73 @@
 {
-  "name": "carbot",
+  "name": "carbot-workshop-system",
   "version": "2.0.0",
+  "description": "Complete B2B SaaS platform for German automotive workshops with AI chat, payments, and analytics",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "db:migrate": "supabase db reset",
+    "db:generate-types": "supabase gen types typescript --local > types/supabase.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.0.0",
-    "next": "15.4.4",
-    "openai": "^4.6.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "stripe": "^14.9.0",
     "@stripe/stripe-js": "^2.4.0",
-    "micro": "^10.0.1"
+    "@supabase/supabase-js": "^2.38.0",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.21",
+    "next": "^15.4.4",
+    "openai": "^4.20.0",
+    "postcss": "^8.5.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "stripe": "^14.9.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.3.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.3.6"
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^15.4.4"
+  },
+  "keywords": [
+    "carbot",
+    "automotive",
+    "workshop",
+    "ai-chat",
+    "b2b-saas",
+    "german-market",
+    "stripe-payments",
+    "next.js",
+    "supabase",
+    "gdpr-compliant"
+  ],
+  "author": "CarBot Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/carbot-workshop-system.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
