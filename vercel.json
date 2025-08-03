@@ -1,20 +1,9 @@
 {
-  "name": "carbot-workshop-system",
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
+  "name": "carbot-workshop-system",
   "framework": "nextjs",
-  "functions": {
-    "app/api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "regions": ["fra1"],
   "env": {
     "NODE_ENV": "production"
-  },
-  "github": {
-    "enabled": true,
-    "autoAlias": true
   }
 }
