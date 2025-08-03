@@ -9,10 +9,12 @@ export default function DashboardNav({ user, workshop, onLogout }) {
 
   const navItems = [
     { href: '/dashboard', label: 'Übersicht', icon: '📊' },
+    { href: '/dashboard/clients', label: 'Clients', icon: '👥' },
     { href: '/dashboard/leads', label: 'Leads', icon: '🎯' },
     { href: '/dashboard/appointments', label: 'Termine', icon: '📅' },
     { href: '/dashboard/client-keys', label: 'Client-Keys', icon: '🔑' },
-    { href: '/dashboard/landing-pages', label: 'Landing Pages', icon: '🎨' },
+    { href: '/dashboard/ui-themes', label: 'UI Themes', icon: '🎨' },
+    { href: '/dashboard/landing-pages', label: 'Landing Pages', icon: '📄' },
     { href: '/analytics', label: 'Analytics', icon: '📈' },
     { href: '/dashboard/settings', label: 'Einstellungen', icon: '⚙️' },
     { href: '/dashboard/billing', label: 'Abrechnung', icon: '💳' }

@@ -200,6 +200,48 @@ CREATE TABLE IF NOT EXISTS landing_pages (
     UNIQUE(workshop_id, slug)
 );
 
+-- Workshop clients table (for client management)
+CREATE TABLE IF NOT EXISTS workshop_clients (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    workshop_id UUID REFERENCES workshops(id) ON DELETE CASCADE,
+    workshop_name VARCHAR(255) NOT NULL,
+    owner_name VARCHAR(255),
+    owner_email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    city VARCHAR(100),
+    registration_status VARCHAR(50) DEFAULT 'lead_only', -- lead_only, registered_no_confirmation, registered_no_order, registered_ordered, inactive
+    subscription_plan VARCHAR(50), -- starter, professional, enterprise
+    subscription_status VARCHAR(50), -- trial, active, inactive, cancelled
+    last_activity_at TIMESTAMP WITH TIME ZONE,
+    total_conversations INTEGER DEFAULT 0,
+    total_leads INTEGER DEFAULT 0,
+    total_appointments INTEGER DEFAULT 0,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- UI customization table (for theme settings)
+CREATE TABLE IF NOT EXISTS ui_customizations (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    workshop_id UUID REFERENCES workshops(id) ON DELETE CASCADE,
+    client_key_id UUID REFERENCES client_keys(id) ON DELETE CASCADE,
+    theme_name VARCHAR(100) DEFAULT 'default',
+    primary_color VARCHAR(7) DEFAULT '#0070f3',
+    secondary_color VARCHAR(7) DEFAULT '#6b7280',
+    accent_color VARCHAR(7) DEFAULT '#10b981',
+    font_family VARCHAR(100) DEFAULT 'Inter',
+    border_radius VARCHAR(20) DEFAULT '8px',
+    chat_position VARCHAR(20) DEFAULT 'bottom-right', -- bottom-right, bottom-left, top-right, top-left
+    welcome_message TEXT,
+    custom_css TEXT,
+    logo_url VARCHAR(500),
+    background_pattern VARCHAR(50) DEFAULT 'none',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(client_key_id)
+);
+
 -- Audit logs table (for security)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
