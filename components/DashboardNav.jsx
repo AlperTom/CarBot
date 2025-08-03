@@ -11,6 +11,8 @@ export default function DashboardNav({ user, workshop, onLogout }) {
     { href: '/dashboard', label: 'Übersicht', icon: '📊' },
     { href: '/dashboard/leads', label: 'Leads', icon: '🎯' },
     { href: '/dashboard/appointments', label: 'Termine', icon: '📅' },
+    { href: '/dashboard/client-keys', label: 'Client-Keys', icon: '🔑' },
+    { href: '/dashboard/landing-pages', label: 'Landing Pages', icon: '🎨' },
     { href: '/analytics', label: 'Analytics', icon: '📈' },
     { href: '/dashboard/settings', label: 'Einstellungen', icon: '⚙️' },
     { href: '/dashboard/billing', label: 'Abrechnung', icon: '💳' }

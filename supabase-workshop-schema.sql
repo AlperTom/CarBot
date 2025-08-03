@@ -66,6 +66,21 @@ CREATE TABLE IF NOT EXISTS workshop_users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Client keys table (for API access and website integration)
+CREATE TABLE IF NOT EXISTS client_keys (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    workshop_id UUID REFERENCES workshops(id) ON DELETE CASCADE,
+    key_name VARCHAR(255) NOT NULL,
+    client_key VARCHAR(255) UNIQUE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    usage_count INTEGER DEFAULT 0,
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    allowed_domains TEXT[], -- Optional domain restrictions
+    rate_limit_per_hour INTEGER DEFAULT 1000,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- AI usage logs table (for cost tracking)
 CREATE TABLE IF NOT EXISTS ai_usage_logs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -162,6 +177,27 @@ CREATE TABLE IF NOT EXISTS billing_alerts (
     message TEXT,
     acknowledged BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Landing pages table (for custom workshop pages)
+CREATE TABLE IF NOT EXISTS landing_pages (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    workshop_id UUID REFERENCES workshops(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
+    template_id VARCHAR(100) NOT NULL,
+    description TEXT,
+    content JSONB NOT NULL DEFAULT '{}',
+    is_published BOOLEAN DEFAULT FALSE,
+    seo_title VARCHAR(255),
+    seo_description TEXT,
+    custom_css TEXT,
+    view_count INTEGER DEFAULT 0,
+    conversion_count INTEGER DEFAULT 0,
+    last_viewed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(workshop_id, slug)
 );
 
 -- Audit logs table (for security)
