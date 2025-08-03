@@ -17,7 +17,10 @@ export default function DashboardNav({ user, workshop, onLogout }) {
     { href: '/dashboard/landing-pages', label: 'Landing Pages', icon: '📄' },
     { href: '/analytics', label: 'Analytics', icon: '📈' },
     { href: '/dashboard/settings', label: 'Einstellungen', icon: '⚙️' },
-    { href: '/dashboard/billing', label: 'Abrechnung', icon: '💳' }
+    { href: '/dashboard/billing', label: 'Abrechnung', icon: '💳' },
+    ...(process.env.NODE_ENV === 'uat' || process.env.UAT_MODE ? [
+      { href: '/dashboard/uat', label: 'UAT Tests', icon: '🧪' }
+    ] : [])
   ]
 
   const isActive = (href) => {
