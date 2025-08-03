@@ -42,8 +42,9 @@ export async function POST(request) {
 
     if (error) {
       console.error('Database error:', error)
+      // Log detailed error server-side but don't expose to client
       return NextResponse.json({
-        error: 'Failed to create lead'
+        error: 'Unable to process request. Please try again.'
       }, { status: 500 })
     }
 
@@ -69,8 +70,9 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('API error:', error)
+    // Generic error message without internal details
     return NextResponse.json({
-      error: 'Internal server error'
+      error: 'Service temporarily unavailable. Please try again.'
     }, { status: 500 })
   }
 }
@@ -102,7 +104,9 @@ export async function GET(request) {
     }
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%, telefon.ilike.%${search}%, anliegen.ilike.%${search}%`)
+      // Sanitize search input to prevent SQL injection
+      const sanitizedSearch = search.replace(/[%_\\]/g, '\\$&').substring(0, 100)
+      query = query.or(`name.ilike.%${sanitizedSearch}%, telefon.ilike.%${sanitizedSearch}%, anliegen.ilike.%${sanitizedSearch}%`)
     }
 
     if (from_date) {
@@ -121,8 +125,9 @@ export async function GET(request) {
 
     if (error) {
       console.error('Database error:', error)
+      // Log detailed error server-side but don't expose to client
       return NextResponse.json({
-        error: 'Failed to fetch leads'
+        error: 'Unable to retrieve data. Please try again.'
       }, { status: 500 })
     }
 
@@ -139,8 +144,9 @@ export async function GET(request) {
 
   } catch (error) {
     console.error('API error:', error)
+    // Generic error message without internal details
     return NextResponse.json({
-      error: 'Internal server error'
+      error: 'Service temporarily unavailable. Please try again.'
     }, { status: 500 })
   }
 }

@@ -224,8 +224,26 @@
     setupMessageHandling() {
       // Listen for messages from the chat iframe
       window.addEventListener('message', (event) => {
-        // Verify origin for security
-        if (event.origin !== 'https://carbot.chat' && event.origin !== 'http://localhost:3000') {
+        // Enhanced origin validation with strict checking
+        const allowedOrigins = [
+          'https://carbot.de',
+          'https://www.carbot.de',
+          'https://car-bot.vercel.app'
+        ];
+        
+        // Add localhost only in development
+        if (this.isDevelopment()) {
+          allowedOrigins.push('http://localhost:3000', 'http://localhost:3003');
+        }
+        
+        if (!this.isValidOrigin(event.origin, allowedOrigins)) {
+          console.warn('Invalid origin blocked:', event.origin);
+          return;
+        }
+        
+        // Validate message structure
+        if (!event.data || typeof event.data !== 'object') {
+          console.warn('Invalid message format');
           return;
         }
         
@@ -304,6 +322,35 @@
     updateConfig(newConfig) {
       Object.assign(this.config, newConfig);
       this.setContainerStyles();
+    }
+    
+    // Security helper functions
+    isDevelopment() {
+      return window.location.hostname === 'localhost' || 
+             window.location.hostname === '127.0.0.1' ||
+             window.location.hostname.includes('localhost');
+    }
+    
+    isValidOrigin(origin, allowedOrigins) {
+      if (!origin || typeof origin !== 'string') return false;
+      
+      // Exact match check
+      if (allowedOrigins.includes(origin)) return true;
+      
+      // Additional validation for subdomains (if needed)
+      try {
+        const url = new URL(origin);
+        // Only allow HTTPS in production
+        if (!this.isDevelopment() && url.protocol !== 'https:') {
+          return false;
+        }
+        return allowedOrigins.some(allowed => {
+          const allowedUrl = new URL(allowed);
+          return url.hostname === allowedUrl.hostname && url.protocol === allowedUrl.protocol;
+        });
+      } catch (e) {
+        return false;
+      }
     }
   }
   

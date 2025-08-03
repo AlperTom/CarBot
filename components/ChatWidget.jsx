@@ -9,6 +9,20 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
+// Content sanitization function to prevent XSS
+function sanitizeContent(content) {
+  if (typeof content !== 'string') return ''
+  
+  return content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+    .substring(0, 10000) // Limit length to prevent DoS
+}
+
 export default function ChatWidget({ 
   clientKey, 
   isEmbedded = false, 
@@ -734,7 +748,7 @@ export default function ChatWidget({
               maxWidth: '80%',
               wordWrap: 'break-word'
             }}>
-              {m.content}
+              {sanitizeContent(m.content)}
             </span>
           </div>
         ))}

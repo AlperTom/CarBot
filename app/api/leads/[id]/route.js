@@ -12,10 +12,49 @@ export async function GET(request, { params }) {
       }, { status: 400 })
     }
 
+    // Get user session for authorization
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({
+        error: 'Unauthorized: Missing authentication token'
+      }, { status: 401 })
+    }
+
+    // Verify user session and get workshop access
+    const token = authHeader.split(' ')[1]
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json({
+        error: 'Unauthorized: Invalid token'
+      }, { status: 401 })
+    }
+
+    // Get user's workshop access
+    const { data: userWorkshops, error: workshopError } = await supabase
+      .from('workshops')
+      .select('id, slug')
+      .or(`owner_email.eq.${user.email},workshop_users.user_id.eq.${user.id}`)
+
+    if (workshopError || !userWorkshops?.length) {
+      return NextResponse.json({
+        error: 'Unauthorized: No workshop access'
+      }, { status: 403 })
+    }
+
+    const workshopSlugs = userWorkshops.map(w => w.slug)
+
+    // Get lead with authorization check
     const { data: lead, error } = await supabaseClient
       .from('leads')
       .select('*')
       .eq('id', id)
+      .in('kunde_id', workshopSlugs) // Only leads from user's workshops
       .single()
 
     if (error) {

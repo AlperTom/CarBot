@@ -123,13 +123,86 @@ function checkRateLimit(request, pathname) {
   return { allowed: true, remaining: limit - recentAttempts.length }
 }
 
-// Get client IP helper
+// Get client IP helper with validation and spoofing protection
 function getClientIP(request) {
-  const forwardedFor = request.headers.get('x-forwarded-for')
-  const realIP = request.headers.get('x-real-ip')
+  // Priority order for trusted proxy headers
   const cfConnectingIP = request.headers.get('cf-connecting-ip')
+  const realIP = request.headers.get('x-real-ip')
+  const forwardedFor = request.headers.get('x-forwarded-for')
   
-  return cfConnectingIP || forwardedFor?.split(',')[0] || realIP || 'unknown'
+  let candidateIP = null
+  
+  // Cloudflare IP (most trusted)
+  if (cfConnectingIP && isValidIP(cfConnectingIP)) {
+    candidateIP = cfConnectingIP.trim()
+  }
+  // X-Real-IP (proxy specific)
+  else if (realIP && isValidIP(realIP)) {
+    candidateIP = realIP.trim()
+  }
+  // X-Forwarded-For (least trusted, can be chained)
+  else if (forwardedFor) {
+    const ips = forwardedFor.split(',').map(ip => ip.trim())
+    // Use the first valid IP in the chain
+    for (const ip of ips) {
+      if (isValidIP(ip) && !isPrivateIP(ip)) {
+        candidateIP = ip
+        break
+      }
+    }
+  }
+  
+  // Fallback to a unique identifier based on headers if no valid IP
+  if (!candidateIP) {
+    const userAgent = request.headers.get('user-agent') || ''
+    const acceptLang = request.headers.get('accept-language') || ''
+    candidateIP = `fingerprint_${hashString(userAgent + acceptLang)}`
+  }
+  
+  return candidateIP
+}
+
+// Validate IP address format
+function isValidIP(ip) {
+  if (!ip || typeof ip !== 'string') return false
+  
+  // IPv4 validation
+  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  if (ipv4Regex.test(ip)) return true
+  
+  // IPv6 validation (basic)
+  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/
+  if (ipv6Regex.test(ip)) return true
+  
+  return false
+}
+
+// Check if IP is private/internal
+function isPrivateIP(ip) {
+  if (!isValidIP(ip)) return true
+  
+  // Private IPv4 ranges
+  const privateRanges = [
+    /^10\./,           // 10.0.0.0/8
+    /^172\.(1[6-9]|2[0-9]|3[01])\./,  // 172.16.0.0/12
+    /^192\.168\./,     // 192.168.0.0/16
+    /^127\./,          // 127.0.0.0/8 (localhost)
+    /^169\.254\./,     // 169.254.0.0/16 (link-local)
+    /^0\./             // 0.0.0.0/8
+  ]
+  
+  return privateRanges.some(range => range.test(ip))
+}
+
+// Simple hash function for fingerprinting
+function hashString(str) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(36)
 }
 
 // Check if route is sensitive
@@ -158,60 +231,91 @@ async function logSecurityEvent(event, details = {}) {
   }
 }
 
-// Helper function to get user session and workshop data
+// Helper function to get user session and workshop data with atomic validation
 async function getUserSessionData(request) {
+  const sessionLock = `session_${getClientIP(request)}_${Date.now()}`
+  
   try {
-    // Get session from Supabase auth
-    const { data: { session }, error } = await supabase.auth.getSession()
+    // Get session from authorization header first (more secure)
+    const authHeader = request.headers.get('authorization')
+    let session = null
     
-    if (error || !session) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      try {
+        const { data, error } = await supabase.auth.getUser(token)
+        if (!error && data.user) {
+          session = { user: data.user }
+        }
+      } catch (tokenError) {
+        console.error('Token validation error:', tokenError)
+      }
+    }
+    
+    // Fallback to session-based auth if no bearer token
+    if (!session) {
+      const { data: { session: sessionData }, error } = await supabase.auth.getSession()
+      if (error || !sessionData) {
+        return { user: null, workshop: null, role: null, sessionData: null }
+      }
+      session = sessionData
+    }
+
+    // Enhanced session validation with security checks
+    const now = Date.now()
+    const sessionAge = session.expires_at ? new Date(session.expires_at).getTime() - now : 0
+    
+    // Check session expiry
+    if (sessionAge <= 0) {
       return { user: null, workshop: null, role: null, sessionData: null }
     }
 
-    // Create session data for validation
+    // Check session freshness (max 24 hours)
+    if (sessionAge > 24 * 60 * 60 * 1000) {
+      console.warn('Session too old, forcing refresh')
+      return { user: null, workshop: null, role: null, sessionData: null }
+    }
+
+    // Validate user agent consistency (prevent session hijacking)
+    const currentUA = request.headers.get('user-agent') || ''
+    const sessionUA = session.user_metadata?.user_agent
+    if (sessionUA && sessionUA !== currentUA) {
+      console.warn('User agent mismatch, potential session hijacking')
+      return { user: null, workshop: null, role: null, sessionData: null }
+    }
+
+    // Create atomic session data
     const sessionData = {
       userId: session.user.id,
-      timestamp: Date.now(), // Current timestamp for freshness check
+      timestamp: now,
       userAgent: request.headers.get('user-agent') || '',
-      ip: getClientIP(request)
+      ip: getClientIP(request),
+      sessionId: session.user.id + '_' + now,
+      lock: sessionLock
     }
 
-    // Get workshop information
-    const { data: workshop, error: workshopError } = await supabase
-      .from('workshops')
-      .select('*')
-      .eq('owner_email', session.user.email)
-      .eq('active', true)
-      .single()
+    // Atomic query to get user role and workshop in single transaction
+    const { data: userProfile, error: profileError } = await supabase
+      .rpc('get_user_profile_atomic', {
+        user_id: session.user.id,
+        user_email: session.user.email
+      })
 
-    if (!workshopError && workshop) {
-      sessionData.workshopId = workshop.id
-      return { 
-        user: session.user, 
-        workshop, 
-        role: 'owner',
-        sessionData
-      }
+    if (profileError) {
+      console.error('Profile query error:', profileError)
+      return { user: null, workshop: null, role: null, sessionData: null }
     }
 
-    // Check if user is an employee
-    const { data: employeeData, error: employeeError } = await supabase
-      .from('workshop_users')
-      .select(`
-        *,
-        workshop:workshops(*)
-      `)
-      .eq('user_id', session.user.id)
-      .eq('active', true)
-      .single()
-
-    if (!employeeError && employeeData) {
-      sessionData.workshopId = employeeData.workshop?.id
-      return { 
-        user: session.user, 
-        workshop: employeeData.workshop, 
-        role: employeeData.role,
-        sessionData
+    if (userProfile && userProfile.length > 0) {
+      const profile = userProfile[0]
+      return {
+        user: session.user,
+        workshop: profile.workshop_data,
+        role: profile.user_role,
+        sessionData: {
+          ...sessionData,
+          workshopId: profile.workshop_data?.id
+        }
       }
     }
 

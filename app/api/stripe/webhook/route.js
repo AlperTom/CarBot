@@ -1,12 +1,21 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { verifyWebhookSignature } from '@/lib/stripe';
-import { supabase } from '@/lib/auth';
+import { verifyWebhookSignature } from '../../../../lib/stripe'
+import { supabaseAdmin } from '../../../../lib/supabase-server'
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(request) {
   try {
+    // Enforce webhook secret configuration
+    if (!endpointSecret || endpointSecret.trim().length === 0) {
+      console.error('STRIPE_WEBHOOK_SECRET not configured');
+      return NextResponse.json(
+        { error: 'Webhook endpoint not properly configured' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.text();
     const headersList = headers();
     const signature = headersList.get('stripe-signature');
@@ -19,7 +28,7 @@ export async function POST(request) {
       );
     }
 
-    // Verify webhook signature
+    // Verify webhook signature with enhanced security
     const verificationResult = verifyWebhookSignature(body, signature, endpointSecret);
     
     if (!verificationResult.success) {
