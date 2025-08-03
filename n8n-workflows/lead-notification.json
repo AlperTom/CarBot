@@ -1,0 +1,294 @@
+{
+  "name": "CarBot Lead Notification Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "carbot-lead",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "carbot-lead-webhook",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.event}}",
+              "operation": "equal",
+              "value2": "lead_captured"
+            }
+          ]
+        }
+      },
+      "name": "Check Event Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract lead data\nconst leadData = $input.first().json.data;\n\n// Validate required fields\nif (!leadData.name || !leadData.telefon || !leadData.anliegen) {\n  throw new Error('Missing required lead data');\n}\n\n// Format lead for email\nconst formattedLead = {\n  customerName: leadData.name,\n  phone: leadData.telefon,\n  request: leadData.anliegen,\n  vehicle: leadData.fahrzeug || 'Nicht angegeben',\n  timestamp: new Date(leadData.timestamp).toLocaleString('de-DE'),\n  sourceUrl: leadData.source_url || 'CarBot Widget',\n  clientId: leadData.kunde_id,\n  chatHistory: JSON.parse(leadData.chatverlauf || '[]')\n};\n\n// Prepare email content\nlet chatHistoryHtml = '';\nif (formattedLead.chatHistory.length > 0) {\n  chatHistoryHtml = formattedLead.chatHistory.map(msg => {\n    const role = msg.role === 'user' ? 'Kunde' : 'CarBot';\n    return `<p><strong>${role}:</strong> ${msg.content}</p>`;\n  }).join('');\n}\n\nconst emailSubject = `🚗 Neue Kundenanfrage: ${formattedLead.request}`;\nconst emailBody = `\n<div style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"background: #0070f3; color: white; padding: 20px; border-radius: 8px 8px 0 0;\">\n    <h1 style=\"margin: 0; font-size: 24px;\">🚗 Neue Kundenanfrage über CarBot</h1>\n  </div>\n  \n  <div style=\"padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px;\">\n    <h2 style=\"color: #0070f3; margin-top: 0;\">Kundendaten</h2>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr>\n        <td style=\"padding: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;\">Name:</td>\n        <td style=\"padding: 8px; border: 1px solid #ddd;\">${formattedLead.customerName}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;\">Telefon:</td>\n        <td style=\"padding: 8px; border: 1px solid #ddd;\">\n          <a href=\"tel:${formattedLead.phone}\" style=\"color: #0070f3; text-decoration: none;\">\n            ${formattedLead.phone}\n          </a>\n        </td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;\">Anliegen:</td>\n        <td style=\"padding: 8px; border: 1px solid #ddd;\">${formattedLead.request}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;\">Fahrzeug:</td>\n        <td style=\"padding: 8px; border: 1px solid #ddd;\">${formattedLead.vehicle}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;\">Zeit:</td>\n        <td style=\"padding: 8px; border: 1px solid #ddd;\">${formattedLead.timestamp}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold;\">Quelle:</td>\n        <td style=\"padding: 8px; border: 1px solid #ddd;\">${formattedLead.sourceUrl}</td>\n      </tr>\n    </table>\n    \n    <div style=\"margin: 30px 0; text-align: center;\">\n      <a href=\"tel:${formattedLead.phone}\" \n         style=\"background: #0070f3; color: white; padding: 15px 30px; text-decoration: none; \n                border-radius: 6px; font-weight: bold; display: inline-block;\">\n        📞 Jetzt zurückrufen\n      </a>\n    </div>\n    \n    ${chatHistoryHtml ? `\n    <h3 style=\"color: #0070f3; margin-top: 30px;\">Chat-Verlauf</h3>\n    <div style=\"background: #f5f5f5; padding: 15px; border-radius: 6px; border-left: 4px solid #0070f3;\">\n      ${chatHistoryHtml}\n    </div>\n    ` : ''}\n    \n    <div style=\"margin-top: 30px; padding: 15px; background: #e6f3ff; border-radius: 6px;\">\n      <h4 style=\"margin: 0 0 10px 0; color: #0070f3;\">📋 Nächste Schritte:</h4>\n      <ul style=\"margin: 0; padding-left: 20px;\">\n        <li>Kunden zeitnah zurückrufen (idealerweise innerhalb von 2 Stunden)</li>\n        <li>Termin vereinbaren</li>\n        <li>Lead-Status im CRM aktualisieren</li>\n        <li>Bei zufriedener Bearbeitung: Bewertung anfragen</li>\n      </ul>\n    </div>\n  </div>\n  \n  <div style=\"margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px; text-align: center; font-size: 12px; color: #666;\">\n    Automatisch generiert von <strong>CarBot</strong> | \n    <a href=\"https://carbot.chat\" style=\"color: #0070f3;\">carbot.chat</a>\n  </div>\n</div>\n`;\n\nreturn {\n  emailSubject,\n  emailBody,\n  leadData: formattedLead,\n  workshopEmail: 'workshop@example.com', // This should be dynamic based on kunde_id\n  priority: 'high'\n};"
+      },
+      "name": "Format Lead Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 180]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@carbot.chat",
+        "toEmail": "={{$json.workshopEmail}}",
+        "subject": "={{$json.emailSubject}}",
+        "text": "",
+        "html": "={{$json.emailBody}}",
+        "options": {
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "name": "Send Email to Workshop",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [900, 180],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credentials",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.supabase.co/rest/v1/leads",
+        "options": {
+          "headers": {
+            "Authorization": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}",
+            "Content-Type": "application/json",
+            "apikey": "{{ $env.SUPABASE_ANON_KEY }}"
+          }
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "follow_up_status",
+              "value": "email_sent"
+            },
+            {
+              "name": "follow_up_notes",
+              "value": "Email notification sent to workshop at ={{$now}}"
+            },
+            {
+              "name": "priority",
+              "value": "high"
+            }
+          ]
+        }
+      },
+      "name": "Update Lead Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [900, 320]
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 6,
+              "minute": 0
+            }
+          ]
+        },
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "name": "Daily Report Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate daily report for workshop\nconst yesterday = new Date();\nyesterday.setDate(yesterday.getDate() - 1);\nconst yesterdayStr = yesterday.toISOString().split('T')[0];\n\n// This would typically fetch data from Supabase\n// For now, we'll simulate the report data\nconst reportData = {\n  date: yesterdayStr,\n  totalLeads: 12,\n  newLeads: 5,\n  followedUpLeads: 7,\n  pendingLeads: 3,\n  topQuestions: [\n    { question: 'TÜV Kosten', count: 8 },\n    { question: 'Ölwechsel Preis', count: 6 },\n    { question: 'Öffnungszeiten', count: 4 }\n  ],\n  customerSatisfaction: 4.6\n};\n\nconst reportHtml = `\n<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\">\n  <div style=\"background: #0070f3; color: white; padding: 20px; text-align: center;\">\n    <h1>📊 Täglicher CarBot Report</h1>\n    <p>Datum: ${new Date(reportData.date).toLocaleDateString('de-DE')}</p>\n  </div>\n  \n  <div style=\"padding: 20px;\">\n    <div style=\"display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;\">\n      <div style=\"background: #f0f9ff; padding: 20px; border-radius: 8px; text-align: center;\">\n        <h2 style=\"color: #0070f3; margin: 0; font-size: 2em;\">${reportData.totalLeads}</h2>\n        <p style=\"margin: 5px 0 0 0; color: #666;\">Gesamt Leads</p>\n      </div>\n      <div style=\"background: #f0fdf4; padding: 20px; border-radius: 8px; text-align: center;\">\n        <h2 style=\"color: #16a34a; margin: 0; font-size: 2em;\">${reportData.newLeads}</h2>\n        <p style=\"margin: 5px 0 0 0; color: #666;\">Neue Leads</p>\n      </div>\n      <div style=\"background: #fefce8; padding: 20px; border-radius: 8px; text-align: center;\">\n        <h2 style=\"color: #eab308; margin: 0; font-size: 2em;\">${reportData.followedUpLeads}</h2>\n        <p style=\"margin: 5px 0 0 0; color: #666;\">Bearbeitet</p>\n      </div>\n      <div style=\"background: #fef2f2; padding: 20px; border-radius: 8px; text-align: center;\">\n        <h2 style=\"color: #dc2626; margin: 0; font-size: 2em;\">${reportData.pendingLeads}</h2>\n        <p style=\"margin: 5px 0 0 0; color: #666;\">Ausstehend</p>\n      </div>\n    </div>\n    \n    <h3 style=\"color: #0070f3;\">🔝 Häufigste Fragen</h3>\n    <ul style=\"list-style: none; padding: 0;\">\n      ${reportData.topQuestions.map(q => \n        `<li style=\"background: #f8fafc; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 3px solid #0070f3;\">\n          <strong>${q.question}</strong> - ${q.count} mal gefragt\n        </li>`\n      ).join('')}\n    </ul>\n    \n    <div style=\"background: #e6f3ff; padding: 20px; border-radius: 8px; margin-top: 20px;\">\n      <h3 style=\"color: #0070f3; margin-top: 0;\">⭐ Kundenzufriedenheit</h3>\n      <p style=\"font-size: 1.2em; margin: 0;\">\n        <strong>${reportData.customerSatisfaction}/5.0 Sterne</strong> basierend auf Chat-Bewertungen\n      </p>\n    </div>\n  </div>\n</div>\n`;\n\nreturn {\n  reportSubject: `📊 CarBot Tagesbericht - ${new Date(reportData.date).toLocaleDateString('de-DE')}`,\n  reportHtml: reportHtml,\n  reportData: reportData\n};"
+      },
+      "name": "Generate Daily Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 600]
+    },
+    {
+      "parameters": {
+        "fromEmail": "reports@carbot.chat",
+        "toEmail": "workshop@example.com",
+        "subject": "={{$json.reportSubject}}",
+        "html": "={{$json.reportHtml}}",
+        "options": {}
+      },
+      "name": "Send Daily Report",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [680, 600],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credentials",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 10,
+              "minute": 0
+            }
+          ]
+        },
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "triggerAtHour": 10,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "name": "Review Request Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 800]
+    },
+    {
+      "parameters": {
+        "requestMethod": "GET",
+        "url": "https://api.supabase.co/rest/v1/leads",
+        "options": {
+          "headers": {
+            "Authorization": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}",
+            "apikey": "{{ $env.SUPABASE_ANON_KEY }}"
+          },
+          "queryParameters": {
+            "select": "*",
+            "created_at": "gte.{{ $now.minus({ days: 2 }).toISO() }}",
+            "follow_up_status": "eq.completed"
+          }
+        }
+      },
+      "name": "Get Completed Leads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [460, 800]
+    },
+    {
+      "parameters": {
+        "functionCode": "const leads = $input.first().json;\n\nconst reviewRequests = leads.map(lead => {\n  const reviewLink = `https://g.page/r/YOUR_GOOGLE_BUSINESS_ID/review`;\n  \n  const smsText = `Hallo ${lead.name}! Vielen Dank für Ihren Besuch bei uns. Wir würden uns sehr über eine kurze Bewertung freuen: ${reviewLink} - Ihr Werkstatt-Team`;\n  \n  return {\n    phone: lead.telefon,\n    message: smsText,\n    customerName: lead.name,\n    reviewLink: reviewLink\n  };\n});\n\nreturn reviewRequests;"
+      },
+      "name": "Prepare Review Requests",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 800]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Event Type": {
+      "main": [
+        [
+          {
+            "node": "Format Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Workshop",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Lead Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Report Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Daily Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Daily Report": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review Request Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Completed Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Completed Leads": {
+      "main": [
+        [
+          {
+            "node": "Prepare Review Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": "carbot-lead-workflow"
+}

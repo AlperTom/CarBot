@@ -1,12 +1,14 @@
+import './globals.css'
+
 export const metadata = {
-  title: 'CarBot – Digitaler Serviceberater',
-  description: 'Der AI-Agent für moderne Werkstätten.',
-};
+  title: 'CarBot Serviceberater',
+  description: 'AI-gestützter Serviceberater für KFZ-Werkstätten'
+}
 
 export default function RootLayout({ children }) {
   return (
     <html lang="de">
-      <body>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
-  );
+  )
 }
