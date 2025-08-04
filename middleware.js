@@ -471,12 +471,19 @@ export async function middleware(request) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
+     * Run middleware only on protected routes
      */
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\..*|public).*)',
+    '/dashboard/:path*',
+    '/analytics/:path*',
+    '/cases/:path*',
+    '/settings/:path*',
+    '/profile/:path*',
+    '/workshop/:path*',
+    '/api/leads/:path*',
+    '/api/analytics/:path*',
+    '/api/webhooks/:path*',
+    '/billing/:path*',
+    '/auth/login',
+    '/auth/register'
   ],
 }
