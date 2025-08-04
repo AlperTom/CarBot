@@ -2,53 +2,195 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles for CarBot */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Base styles with improved accessibility */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply antialiased;
+    min-height: 100vh;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  
+  /* Improved focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-orange-500;
+    border-radius: 6px;
+  }
+  
+  /* Skip link styling */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  .sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+}
+
+/* Component styles */
+@layer components {
+  /* Glass morphism cards with proper backdrop */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  
+  /* Gradient text with proper fallbacks */
+  .gradient-text {
+    @apply bg-gradient-to-r from-orange-400 via-purple-500 to-blue-500 bg-clip-text text-transparent;
+    /* Fallback for unsupported browsers */
+    color: #fff;
+  }
+  
+  /* Button styles with proper touch targets */
+  .btn-primary {
+    @apply relative group min-h-[44px] px-8 py-4 rounded-2xl font-semibold transition-all duration-200;
+    /* Minimum touch target size for mobile */
+    min-width: 44px;
+  }
+  
+  .btn-secondary {
+    @apply glass-card hover:bg-white/20 min-h-[44px] px-8 py-4 rounded-2xl font-medium transition-all duration-200;
+    min-width: 44px;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .text-gray-200,
+    .text-gray-300,
+    .text-gray-400 {
+      @apply text-white;
+    }
+    
+    .glass-card {
+      @apply bg-gray-800 border-gray-600;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-pulse,
+    .hover\:scale-105,
+    .transition-transform,
+    .transition-all {
+      animation: none !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  
+  /* Dark mode improvements */
+  @media (prefers-color-scheme: dark) {
+    .gradient-text {
+      /* Enhanced gradient for better dark mode visibility */
+      @apply bg-gradient-to-r from-orange-300 via-purple-400 to-blue-400 bg-clip-text text-transparent;
+    }
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .hero-text {
+      @apply text-4xl leading-tight;
+    }
+    
+    .section-padding {
+      @apply px-4 py-12;
+    }
+    
+    /* Ensure proper touch targets on mobile */
+    button,
+    a {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+  
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    * {
+      color: #000 !important;
+      background: #fff !important;
+    }
+  }
+}
+
+/* Loading states */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Firefox scrollbar */
 html {
-  scroll-behavior: smooth;
-}
-
-/* Ensure proper contrast and readability */
-.text-shadow {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Custom hover effects */
-.hover-lift {
-  transition: transform 0.2s ease-in-out;
-}
-
-.hover-lift:hover {
-  transform: translateY(-2px);
-}
-
-/* Custom animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeInUp {
-  animation: fadeInUp 0.8s ease-out;
-}
-
-/* Improved focus states for accessibility */
-.focus-visible:focus {
-  outline: 2px solid #3B82F6;
-  outline-offset: 2px;
-}
-
-/* Custom gradient backgrounds */
-.gradient-blue {
-  background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
-}
-
-/* Smooth transitions for interactive elements */
-.transition-all {
-  transition: all 0.3s ease;
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
 }

@@ -15,7 +15,15 @@ export default function Home() {
   if (!mounted) return null
   
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white overflow-hidden">
+      {/* Skip Link for Accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-orange-500 text-white px-4 py-2 rounded-lg z-50"
+      >
+        Zum Hauptinhalt springen
+      </a>
+      
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-full blur-3xl"></div>
@@ -35,17 +43,17 @@ export default function Home() {
                 </div>
                 <div className="absolute -inset-1 bg-gradient-to-br from-orange-500 to-purple-600 rounded-xl blur opacity-20"></div>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">CarBot</span>
+              <span className="text-2xl font-bold text-white drop-shadow-sm">CarBot</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors font-medium">Preise</Link>
+              <Link href="/pricing" className="text-gray-100 hover:text-white transition-colors font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-2 py-1">Preise</Link>
               <button 
                 onClick={() => setShowDemo(true)}
-                className="text-gray-300 hover:text-white transition-colors font-medium"
+                className="text-gray-100 hover:text-white transition-colors font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-2 py-1"
               >
                 Demo
               </button>
-              <Link href="/auth/login" className="text-gray-300 hover:text-white transition-colors font-medium">Anmelden</Link>
+              <Link href="/auth/login" className="text-gray-100 hover:text-white transition-colors font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-2 py-1">Anmelden</Link>
               <Link 
                 href="/auth/register" 
                 className="relative group"
@@ -61,46 +69,46 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
+      <section id="main-content" className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
         <div className="text-center max-w-5xl mx-auto">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 mb-8">
             <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-            <span className="text-sm text-gray-300">Jetzt verfügbar in Deutschland</span>
+            <span className="text-sm text-gray-100">Jetzt verfügbar in Deutschland</span>
           </div>
           
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-none">
-            <span className="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
+            <span className="text-white drop-shadow-lg">
               KI-gestützte
             </span>
             <br />
-            <span className="bg-gradient-to-r from-orange-400 via-purple-500 to-blue-500 bg-clip-text text-transparent">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-purple-500 to-blue-500 drop-shadow-lg">
               Kundenberatung
             </span>
             <br />
-            <span className="text-4xl md:text-5xl lg:text-6xl text-gray-400 font-light">
+            <span className="text-3xl md:text-4xl lg:text-5xl text-gray-200 font-light drop-shadow-md">
               für Autowerkstätten
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-400 mb-12 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed max-w-3xl mx-auto drop-shadow-sm">
             Automatisieren Sie Ihre Kundenberatung mit KI. Buchen Sie Termine, generieren Sie Leads 
-            und bedienen Sie Kunden <span className="text-white font-medium">24/7 in 4 Sprachen</span>.
+            und bedienen Sie Kunden <span className="text-white font-semibold bg-gradient-to-r from-orange-400 to-purple-500 bg-clip-text text-transparent">24/7 in 4 Sprachen</span>.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link 
               href="/auth/register" 
-              className="relative group w-full sm:w-auto"
+              className="relative group w-full sm:w-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 focus-visible:outline-offset-4 rounded-2xl"
             >
               <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-purple-600 to-blue-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative bg-gradient-to-r from-orange-500 via-purple-600 to-blue-600 px-8 py-4 rounded-2xl font-semibold text-lg hover:scale-105 transition-transform duration-200">
+              <div className="relative bg-gradient-to-r from-orange-500 via-purple-600 to-blue-600 px-8 py-4 rounded-2xl font-semibold text-lg text-white hover:scale-105 transition-transform duration-200 shadow-lg">
                 30 Tage kostenlos testen
               </div>
             </Link>
             
             <button 
               onClick={() => setShowDemo(true)}
-              className="group flex items-center space-x-3 px-8 py-4 rounded-2xl border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-200 w-full sm:w-auto"
+              className="group flex items-center space-x-3 px-8 py-4 rounded-2xl border border-white/30 hover:border-white/50 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200 w-full sm:w-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 focus-visible:outline-offset-2"
             >
               <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -112,8 +120,8 @@ export default function Home() {
           </div>
           
           <div className="mt-16 text-center">
-            <p className="text-sm text-gray-500 mb-4">Vertraut von führenden Werkstätten</p>
-            <div className="flex justify-center space-x-8 opacity-50">
+            <p className="text-sm text-gray-300 mb-4">Vertraut von führenden Werkstätten</p>
+            <div className="flex justify-center space-x-8 opacity-70 text-gray-300">
               <div className="text-2xl font-bold">BMW</div>
               <div className="text-2xl font-bold">Mercedes</div>
               <div className="text-2xl font-bold">Audi</div>
@@ -127,11 +135,11 @@ export default function Home() {
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            <span className="text-white drop-shadow-lg">
               Warum CarBot?
             </span>
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-200 max-w-2xl mx-auto drop-shadow-sm">
             Modernste KI-Technologie trifft auf jahrelange Automotive-Expertise
           </p>
         </div>
@@ -149,7 +157,7 @@ export default function Home() {
                 <div className="absolute -inset-2 bg-gradient-to-br from-orange-500 to-purple-600 rounded-2xl blur opacity-20"></div>
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">Intelligente KI-Beratung</h3>
-              <p className="text-gray-300 leading-relaxed">
+              <p className="text-gray-200 leading-relaxed">
                 Hochentwickelte KI versteht Fahrzeugprobleme, erstellt automatisch 
                 Kostenvoranschläge und schlägt optimale Termine vor.
               </p>
@@ -168,7 +176,7 @@ export default function Home() {
                 <div className="absolute -inset-2 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl blur opacity-20"></div>
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">Nahtlose Terminbuchung</h3>
-              <p className="text-gray-300 leading-relaxed">
+              <p className="text-gray-200 leading-relaxed">
                 Kunden buchen direkt online Termine. Automatische Kalender-Synchronisation 
                 und smarte Erinnerungen per E-Mail und SMS.
               </p>
@@ -187,7 +195,7 @@ export default function Home() {
                 <div className="absolute -inset-2 bg-gradient-to-br from-blue-600 to-teal-500 rounded-2xl blur opacity-20"></div>
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">Analytics Dashboard</h3>
-              <p className="text-gray-300 leading-relaxed">
+              <p className="text-gray-200 leading-relaxed">
                 Tiefe Einblicke in Kundenverhalten, Lead-Qualität und ROI-Metriken. 
                 Datengetriebene Optimierung Ihrer Werkstatt-Performance.
               </p>
@@ -200,15 +208,15 @@ export default function Home() {
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            <span className="text-white drop-shadow-lg">
               Sprechen Sie die Sprache
             </span>
             <br />
-            <span className="bg-gradient-to-r from-orange-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-purple-500 drop-shadow-lg">
               Ihrer Kunden
             </span>
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-200 max-w-2xl mx-auto drop-shadow-sm">
             Automatische Spracherkennung und native Unterstützung für den deutschen Markt
           </p>
         </div>
@@ -221,7 +229,7 @@ export default function Home() {
                 <span className="text-3xl">🇩🇪</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Deutsch</h3>
-              <p className="text-gray-400">Muttersprachliche Beratung mit regionalen Dialekten</p>
+              <p className="text-gray-200">Muttersprachliche Beratung mit regionalen Dialekten</p>
             </div>
           </div>
           
@@ -232,7 +240,7 @@ export default function Home() {
                 <span className="text-3xl">🇬🇧</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">English</h3>
-              <p className="text-gray-400">Professional support for international customers</p>
+              <p className="text-gray-200">Professional support for international customers</p>
             </div>
           </div>
           
@@ -243,7 +251,7 @@ export default function Home() {
                 <span className="text-3xl">🇹🇷</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Türkçe</h3>
-              <p className="text-gray-400">Türk müşteriler için tam destek</p>
+              <p className="text-gray-200">Türk müşteriler için tam destek</p>
             </div>
           </div>
           
@@ -254,7 +262,7 @@ export default function Home() {
                 <span className="text-3xl">🇵🇱</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Polski</h3>
-              <p className="text-gray-400">Kompleksowa obsługa dla polskich klientów</p>
+              <p className="text-gray-200">Kompleksowa obsługa dla polskich klientów</p>
             </div>
           </div>
         </div>
@@ -264,15 +272,15 @@ export default function Home() {
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            <span className="text-white drop-shadow-lg">
               Transparente Preise
             </span>
             <br />
-            <span className="bg-gradient-to-r from-orange-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-purple-500 drop-shadow-lg">
               für jede Werkstatt
             </span>
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-200 max-w-2xl mx-auto drop-shadow-sm">
             Starten Sie kostenlos und skalieren Sie mit Ihrem Erfolg
           </p>
         </div>
@@ -287,19 +295,19 @@ export default function Home() {
                 <span className="text-lg text-gray-400">/Monat</span>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   100 Gespräche/Monat
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Basis-Analytics
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -323,25 +331,25 @@ export default function Home() {
                 <span className="text-lg text-gray-400">/Monat</span>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   500 Gespräche/Monat
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Terminbuchung
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Prioritäts-Support
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -360,25 +368,25 @@ export default function Home() {
                 <span className="text-lg text-gray-400">/Monat</span>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Unbegrenzte Gespräche
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Multi-Standort
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   API Zugang
                 </li>
-                <li className="flex items-center text-gray-300">
+                <li className="flex items-center text-gray-200">
                   <svg className="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -408,15 +416,15 @@ export default function Home() {
           <div className="absolute -inset-4 bg-gradient-to-r from-orange-500 via-purple-600 to-blue-600 rounded-3xl blur-xl opacity-20"></div>
           <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-3xl p-16 text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              <span className="text-white drop-shadow-lg">
                 Bereit für die Zukunft
               </span>
               <br />
-              <span className="bg-gradient-to-r from-orange-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-purple-500 drop-shadow-lg">
                 der Kundenberatung?
               </span>
             </h2>
-            <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-200 mb-12 max-w-2xl mx-auto drop-shadow-sm">
               Starten Sie heute und transformieren Sie Ihre Werkstatt mit KI-gestützter Automatisierung
             </p>
             <Link 
@@ -446,7 +454,7 @@ export default function Home() {
                   </div>
                   <div className="absolute -inset-1 bg-gradient-to-br from-orange-500 to-purple-600 rounded-xl blur opacity-20"></div>
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">CarBot</span>
+                <span className="text-2xl font-bold text-white drop-shadow-sm">CarBot</span>
               </div>
               <p className="text-gray-400 leading-relaxed">
                 KI-gestützte Kundenberatung für moderne Autowerkstätten in Deutschland.
@@ -455,31 +463,31 @@ export default function Home() {
             
             <div>
               <h4 className="font-semibold mb-4 text-white">Produkt</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/pricing" className="hover:text-white transition-colors">Preise</Link></li>
-                <li><button onClick={() => setShowDemo(true)} className="hover:text-white transition-colors">Demo</button></li>
-                <li><Link href="/auth/register" className="hover:text-white transition-colors">Kostenlos testen</Link></li>
+              <ul className="space-y-3 text-gray-300">
+                <li><Link href="/pricing" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-1 py-0.5">Preise</Link></li>
+                <li><button onClick={() => setShowDemo(true)} className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-1 py-0.5">Demo</button></li>
+                <li><Link href="/auth/register" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-1 py-0.5">Kostenlos testen</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4 text-white">Rechtliches</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><Link href="/legal/datenschutz" className="hover:text-white transition-colors">Datenschutz</Link></li>
-                <li><Link href="/legal/impressum" className="hover:text-white transition-colors">Impressum</Link></li>
+              <ul className="space-y-3 text-gray-300">
+                <li><Link href="/legal/datenschutz" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-1 py-0.5">Datenschutz</Link></li>
+                <li><Link href="/legal/impressum" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-1 py-0.5">Impressum</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4 text-white">Support</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="mailto:support@carbot.de" className="hover:text-white transition-colors">support@carbot.de</a></li>
-                <li><a href="tel:+4930123456789" className="hover:text-white transition-colors">+49 30 123 456 789</a></li>
+              <ul className="space-y-3 text-gray-300">
+                <li><a href="mailto:support@carbot.de" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-1 py-0.5">support@carbot.de</a></li>
+                <li><a href="tel:+4930123456789" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 rounded px-1 py-0.5">+49 30 123 456 789</a></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-white/10 mt-12 pt-8 text-center text-gray-400">
+          <div className="border-t border-white/10 mt-12 pt-8 text-center text-gray-300">
             <p>&copy; 2024 CarBot. Alle Rechte vorbehalten.</p>
           </div>
         </div>
@@ -513,6 +521,6 @@ export default function Home() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   )
 }
