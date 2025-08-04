@@ -276,6 +276,9 @@ export async function middleware(request) {
     pathname.startsWith('/robots.txt') ||
     pathname.startsWith('/sitemap.xml') ||
     pathname.includes('.') ||
+    pathname === '/' ||
+    pathname.startsWith('/pricing') ||
+    pathname.startsWith('/legal/') ||
     (pathname.startsWith('/api/') && 
      !pathname.startsWith('/api/leads') && 
      !pathname.startsWith('/api/analytics') && 
@@ -441,14 +444,8 @@ export async function middleware(request) {
     return response
   }
 
-  // Handle root path
+  // Handle root path - always allow access to homepage
   if (pathname === '/') {
-    if (user && workshop) {
-      // Authenticated user with workshop - redirect to dashboard
-      const dashboardUrl = new URL('/dashboard', request.url)
-      return NextResponse.redirect(dashboardUrl)
-    }
-    // Unauthenticated user - allow access to home page
     const response = NextResponse.next()
     Object.entries(securityHeaders).forEach(([key, value]) => {
       response.headers.set(key, value)
