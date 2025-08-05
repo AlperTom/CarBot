@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { sendWelcomeEmail } from '../../../../lib/email'
 
 // Initialize Supabase with service role for admin operations
 const supabaseAdmin = createClient(
@@ -8,11 +9,38 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(request) {
+  console.log('=== SIGNUP API CALLED ===')
+  
   try {
-    const { email, password, workshopData } = await request.json()
+    // Check environment variables
+    console.log('Checking environment variables...')
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase environment variables')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+    console.log('Environment variables OK')
+
+    console.log('Parsing request body...')
+    let requestData
+    try {
+      requestData = await request.json()
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError)
+      return NextResponse.json(
+        { error: 'Invalid request format' },
+        { status: 400 }
+      )
+    }
+    
+    const { email, password, workshopData } = requestData
+    console.log('Request data parsed:', { email, workshopData })
 
     // Validate required fields
     if (!email || !password || !workshopData) {
+      console.log('Missing required fields:', { email: !!email, password: !!password, workshopData: !!workshopData })
       return NextResponse.json(
         { error: 'E-Mail, Passwort und Werkstatt-Daten sind erforderlich.' },
         { status: 400 }
@@ -20,20 +48,25 @@ export async function POST(request) {
     }
 
     // Create auth user
+    console.log('Creating user with Supabase...')
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: false // Require email confirmation
+      email_confirm: true // Enable email confirmation
     })
 
     if (authError) {
+      console.error('Auth error:', authError)
       return NextResponse.json(
         { error: translateAuthError(authError.message) },
         { status: 400 }
       )
     }
+    
+    console.log('User created successfully:', authData.user.id)
 
     // Create workshop record
+    console.log('Creating workshop record...')
     const { data: workshop, error: workshopError } = await supabaseAdmin
       .from('workshops')
       .insert({
@@ -52,6 +85,7 @@ export async function POST(request) {
       .single()
 
     if (workshopError) {
+      console.error('Workshop creation error:', workshopError)
       // Clean up auth user if workshop creation fails
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
       return NextResponse.json(
@@ -59,20 +93,39 @@ export async function POST(request) {
         { status: 500 }
       )
     }
+    
+    console.log('Workshop created successfully:', workshop.id)
 
-    // Create audit log
-    await supabaseAdmin.rpc('create_audit_log', {
-      p_user_id: authData.user.id,
-      p_workshop_id: workshop.id,
-      p_action: 'registration',
-      p_resource_type: 'workshop',
-      p_resource_id: workshop.id,
-      p_details: { 
-        business_type: workshopData.businessType,
-        plan: workshopData.plan 
-      }
-    })
+    // Create audit log (optional - don't fail if function doesn't exist)
+    try {
+      await supabaseAdmin.rpc('create_audit_log', {
+        p_user_id: authData.user.id,
+        p_workshop_id: workshop.id,
+        p_action: 'registration',
+        p_resource_type: 'workshop',
+        p_resource_id: workshop.id,
+        p_details: { 
+          business_type: workshopData.businessType,
+          plan: workshopData.plan 
+        }
+      })
+    } catch (auditError) {
+      console.warn('Failed to create audit log (non-critical):', auditError.message)
+    }
 
+    // Send welcome email
+    try {
+      await sendWelcomeEmail({
+        email,
+        workshopName: workshopData.name,
+        ownerName: workshopData.ownerName || 'Workshop-Inhaber'
+      })
+      console.log('Welcome email sent successfully')
+    } catch (emailError) {
+      console.error('Failed to send welcome email (non-critical):', emailError.message)
+    }
+
+    console.log('Registration completed successfully')
     return NextResponse.json({
       success: true,
       data: {
@@ -84,6 +137,7 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Registration error:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
       { error: 'Ein unerwarteter Fehler ist aufgetreten.' },
       { status: 500 }

@@ -1,6 +1,8 @@
 node_modules/
 .env
 .env.local
+.env.production
+.env.uat
 .next
 
 # Claude Flow generated files

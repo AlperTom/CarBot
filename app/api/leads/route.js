@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
 import { supabaseClient } from '../../../lib/supabase'
+import { checkPackageLimit, recordUsage } from '../../../lib/packageFeatures'
+import { sendLeadNotification } from '../../../lib/email'
 import { v4 as uuidv4 } from 'uuid'
 
 // Create a new lead
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { name, telefon, anliegen, fahrzeug, chatverlauf, consent_given } = body
+    const { name, telefon, anliegen, fahrzeug, chatverlauf, consent_given, kunde_id } = body
 
     // Validation
     if (!name || !telefon || !anliegen) {
@@ -15,12 +17,42 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    // Generate unique kunde_id
-    const kunde_id = `CUST_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    // Get workshop ID from kunde_id (client key)
+    let workshopId = null
+    if (kunde_id) {
+      const { data: workshop } = await supabaseClient
+        .from('workshops')
+        .select('id')
+        .eq('slug', kunde_id)
+        .single()
+      
+      workshopId = workshop?.id
+    }
+
+    // Check package limits before creating lead
+    if (workshopId) {
+      const limitCheck = await checkPackageLimit(workshopId, 'lead', 1)
+      if (!limitCheck.allowed) {
+        return NextResponse.json({
+          error: 'Lead limit exceeded for current package',
+          limit_info: {
+            current_usage: limitCheck.current_usage,
+            limit: limitCheck.limit,
+            package: limitCheck.package,
+            upgrade_required: limitCheck.upgrade_required,
+            upgrade_suggestion: limitCheck.upgrade_suggestion
+          }
+        }, { status: 402 }) // Payment Required
+      }
+    }
+
+    // Generate unique lead ID
+    const leadId = `LEAD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     // Prepare lead data
     const leadData = {
-      kunde_id,
+      kunde_id: kunde_id || 'anonymous',
+      workshop_id: workshopId,
       name: name.trim(),
       telefon: telefon.trim(),
       anliegen: anliegen.trim(),
@@ -46,6 +78,16 @@ export async function POST(request) {
       return NextResponse.json({
         error: 'Unable to process request. Please try again.'
       }, { status: 500 })
+    }
+
+    // Record usage for lead creation
+    if (workshopId) {
+      try {
+        await recordUsage(workshopId, 'leads', 1)
+      } catch (usageError) {
+        console.error('Usage recording error:', usageError)
+        // Don't fail the request if usage recording fails
+      }
     }
 
     // Trigger webhook for lead creation
@@ -250,31 +292,39 @@ async function generateWebhookSignature(payload, secretKey) {
 // Helper function to send workshop notification
 async function sendWorkshopNotification(lead) {
   try {
-    const workshopEmail = process.env.WORKSHOP_EMAIL || 'workshop@example.com'
+    // Get workshop email from the database
+    let workshopEmail = process.env.WORKSHOP_EMAIL || 'demo@carbot.de'
     
+    if (lead.workshop_id) {
+      const { data: workshop } = await supabaseClient
+        .from('workshops')
+        .select('owner_email')
+        .eq('id', lead.workshop_id)
+        .single()
+      
+      if (workshop?.owner_email) {
+        workshopEmail = workshop.owner_email
+      }
+    }
+
+    // Send email using the new email service
+    const emailResult = await sendLeadNotification(lead, workshopEmail)
+    
+    // Also store in database for audit trail
     const emailData = {
       lead_id: lead.id,
-      recipient_email: workshopEmail,
-      subject: `Neue Anfrage von ${lead.name} - ${lead.anliegen.substring(0, 50)}...`,
-      body: `
-        Neue Kundenanfrage eingegangen:
-        
-        Name: ${lead.name}
-        Telefon: ${lead.telefon}
-        Anliegen: ${lead.anliegen}
-        Fahrzeug: ${JSON.stringify(lead.fahrzeug)}
-        Zeitpunkt: ${new Date(lead.timestamp).toLocaleString('de-DE')}
-        
-        Kunden-ID: ${lead.kunde_id}
-        
-        Bitte kontaktieren Sie den Kunden zeitnah.
-      `,
-      status: 'pending'
+      to_email: workshopEmail,
+      subject: `Neue Anfrage von ${lead.name} - ${lead.anliegen?.substring(0, 50) || 'Kundenanfrage'}...`,
+      body: `Lead notification sent via email service`,
+      status: emailResult.success ? 'sent' : 'failed',
+      sent_at: emailResult.success ? new Date().toISOString() : null
     }
 
     await supabaseClient
       .from('email_notifications')
       .insert([emailData])
+
+    console.log('Workshop notification result:', emailResult.success ? 'Success' : 'Failed')
 
   } catch (error) {
     console.error('Workshop notification error:', error)

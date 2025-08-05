@@ -1,32 +1,43 @@
 {
   "version": 2,
+  "name": "carbot-uat",
   "framework": "nextjs",
   "regions": ["fra1"],
+  "env": {
+    "NODE_ENV": "uat",
+    "UAT_MODE": "true",
+    "DEMO_DATA_ENABLED": "true"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "uat"
+    }
+  },
   "functions": {
     "app/api/**/*.js": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
   },
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
         {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "key": "X-Environment",
+          "value": "UAT"
         },
         {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
+          "key": "X-Demo-Mode",
+          "value": "true"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/pricing",
+      "permanent": false
     }
   ]
 }

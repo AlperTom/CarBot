@@ -159,19 +159,40 @@ export async function POST(request) {
     // Choose model based on environment or customer subscription
     const model = process.env.OPENAI_MODEL || 'gpt-3.5-turbo'
     
-    // OpenAI API Call with enhanced context
-    const completion = await openai.chat.completions.create({
-      model: model,
-      messages: [systemMessage, ...messages],
-      max_tokens: 500,
-      temperature: 0.7,
-    })
+    let aiResponse, usage
+    
+    try {
+      // OpenAI API Call with enhanced context
+      const completion = await openai.chat.completions.create({
+        model: model,
+        messages: [systemMessage, ...messages],
+        max_tokens: 500,
+        temperature: 0.7,
+      })
 
-    const aiResponse = completion.choices[0]?.message?.content
-    const usage = completion.usage
+      aiResponse = completion.choices[0]?.message?.content
+      usage = completion.usage
 
-    if (!aiResponse) {
-      throw new Error('No response from AI')
+      if (!aiResponse) {
+        throw new Error('No response from AI')
+      }
+    } catch (openaiError) {
+      console.error('OpenAI API Error:', openaiError.message)
+      
+      // Provide fallback response when OpenAI is unavailable
+      const lastMessage = messages[messages.length - 1]?.content || ''
+      
+      aiResponse = `Entschuldigung, unser KI-Assistent ist momentan nicht verfügbar. 
+      
+Für Ihre Anfrage "${lastMessage.substring(0, 100)}${lastMessage.length > 100 ? '...' : ''}" empfehlen wir Ihnen, uns direkt zu kontaktieren:
+
+📞 **Anrufen**: Rufen Sie uns für eine schnelle Beratung an
+📧 **E-Mail**: Senden Sie uns Ihre Anfrage per E-Mail
+🕐 **Öffnungszeiten**: Montag bis Freitag 8:00-18:00 Uhr
+
+Unser Fachteam hilft Ihnen gerne bei allen Fragen rund um Ihr Fahrzeug weiter!`
+      
+      usage = null
     }
 
     // Track AI usage for cost optimization

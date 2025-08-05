@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Chat Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .chat-test {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #0070f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="chat-test">
+        <h1>🤖 CarBot Chat API Direct Test</h1>
+        
+        <p>Diese Seite testet die Chat-API direkt ohne das Widget-Interface.</p>
+        
+        <div>
+            <button class="test-button" onclick="testConsentRequired()">Test: GDPR Consent Required</button>
+            <button class="test-button" onclick="testChatWithConsent()">Test: Chat mit Consent</button>
+            <button class="test-button" onclick="testMultipleMessages()">Test: Mehrere Nachrichten</button>
+            <button class="test-button" onclick="testGermanResponse()">Test: Deutsche Antwort</button>
+            <button class="test-button" onclick="clearResults()">Clear Results</button>
+        </div>
+        
+        <div id="results" class="results">
+Bereit für Tests. Klicken Sie auf einen Test-Button oben.
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        const CLIENT_KEY = 'testClient';
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString('de-DE');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            results.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = 'Bereit für Tests. Klicken Sie auf einen Test-Button oben.\n';
+        }
+        
+        async function makeRequest(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                return { success: response.ok, data: result, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        async function testConsentRequired() {
+            log('🧪 Test: GDPR Consent Required', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/api/chat`, {
+                messages: [{ role: 'user', content: 'Hallo' }],
+                clientKey: CLIENT_KEY,
+                hasConsent: false
+            });
+            
+            if (!result.success && result.data?.error === 'GDPR consent required') {
+                log('✅ SUCCESS: GDPR Consent korrekt blockiert', 'success');
+                log(`Response: ${result.data.message}`, 'info');
+            } else {
+                log('❌ FAILED: GDPR Consent nicht korrekt implementiert', 'error');
+                log(`Unexpected response: ${JSON.stringify(result)}`, 'error');
+            }
+        }
+        
+        async function testChatWithConsent() {
+            log('🧪 Test: Chat mit GDPR Consent', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/api/chat`, {
+                messages: [{ role: 'user', content: 'Hallo, ich brauche einen Termin für eine Inspektion' }],
+                clientKey: CLIENT_KEY,
+                hasConsent: true
+            });
+            
+            if (result.success && result.data?.text) {
+                log('✅ SUCCESS: Chat Response erhalten', 'success');
+                log(`AI Response: ${result.data.text.substring(0, 200)}...`, 'info');
+                log(`Context: Customer=${result.data.context?.customer}, Services=${result.data.context?.has_services}`, 'info');
+            } else {
+                log('❌ FAILED: Keine Chat Response', 'error');
+                log(`Error: ${JSON.stringify(result)}`, 'error');
+            }
+        }
+        
+        async function testMultipleMessages() {
+            log('🧪 Test: Konversation mit mehreren Nachrichten', 'info');
+            
+            const messages = [
+                { role: 'user', content: 'Hallo' },
+                { role: 'assistant', content: 'Guten Tag! Wie kann ich Ihnen helfen?' },
+                { role: 'user', content: 'Was kostet eine TÜV-Untersuchung für einen BMW?' }
+            ];
+            
+            const result = await makeRequest(`${API_BASE}/api/chat`, {
+                messages: messages,
+                clientKey: CLIENT_KEY,
+                hasConsent: true
+            });
+            
+            if (result.success && result.data?.text) {
+                log('✅ SUCCESS: Konversation funktioniert', 'success');
+                log(`Response: ${result.data.text.substring(0, 200)}...`, 'info');
+            } else {
+                log('❌ FAILED: Konversation fehlt', 'error');
+                log(`Error: ${JSON.stringify(result)}`, 'error');
+            }
+        }
+        
+        async function testGermanResponse() {
+            log('🧪 Test: Deutsche Antwort auf Werkstatt-Frage', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/api/chat`, {
+                messages: [{ role: 'user', content: 'Mein Auto macht komische Geräusche beim Bremsen. Was soll ich tun?' }],
+                clientKey: CLIENT_KEY,
+                hasConsent: true,
+                language: 'de'
+            });
+            
+            if (result.success && result.data?.text) {
+                log('✅ SUCCESS: Deutsche Antwort erhalten', 'success');
+                log(`Full Response: ${result.data.text}`, 'info');
+                
+                // Check if response contains German text
+                const response = result.data.text.toLowerCase();
+                if (response.includes('werkstatt') || response.includes('kontakt') || response.includes('anrufen')) {
+                    log('✅ Response enthält relevante deutsche Begriffe', 'success');
+                } else {
+                    log('⚠️ Response könnte mehr werkstatt-spezifisch sein', 'info');
+                }
+            } else {
+                log('❌ FAILED: Keine deutsche Antwort', 'error');
+                log(`Error: ${JSON.stringify(result)}`, 'error');
+            }
+        }
+        
+        // Auto-run basic test on load
+        window.addEventListener('load', () => {
+            log('🚀 CarBot Chat API Test gestartet', 'success');
+            log('Chat API Server: ' + API_BASE, 'info');
+            log('Client Key: ' + CLIENT_KEY, 'info');
+            log('Bereit für manuelle Tests...', 'info');
+        });
+    </script>
+</body>
+</html>

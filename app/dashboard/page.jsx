@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import DashboardStats from '../../components/DashboardStats'
+import UsageIndicator from '../../components/UsageIndicator'
+import { getWorkshopPackage, checkFeatureAccess } from '../../lib/packageFeatures'
 import Link from 'next/link'
 
 const supabase = createClient(
@@ -14,6 +16,8 @@ export default function DashboardPage() {
   const [setupProgress, setSetupProgress] = useState(0)
   const [recentActivity, setRecentActivity] = useState([])
   const [integrations, setIntegrations] = useState({})
+  const [packageInfo, setPackageInfo] = useState(null)
+  const [features, setFeatures] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -55,6 +59,31 @@ export default function DashboardPage() {
         google: workshopData?.google_connected || false,
         stripe: workshopData?.stripe_connected || false
       })
+
+      // Load package information and feature access
+      if (workshopData?.id) {
+        try {
+          const packageData = await getWorkshopPackage(workshopData.id)
+          setPackageInfo(packageData)
+
+          // Check feature access
+          const featureChecks = await Promise.all([
+            checkFeatureAccess(workshopData.id, 'advancedAnalytics'),
+            checkFeatureAccess(workshopData.id, 'apiAccess'),
+            checkFeatureAccess(workshopData.id, 'phoneSupport'),
+            checkFeatureAccess(workshopData.id, 'customIntegrations')
+          ])
+
+          setFeatures({
+            advancedAnalytics: featureChecks[0].allowed,
+            apiAccess: featureChecks[1].allowed,
+            phoneSupport: featureChecks[2].allowed,
+            customIntegrations: featureChecks[3].allowed
+          })
+        } catch (packageError) {
+          console.error('Error loading package info:', packageError)
+        }
+      }
 
     } catch (error) {
       console.error('Error loading dashboard:', error)
@@ -159,6 +188,13 @@ export default function DashboardPage() {
           >
             Setup fortsetzen
           </Link>
+        </div>
+      )}
+
+      {/* Usage Indicator for Basic/Professional plans */}
+      {packageInfo && workshop?.id && (
+        <div style={{ marginBottom: '30px' }}>
+          <UsageIndicator workshopId={workshop.id} compact={false} />
         </div>
       )}
 
@@ -349,24 +385,38 @@ export default function DashboardPage() {
             icon="⚙️"
             title="Bot konfigurieren"
             description="Einstellungen anpassen"
+            disabled={false}
           />
           <QuickActionButton
             href="/analytics"
             icon="📊"
             title="Analytics ansehen"
-            description="Detaillierte Berichte"
+            description={features.advancedAnalytics ? "Detaillierte Berichte" : "Upgrade für erweiterte Analysen"}
+            disabled={!features.advancedAnalytics}
+            upgradeRequired={!features.advancedAnalytics}
           />
           <QuickActionButton
             href="/dashboard/leads"
             icon="🎯"
             title="Leads verwalten"
             description="Kundenkontakte bearbeiten"
+            disabled={false}
           />
+          {features.apiAccess && (
+            <QuickActionButton
+              href="/dashboard/client-keys"
+              icon="🔑"
+              title="API Keys verwalten"
+              description="API-Zugang konfigurieren"
+              disabled={false}
+            />
+          )}
           <QuickActionButton
             href="/dashboard/help"
             icon="❓"
             title="Hilfe & Support"
-            description="Dokumentation & Chat"
+            description={features.phoneSupport ? "Telefon & E-Mail Support" : "E-Mail Support"}
+            disabled={false}
           />
         </div>
       </div>
@@ -452,42 +502,79 @@ function IntegrationItem({ icon, name, status, description }) {
   )
 }
 
-function QuickActionButton({ href, icon, title, description }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: 'block',
-        padding: '20px',
-        background: '#f8fafc',
-        borderRadius: '8px',
-        textDecoration: 'none',
-        border: '1px solid #e2e8f0',
-        transition: 'all 0.2s'
-      }}
-      onMouseEnter={(e) => {
-        e.target.style.background = '#f1f5f9'
-        e.target.style.transform = 'translateY(-2px)'
-        e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.background = '#f8fafc'
-        e.target.style.transform = 'translateY(0)'
-        e.target.style.boxShadow = 'none'
-      }}
-    >
-      <div style={{ fontSize: '24px', marginBottom: '10px' }}>{icon}</div>
+function QuickActionButton({ href, icon, title, description, disabled = false, upgradeRequired = false }) {
+  const buttonStyle = {
+    display: 'block',
+    padding: '20px',
+    background: disabled ? '#f9fafb' : '#f8fafc',
+    borderRadius: '8px',
+    textDecoration: 'none',
+    border: disabled ? '1px solid #e5e7eb' : '1px solid #e2e8f0',
+    transition: 'all 0.2s',
+    opacity: disabled ? 0.6 : 1,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    position: 'relative'
+  }
+
+  const content = (
+    <>
+      <div style={{ fontSize: '24px', marginBottom: '10px' }}>
+        {disabled && upgradeRequired ? '🔒' : icon}
+      </div>
       <div style={{ 
         fontWeight: 'bold', 
-        color: '#1a202c', 
+        color: disabled ? '#9ca3af' : '#1a202c', 
         fontSize: '16px',
         marginBottom: '5px'
       }}>
         {title}
+        {upgradeRequired && (
+          <span style={{
+            fontSize: '10px',
+            background: '#fbbf24',
+            color: '#92400e',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            marginLeft: '8px'
+          }}>
+            PRO
+          </span>
+        )}
       </div>
-      <div style={{ color: '#6b7280', fontSize: '14px' }}>
+      <div style={{ color: disabled ? '#9ca3af' : '#6b7280', fontSize: '14px' }}>
         {description}
       </div>
+    </>
+  )
+
+  if (disabled) {
+    return (
+      <div style={buttonStyle}>
+        {content}
+      </div>
+    )
+  }
+
+  return (
+    <Link
+      href={href}
+      style={buttonStyle}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.target.style.background = '#f1f5f9'
+          e.target.style.transform = 'translateY(-2px)'
+          e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) {
+          e.target.style.background = '#f8fafc'
+          e.target.style.transform = 'translateY(0)'
+          e.target.style.boxShadow = 'none'
+        }
+      }}
+    >
+      {content}
     </Link>
   )
 }

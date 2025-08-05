@@ -1,0 +1,649 @@
+{
+  "version": 1,
+  "directus": "10.13.0",
+  "vendor": "sqlite",
+  "collections": [
+    {
+      "collection": "services",
+      "meta": {
+        "collection": "services",
+        "icon": "build",
+        "note": "Workshop services like TÜV, Inspektion, Reparaturen",
+        "display_template": "{{name}} - {{price_from}}€",
+        "hidden": false,
+        "singleton": false,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Dienstleistungen",
+            "singular": "Dienstleistung",
+            "plural": "Dienstleistungen"
+          }
+        ],
+        "archive_field": "status",
+        "archive_app_filter": true,
+        "archive_value": "archived",
+        "unarchive_value": "draft",
+        "sort_field": "sort"
+      },
+      "schema": {
+        "name": "services"
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "meta": {
+        "collection": "blog_posts",
+        "icon": "article",
+        "note": "Technical articles and news for workshops",
+        "display_template": "{{title}}",
+        "hidden": false,
+        "singleton": false,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Blog Artikel",
+            "singular": "Artikel",
+            "plural": "Artikel"
+          }
+        ],
+        "archive_field": "status",
+        "archive_app_filter": true,
+        "archive_value": "archived",
+        "unarchive_value": "draft",
+        "sort_field": "date_created"
+      },
+      "schema": {
+        "name": "blog_posts"
+      }
+    },
+    {
+      "collection": "faqs",
+      "meta": {
+        "collection": "faqs",
+        "icon": "help",
+        "note": "Frequently asked questions in multiple languages",
+        "display_template": "{{question}}",
+        "hidden": false,
+        "singleton": false,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "FAQ",
+            "singular": "Frage",
+            "plural": "Fragen"
+          }
+        ],
+        "archive_field": "status",
+        "archive_app_filter": true,
+        "archive_value": "archived",
+        "unarchive_value": "published",
+        "sort_field": "sort"
+      },
+      "schema": {
+        "name": "faqs"
+      }
+    },
+    {
+      "collection": "testimonials",
+      "meta": {
+        "collection": "testimonials",
+        "icon": "star",
+        "note": "Customer testimonials and reviews",
+        "display_template": "{{customer_name}} - {{rating}}/5",
+        "hidden": false,
+        "singleton": false,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Bewertungen",
+            "singular": "Bewertung",
+            "plural": "Bewertungen"
+          }
+        ],
+        "archive_field": "status",
+        "archive_app_filter": true,
+        "archive_value": "archived",
+        "unarchive_value": "published",
+        "sort_field": "date_created"
+      },
+      "schema": {
+        "name": "testimonials"
+      }
+    }
+  ],
+  "fields": [
+    {
+      "collection": "services",
+      "field": "id",
+      "type": "integer",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": true
+      },
+      "schema": {
+        "name": "id",
+        "table": "services",
+        "data_type": "integer",
+        "is_primary_key": true,
+        "has_auto_increment": true,
+        "is_nullable": false
+      }
+    },
+    {
+      "collection": "services",
+      "field": "status",
+      "type": "string",
+      "meta": {
+        "width": "full",
+        "options": {
+          "choices": [
+            {
+              "text": "Entwurf",
+              "value": "draft"
+            },
+            {
+              "text": "Veröffentlicht",
+              "value": "published"
+            },
+            {
+              "text": "Archiviert",
+              "value": "archived"
+            }
+          ]
+        },
+        "interface": "select-dropdown",
+        "display": "labels",
+        "display_options": {
+          "showAsDot": true,
+          "choices": [
+            {
+              "text": "Entwurf",
+              "value": "draft",
+              "foreground": "#FFFFFF",
+              "background": "var(--primary)"
+            },
+            {
+              "text": "Veröffentlicht",
+              "value": "published",
+              "foreground": "#FFFFFF",
+              "background": "var(--success)"
+            },
+            {
+              "text": "Archiviert",
+              "value": "archived",
+              "foreground": "#FFFFFF",
+              "background": "var(--warning)"
+            }
+          ]
+        }
+      },
+      "schema": {
+        "name": "status",
+        "table": "services",
+        "data_type": "varchar",
+        "default_value": "draft",
+        "max_length": 255,
+        "is_nullable": false
+      }
+    },
+    {
+      "collection": "services",
+      "field": "sort",
+      "type": "integer",
+      "meta": {
+        "interface": "input",
+        "hidden": true
+      },
+      "schema": {
+        "name": "sort",
+        "table": "services",
+        "data_type": "integer",
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "services",
+      "field": "name",
+      "type": "string",
+      "meta": {
+        "width": "full",
+        "interface": "input",
+        "display": "formatted-value",
+        "required": true,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Service Name"
+          }
+        ]
+      },
+      "schema": {
+        "name": "name",
+        "table": "services",
+        "data_type": "varchar",
+        "max_length": 255,
+        "is_nullable": false
+      }
+    },
+    {
+      "collection": "services",
+      "field": "slug",
+      "type": "string",
+      "meta": {
+        "width": "full",
+        "interface": "input",
+        "note": "URL-friendly version of the name",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "URL Slug"
+          }
+        ]
+      },
+      "schema": {
+        "name": "slug",
+        "table": "services",
+        "data_type": "varchar",
+        "max_length": 255,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "services",
+      "field": "description",
+      "type": "text",
+      "meta": {
+        "width": "full",
+        "interface": "input-rich-text-html",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Beschreibung"
+          }
+        ]
+      },
+      "schema": {
+        "name": "description",
+        "table": "services",
+        "data_type": "text",
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "services",
+      "field": "category",
+      "type": "string",
+      "meta": {
+        "width": "half",
+        "interface": "select-dropdown",
+        "options": {
+          "choices": [
+            {
+              "text": "TÜV & HU",
+              "value": "tuv-hu"
+            },
+            {
+              "text": "Inspektion",
+              "value": "inspektion"
+            },
+            {
+              "text": "Reparaturen",
+              "value": "reparaturen"
+            },
+            {
+              "text": "Wartung",
+              "value": "wartung"
+            },
+            {
+              "text": "Reifenservice",
+              "value": "reifen"
+            },
+            {
+              "text": "Elektrik",
+              "value": "elektrik"
+            },
+            {
+              "text": "Klimaservice",
+              "value": "klima"
+            },
+            {
+              "text": "Karosserie",
+              "value": "karosserie"
+            }
+          ]
+        },
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Kategorie"
+          }
+        ]
+      },
+      "schema": {
+        "name": "category",
+        "table": "services",
+        "data_type": "varchar",
+        "max_length": 255,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "services",
+      "field": "price_from",
+      "type": "decimal",
+      "meta": {
+        "width": "half",
+        "interface": "input",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Preis ab (EUR)"
+          }
+        ]
+      },
+      "schema": {
+        "name": "price_from",
+        "table": "services",
+        "data_type": "decimal",
+        "numeric_precision": 10,
+        "numeric_scale": 2,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "services",
+      "field": "price_to",
+      "type": "decimal",
+      "meta": {
+        "width": "half",
+        "interface": "input",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Preis bis (EUR)"
+          }
+        ]
+      },
+      "schema": {
+        "name": "price_to",
+        "table": "services",
+        "data_type": "decimal",
+        "numeric_precision": 10,
+        "numeric_scale": 2,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "services",
+      "field": "duration_minutes",
+      "type": "integer",
+      "meta": {
+        "width": "half",
+        "interface": "input",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Dauer (Minuten)"
+          }
+        ]
+      },
+      "schema": {
+        "name": "duration_minutes",
+        "table": "services",
+        "data_type": "integer",
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "services",
+      "field": "image",
+      "type": "uuid",
+      "meta": {
+        "width": "full",
+        "interface": "file-image",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Service Bild"
+          }
+        ]
+      },
+      "schema": {
+        "name": "image",
+        "table": "services",
+        "data_type": "char",
+        "max_length": 36,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "id",
+      "type": "integer",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": true
+      },
+      "schema": {
+        "name": "id",
+        "table": "blog_posts",
+        "data_type": "integer",
+        "is_primary_key": true,
+        "has_auto_increment": true,
+        "is_nullable": false
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "status",
+      "type": "string",
+      "meta": {
+        "width": "full",
+        "options": {
+          "choices": [
+            {
+              "text": "Entwurf",
+              "value": "draft"
+            },
+            {
+              "text": "Veröffentlicht",
+              "value": "published"
+            },
+            {
+              "text": "Archiviert",
+              "value": "archived"
+            }
+          ]
+        },
+        "interface": "select-dropdown",
+        "display": "labels",
+        "display_options": {
+          "showAsDot": true,
+          "choices": [
+            {
+              "text": "Entwurf",
+              "value": "draft",
+              "foreground": "#FFFFFF",
+              "background": "var(--primary)"
+            },
+            {
+              "text": "Veröffentlicht",
+              "value": "published",
+              "foreground": "#FFFFFF",
+              "background": "var(--success)"
+            },
+            {
+              "text": "Archiviert",
+              "value": "archived",
+              "foreground": "#FFFFFF",
+              "background": "var(--warning)"
+            }
+          ]
+        }
+      },
+      "schema": {
+        "name": "status",
+        "table": "blog_posts",
+        "data_type": "varchar",
+        "default_value": "draft",
+        "max_length": 255,
+        "is_nullable": false
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "title",
+      "type": "string",
+      "meta": {
+        "width": "full",
+        "interface": "input",
+        "required": true,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Titel"
+          }
+        ]
+      },
+      "schema": {
+        "name": "title",
+        "table": "blog_posts",
+        "data_type": "varchar",
+        "max_length": 255,
+        "is_nullable": false
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "slug",
+      "type": "string",
+      "meta": {
+        "width": "full",
+        "interface": "input",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "URL Slug"
+          }
+        ]
+      },
+      "schema": {
+        "name": "slug",
+        "table": "blog_posts",
+        "data_type": "varchar",
+        "max_length": 255,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "excerpt",
+      "type": "text",
+      "meta": {
+        "width": "full",
+        "interface": "input-multiline",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Auszug"
+          }
+        ]
+      },
+      "schema": {
+        "name": "excerpt",
+        "table": "blog_posts",
+        "data_type": "text",
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "content",
+      "type": "text",
+      "meta": {
+        "width": "full",
+        "interface": "input-rich-text-html",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Inhalt"
+          }
+        ]
+      },
+      "schema": {
+        "name": "content",
+        "table": "blog_posts",
+        "data_type": "text",
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "featured_image",
+      "type": "uuid",
+      "meta": {
+        "width": "full",
+        "interface": "file-image",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Titelbild"
+          }
+        ]
+      },
+      "schema": {
+        "name": "featured_image",
+        "table": "blog_posts",
+        "data_type": "char",
+        "max_length": 36,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "author",
+      "type": "string",
+      "meta": {
+        "width": "half",
+        "interface": "input",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Autor"
+          }
+        ]
+      },
+      "schema": {
+        "name": "author",
+        "table": "blog_posts",
+        "data_type": "varchar",
+        "max_length": 255,
+        "is_nullable": true
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "field": "published_date",
+      "type": "datetime",
+      "meta": {
+        "width": "half",
+        "interface": "datetime",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Veröffentlichungsdatum"
+          }
+        ]
+      },
+      "schema": {
+        "name": "published_date",
+        "table": "blog_posts",
+        "data_type": "datetime",
+        "is_nullable": true
+      }
+    }
+  ]
+}

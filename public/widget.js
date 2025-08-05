@@ -138,7 +138,7 @@
     
     createChatFrame() {
       this.chatFrame = document.createElement('iframe');
-      this.chatFrame.src = `https://carbot.chat/widget-chat?client=${encodeURIComponent(this.clientKey)}`;
+      this.chatFrame.src = `http://localhost:3001/widget-chat?client=${encodeURIComponent(this.clientKey)}`;
       this.chatFrame.style.display = 'none';
       
       const frameStyles = {

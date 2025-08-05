@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarBot Chat Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-page {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .workshop-info {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #0070f3;
+        }
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .service {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .chat-instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-page">
+        <h1>🚗 Test Autowerkstatt Schmidt</h1>
+        
+        <div class="workshop-info">
+            <h2>Ihre KFZ-Werkstatt in Berlin</h2>
+            <p><strong>Adresse:</strong> Teststraße 123, 12345 Berlin</p>
+            <p><strong>Telefon:</strong> +49 30 12345678</p>
+            <p><strong>Öffnungszeiten:</strong> Mo-Fr 8:00-18:00, Sa 9:00-14:00</p>
+        </div>
+
+        <h3>Unsere Services</h3>
+        <div class="services">
+            <div class="service">
+                <h4>🔧 Inspektion</h4>
+                <p>Regelmäßige Wartung nach Herstellervorgaben</p>
+            </div>
+            <div class="service">
+                <h4>🛠️ Reparaturen</h4>
+                <p>Motor, Getriebe, Bremsen, Elektronik</p>
+            </div>
+            <div class="service">
+                <h4>🚙 TÜV/HU</h4>
+                <p>Hauptuntersuchung und Abgasuntersuchung</p>
+            </div>
+            <div class="service">
+                <h4>🔋 Klimaservice</h4>
+                <p>Klimaanlagen-Wartung und -Reparatur</p>
+            </div>
+        </div>
+
+        <div class="chat-instructions">
+            <h3>💬 Chat-Test Anweisungen</h3>
+            <p><strong>Testen Sie den ChatBot mit diesen Fragen:</strong></p>
+            <ul>
+                <li>"Hallo, ich brauche einen Termin für eine Inspektion"</li>
+                <li>"Was kostet eine TÜV-Untersuchung?"</li>
+                <li>"Repariert ihr auch BMW?"</li>
+                <li>"Habt ihr heute geöffnet?"</li>
+                <li>"Mein Auto macht komische Geräusche beim Bremsen"</li>
+            </ul>
+            <p><em>Der Chat-Button sollte unten rechts erscheinen. Klicken Sie darauf um zu starten!</em></p>
+        </div>
+
+        <h3>Kontakt</h3>
+        <p>Bei Fragen können Sie uns auch direkt anrufen oder eine E-Mail schreiben. Unser freundliches Team hilft Ihnen gerne weiter!</p>
+    </div>
+
+    <!-- CarBot Chat Widget Integration -->
+    <script src="http://localhost:3001/widget.js" 
+            data-client="testClient" 
+            data-position="bottom-right" 
+            data-color="#0070f3" 
+            async></script>
+</body>
+</html>

@@ -1,0 +1,1215 @@
+{
+  "version": 1,
+  "directus": "10.10.0",
+  "vendor": "sqlite",
+  "collections": [
+    {
+      "collection": "workshop_services",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": true,
+        "archive_field": "status",
+        "archive_value": "archived",
+        "collapse": "open",
+        "collection": "workshop_services",
+        "color": "#2196F3",
+        "display_template": "{{title}} - {{category}}",
+        "group": null,
+        "hidden": false,
+        "icon": "build",
+        "item_duplication_fields": null,
+        "note": "Workshop services offered to customers",
+        "preview_url": null,
+        "singleton": false,
+        "sort": 1,
+        "sort_field": "sort",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Werkstatt-Services"
+          },
+          {
+            "language": "en-US",
+            "translation": "Workshop Services"
+          }
+        ],
+        "unarchive_value": "draft",
+        "versioning": false
+      },
+      "schema": {
+        "name": "workshop_services"
+      }
+    },
+    {
+      "collection": "blog_posts",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": true,
+        "archive_field": "status",
+        "archive_value": "archived",
+        "collapse": "open",
+        "collection": "blog_posts",
+        "color": "#4CAF50",
+        "display_template": "{{title}} - {{date_created}}",
+        "group": null,
+        "hidden": false,
+        "icon": "article",
+        "item_duplication_fields": null,
+        "note": "Blog posts and news articles",
+        "preview_url": null,
+        "singleton": false,
+        "sort": 2,
+        "sort_field": "date_created",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Blog-Artikel"
+          },
+          {
+            "language": "en-US",
+            "translation": "Blog Posts"
+          }
+        ],
+        "unarchive_value": "draft",
+        "versioning": true
+      },
+      "schema": {
+        "name": "blog_posts"
+      }
+    },
+    {
+      "collection": "faqs",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": true,
+        "archive_field": "status",
+        "archive_value": "archived",
+        "collapse": "open",
+        "collection": "faqs",
+        "color": "#FF9800",
+        "display_template": "{{question}}",
+        "group": null,
+        "hidden": false,
+        "icon": "help",
+        "item_duplication_fields": null,
+        "note": "Frequently asked questions",
+        "preview_url": null,
+        "singleton": false,
+        "sort": 3,
+        "sort_field": "sort",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Häufige Fragen"
+          },
+          {
+            "language": "en-US",
+            "translation": "FAQs"
+          }
+        ],
+        "unarchive_value": "draft",
+        "versioning": false
+      },
+      "schema": {
+        "name": "faqs"
+      }
+    },
+    {
+      "collection": "testimonials",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": true,
+        "archive_field": "status",
+        "archive_value": "archived",
+        "collapse": "open",
+        "collection": "testimonials",
+        "color": "#9C27B0",
+        "display_template": "{{customer_name}} - {{rating}} Sterne",
+        "group": null,
+        "hidden": false,
+        "icon": "star",
+        "item_duplication_fields": null,
+        "note": "Customer testimonials and reviews",
+        "preview_url": null,
+        "singleton": false,
+        "sort": 4,
+        "sort_field": "date_created",
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Kundenbewertungen"
+          },
+          {
+            "language": "en-US",
+            "translation": "Testimonials"
+          }
+        ],
+        "unarchive_value": "draft",
+        "versioning": false
+      },
+      "schema": {
+        "name": "testimonials"
+      }
+    },
+    {
+      "collection": "landing_pages",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": true,
+        "archive_field": "status",
+        "archive_value": "archived",
+        "collapse": "open",
+        "collection": "landing_pages",
+        "color": "#E91E63",
+        "display_template": "{{title}}",
+        "group": null,
+        "hidden": false,
+        "icon": "web",
+        "item_duplication_fields": null,
+        "note": "Marketing landing pages",
+        "preview_url": null,
+        "singleton": false,
+        "sort": 5,
+        "sort_field": null,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Landing Pages"
+          },
+          {
+            "language": "en-US",
+            "translation": "Landing Pages"
+          }
+        ],
+        "unarchive_value": "draft",
+        "versioning": true
+      },
+      "schema": {
+        "name": "landing_pages"
+      }
+    },
+    {
+      "collection": "about_pages",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": true,
+        "archive_field": "status",
+        "archive_value": "archived",
+        "collapse": "open",
+        "collection": "about_pages",
+        "color": "#607D8B",
+        "display_template": "{{title}} - {{type}}",
+        "group": null,
+        "hidden": false,
+        "icon": "info",
+        "item_duplication_fields": null,
+        "note": "About pages - company, team, history",
+        "preview_url": null,
+        "singleton": false,
+        "sort": 6,
+        "sort_field": null,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Über uns"
+          },
+          {
+            "language": "en-US",
+            "translation": "About Pages"
+          }
+        ],
+        "unarchive_value": "draft",
+        "versioning": true
+      },
+      "schema": {
+        "name": "about_pages"
+      }
+    },
+    {
+      "collection": "legal_pages",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": true,
+        "archive_field": "status",
+        "archive_value": "archived",
+        "collapse": "open",
+        "collection": "legal_pages",
+        "color": "#795548",
+        "display_template": "{{title}} - {{type}}",
+        "group": null,
+        "hidden": false,
+        "icon": "gavel",
+        "item_duplication_fields": null,
+        "note": "Legal pages - Impressum, Datenschutz, AGB",
+        "preview_url": null,
+        "singleton": false,
+        "sort": 7,
+        "sort_field": null,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Rechtliche Seiten"
+          },
+          {
+            "language": "en-US",
+            "translation": "Legal Pages"
+          }
+        ],
+        "unarchive_value": "draft",
+        "versioning": true
+      },
+      "schema": {
+        "name": "legal_pages"
+      }
+    },
+    {
+      "collection": "contact_info",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": false,
+        "archive_field": null,
+        "archive_value": null,
+        "collapse": "open",
+        "collection": "contact_info",
+        "color": "#03A9F4",
+        "display_template": "{{company_name}}",
+        "group": null,
+        "hidden": false,
+        "icon": "contact_phone",
+        "item_duplication_fields": null,
+        "note": "Contact information and business details",
+        "preview_url": null,
+        "singleton": true,
+        "sort": 8,
+        "sort_field": null,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Kontaktinformationen"
+          },
+          {
+            "language": "en-US",
+            "translation": "Contact Information"
+          }
+        ],
+        "unarchive_value": null,
+        "versioning": false
+      },
+      "schema": {
+        "name": "contact_info"
+      }
+    },
+    {
+      "collection": "site_settings",
+      "meta": {
+        "accountability": "all",
+        "archive_app_filter": false,
+        "archive_field": null,
+        "archive_value": null,
+        "collapse": "open",
+        "collection": "site_settings",
+        "color": "#FF5722",
+        "display_template": "{{site_name}}",
+        "group": null,
+        "hidden": false,
+        "icon": "settings",
+        "item_duplication_fields": null,
+        "note": "General site settings and configuration",
+        "preview_url": null,
+        "singleton": true,
+        "sort": 9,
+        "sort_field": null,
+        "translations": [
+          {
+            "language": "de-DE",
+            "translation": "Website-Einstellungen"
+          },
+          {
+            "language": "en-US",
+            "translation": "Site Settings"
+          }
+        ],
+        "unarchive_value": null,
+        "versioning": false
+      },
+      "schema": {
+        "name": "site_settings"
+      }
+    }
+  ],
+  "fields": [
+    {
+      "collection": "workshop_services",
+      "field": "id",
+      "type": "integer",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "id",
+        "group": null,
+        "hidden": true,
+        "interface": "input",
+        "note": null,
+        "options": null,
+        "readonly": true,
+        "required": false,
+        "sort": 1,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "full"
+      },
+      "schema": {
+        "name": "id",
+        "table": "workshop_services",
+        "data_type": "integer",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": false,
+        "is_unique": true,
+        "is_primary_key": true,
+        "has_auto_increment": true,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "status",
+      "type": "string",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": "labels",
+        "display_options": {
+          "choices": [
+            {
+              "text": "Entwurf",
+              "value": "draft"
+            },
+            {
+              "text": "Veröffentlicht",
+              "value": "published"
+            },
+            {
+              "text": "Archiviert",
+              "value": "archived"
+            }
+          ]
+        },
+        "field": "status",
+        "group": null,
+        "hidden": false,
+        "interface": "select-dropdown",
+        "note": null,
+        "options": {
+          "choices": [
+            {
+              "text": "Entwurf",
+              "value": "draft"
+            },
+            {
+              "text": "Veröffentlicht",
+              "value": "published"
+            },
+            {
+              "text": "Archiviert",
+              "value": "archived"
+            }
+          ]
+        },
+        "readonly": false,
+        "required": false,
+        "sort": 2,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "status",
+        "table": "workshop_services",
+        "data_type": "varchar",
+        "default_value": "draft",
+        "generation_expression": null,
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": false,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "sort",
+      "type": "integer",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "sort",
+        "group": null,
+        "hidden": true,
+        "interface": "input",
+        "note": null,
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 3,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "sort",
+        "table": "workshop_services",
+        "data_type": "integer",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "title",
+      "type": "string",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "title",
+        "group": null,
+        "hidden": false,
+        "interface": "input",
+        "note": "Service title in German",
+        "options": null,
+        "readonly": false,
+        "required": true,
+        "sort": 4,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "full"
+      },
+      "schema": {
+        "name": "title",
+        "table": "workshop_services",
+        "data_type": "varchar",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": false,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "slug",
+      "type": "string",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "slug",
+        "group": null,
+        "hidden": false,
+        "interface": "input",
+        "note": "URL slug for the service",
+        "options": null,
+        "readonly": false,
+        "required": true,
+        "sort": 5,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "slug",
+        "table": "workshop_services",
+        "data_type": "varchar",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": false,
+        "is_unique": true,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "category",
+      "type": "string",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "category",
+        "group": null,
+        "hidden": false,
+        "interface": "select-dropdown",
+        "note": "Service category",
+        "options": {
+          "choices": [
+            {
+              "text": "TÜV & HU",
+              "value": "tuv"
+            },
+            {
+              "text": "Inspektion",
+              "value": "inspection"
+            },
+            {
+              "text": "Reparaturen",
+              "value": "repairs"
+            },
+            {
+              "text": "Wartung",
+              "value": "maintenance"
+            },
+            {
+              "text": "Klimaservice",
+              "value": "climate"
+            },
+            {
+              "text": "Reifenservice",
+              "value": "tires"
+            },
+            {
+              "text": "Elektrik",
+              "value": "electrical"
+            },
+            {
+              "text": "Karosserie",
+              "value": "bodywork"
+            }
+          ]
+        },
+        "readonly": false,
+        "required": true,
+        "sort": 6,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "category",
+        "table": "workshop_services",
+        "data_type": "varchar",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": false,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "description",
+      "type": "text",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "description",
+        "group": null,
+        "hidden": false,
+        "interface": "input-multiline",
+        "note": "Short description for listings",
+        "options": null,
+        "readonly": false,
+        "required": true,
+        "sort": 7,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "full"
+      },
+      "schema": {
+        "name": "description",
+        "table": "workshop_services",
+        "data_type": "text",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": false,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "long_description",
+      "type": "text",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "long_description",
+        "group": null,
+        "hidden": false,
+        "interface": "input-rich-text-html",
+        "note": "Detailed description with HTML formatting",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 8,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "full"
+      },
+      "schema": {
+        "name": "long_description",
+        "table": "workshop_services",
+        "data_type": "text",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "price_from",
+      "type": "decimal",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "price_from",
+        "group": null,
+        "hidden": false,
+        "interface": "input",
+        "note": "Starting price in EUR",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 9,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "price_from",
+        "table": "workshop_services",
+        "data_type": "decimal",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": 10,
+        "numeric_scale": 2,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "price_to",
+      "type": "decimal",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "price_to",
+        "group": null,
+        "hidden": false,
+        "interface": "input",
+        "note": "Maximum price in EUR (optional)",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 10,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "price_to",
+        "table": "workshop_services",
+        "data_type": "decimal",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": 10,
+        "numeric_scale": 2,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "duration",
+      "type": "string",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "duration",
+        "group": null,
+        "hidden": false,
+        "interface": "input",
+        "note": "Estimated duration (e.g., 2-3 Stunden)",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 11,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "duration",
+        "table": "workshop_services",
+        "data_type": "varchar",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": 100,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "image",
+      "type": "uuid",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": "image",
+        "display_options": null,
+        "field": "image",
+        "group": null,
+        "hidden": false,
+        "interface": "file-image",
+        "note": "Main service image",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 12,
+        "special": [
+          "file"
+        ],
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "image",
+        "table": "workshop_services",
+        "data_type": "char",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": 36,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": "id",
+        "foreign_key_table": "directus_files",
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "gallery",
+      "type": "json",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "gallery",
+        "group": null,
+        "hidden": false,
+        "interface": "files",
+        "note": "Image gallery for the service",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 13,
+        "special": [
+          "files"
+        ],
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "full"
+      },
+      "schema": {
+        "name": "gallery",
+        "table": "workshop_services",
+        "data_type": "json",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "features",
+      "type": "json",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "features",
+        "group": null,
+        "hidden": false,
+        "interface": "list",
+        "note": "List of service features/benefits",
+        "options": {
+          "template": "{{feature}}"
+        },
+        "readonly": false,
+        "required": false,
+        "sort": 14,
+        "special": [
+          "cast-json"
+        ],
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "features",
+        "table": "workshop_services",
+        "data_type": "json",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "requirements",
+      "type": "json",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "requirements",
+        "group": null,
+        "hidden": false,
+        "interface": "list",
+        "note": "What customers need to bring/prepare",
+        "options": {
+          "template": "{{requirement}}"
+        },
+        "readonly": false,
+        "required": false,
+        "sort": 15,
+        "special": [
+          "cast-json"
+        ],
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "requirements",
+        "table": "workshop_services",
+        "data_type": "json",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "languages",
+      "type": "json",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "languages",
+        "group": null,
+        "hidden": false,
+        "interface": "select-multiple-dropdown",
+        "note": "Available languages for this service",
+        "options": {
+          "choices": [
+            {
+              "text": "Deutsch",
+              "value": "de"
+            },
+            {
+              "text": "English",
+              "value": "en"
+            },
+            {
+              "text": "Türkçe",
+              "value": "tr"
+            },
+            {
+              "text": "Polski",
+              "value": "pl"
+            }
+          ]
+        },
+        "readonly": false,
+        "required": false,
+        "sort": 16,
+        "special": [
+          "cast-json"
+        ],
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "half"
+      },
+      "schema": {
+        "name": "languages",
+        "table": "workshop_services",
+        "data_type": "json",
+        "default_value": "[\"de\"]",
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "meta_title",
+      "type": "string",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "meta_title",
+        "group": "seo",
+        "hidden": false,
+        "interface": "input",
+        "note": "SEO title tag",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 17,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "full"
+      },
+      "schema": {
+        "name": "meta_title",
+        "table": "workshop_services",
+        "data_type": "varchar",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": 255,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    },
+    {
+      "collection": "workshop_services",
+      "field": "meta_description",
+      "type": "text",
+      "meta": {
+        "collection": "workshop_services",
+        "conditions": null,
+        "display": null,
+        "display_options": null,
+        "field": "meta_description",
+        "group": "seo",
+        "hidden": false,
+        "interface": "input-multiline",
+        "note": "SEO meta description",
+        "options": null,
+        "readonly": false,
+        "required": false,
+        "sort": 18,
+        "special": null,
+        "translations": null,
+        "validation": null,
+        "validation_message": null,
+        "width": "full"
+      },
+      "schema": {
+        "name": "meta_description",
+        "table": "workshop_services",
+        "data_type": "text",
+        "default_value": null,
+        "generation_expression": null,
+        "max_length": null,
+        "numeric_precision": null,
+        "numeric_scale": null,
+        "is_generated": false,
+        "is_nullable": true,
+        "is_unique": false,
+        "is_unique": false,
+        "is_primary_key": false,
+        "has_auto_increment": false,
+        "foreign_key_column": null,
+        "foreign_key_table": null,
+        "comment": ""
+      }
+    }
+  ]
+}

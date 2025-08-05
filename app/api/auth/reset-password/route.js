@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { sendPasswordResetEmail } from '../../../../lib/email'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -33,6 +34,24 @@ export async function POST(request) {
           { error: translateAuthError(error.message) },
           { status: 400 }
         )
+      }
+
+      // Send custom password reset email
+      try {
+        const { data: workshop } = await supabaseAdmin
+          .from('workshops')
+          .select('name')
+          .eq('owner_email', email)
+          .single()
+
+        await sendPasswordResetEmail({
+          email,
+          resetUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+          workshopName: workshop?.name
+        })
+        console.log('Password reset email sent successfully')
+      } catch (emailError) {
+        console.error('Failed to send password reset email (non-critical):', emailError.message)
       }
 
       // Create audit log (if user exists)

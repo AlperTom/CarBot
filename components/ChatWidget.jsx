@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { detectLanguage, getTranslation, getSystemPrompt } from '../lib/i18n'
+import { checkPackageLimit, recordUsage } from '../lib/packageFeatures'
 import AppointmentBooking from './AppointmentBooking'
 
 const supabase = createClient(
@@ -50,6 +51,8 @@ export default function ChatWidget({
     communication: false,
     analytics: false
   })
+  const [leadLimitReached, setLeadLimitReached] = useState(false)
+  const [packageInfo, setPackageInfo] = useState(null)
 
   // Check for existing consent and detect language on component mount
   useEffect(() => {
@@ -66,7 +69,31 @@ export default function ChatWidget({
     // Detect user language
     const userLanguage = detectLanguage('', navigator.userAgent, navigator.language)
     setLanguage(userLanguage)
-  }, [])
+
+    // Check package limits for lead creation
+    checkLeadLimits()
+  }, [clientKey])
+
+  const checkLeadLimits = async () => {
+    if (!clientKey) return
+
+    try {
+      // Get workshop ID from clientKey
+      const { data: workshop } = await supabase
+        .from('workshops')
+        .select('id')
+        .eq('slug', clientKey)
+        .single()
+
+      if (workshop?.id) {
+        const limitCheck = await checkPackageLimit(workshop.id, 'lead', 1)
+        setLeadLimitReached(!limitCheck.allowed)
+        setPackageInfo(limitCheck)
+      }
+    } catch (error) {
+      console.error('Error checking lead limits:', error)
+    }
+  }
 
   const handleConsentSubmit = async () => {
     if (!consentData.dataProcessing) {
@@ -217,6 +244,20 @@ export default function ChatWidget({
       return
     }
 
+    // Check lead limits before submission
+    if (leadLimitReached) {
+      const upgradeMessage = language === 'de' ? 
+        `Ihr monatliches Lead-Limit wurde erreicht. Upgraden Sie auf ${packageInfo?.upgrade_suggestion} für unbegrenzte Leads.` :
+        language === 'en' ? 
+        `Your monthly lead limit has been reached. Upgrade to ${packageInfo?.upgrade_suggestion} for unlimited leads.` :
+        language === 'tr' ? 
+        `Aylık lead limitinize ulaştınız. Sınırsız leadler için ${packageInfo?.upgrade_suggestion} planına yükseltin.` :
+        `Osiągnięto miesięczny limit leadów. Przejdź na plan ${packageInfo?.upgrade_suggestion} dla nielimitowanych leadów.`
+      
+      alert(upgradeMessage)
+      return
+    }
+
     const lead = {
       kunde_id: clientKey || 'anonymous',
       name: leadData.name,
@@ -232,6 +273,23 @@ export default function ChatWidget({
     try {
       // Store lead in database
       const { data: insertedLead } = await supabase.from('leads').insert(lead).select().single()
+
+      // Record usage for lead creation
+      try {
+        const { data: workshop } = await supabase
+          .from('workshops')
+          .select('id')
+          .eq('slug', clientKey)
+          .single()
+
+        if (workshop?.id) {
+          await recordUsage(workshop.id, 'leads', 1)
+          // Re-check limits after recording usage
+          await checkLeadLimits()
+        }
+      } catch (usageError) {
+        console.error('Usage recording error:', usageError)
+      }
 
       // Score the lead automatically
       try {
@@ -662,18 +720,23 @@ export default function ChatWidget({
         <div style={{ display: 'flex', gap: 5 }}>
           <button 
             onClick={() => setShowLeadForm(true)}
+            disabled={leadLimitReached}
             style={{ 
-              background: 'rgba(255,255,255,0.2)', 
+              background: leadLimitReached ? 'rgba(255,0,0,0.3)' : 'rgba(255,255,255,0.2)', 
               border: 'none', 
-              color: 'white', 
-              cursor: 'pointer',
+              color: leadLimitReached ? '#ffcccc' : 'white', 
+              cursor: leadLimitReached ? 'not-allowed' : 'pointer',
               fontSize: '11px',
               padding: '4px 8px',
-              borderRadius: 4
+              borderRadius: 4,
+              opacity: leadLimitReached ? 0.6 : 1
             }}
-            title="Rückruf anfordern"
+            title={leadLimitReached ? 
+              (language === 'de' ? 'Lead-Limit erreicht - Upgrade erforderlich' : 'Lead limit reached - Upgrade required') :
+              'Rückruf anfordern'
+            }
           >
-            📞
+            {leadLimitReached ? '🚫' : '📞'}
           </button>
           <button 
             onClick={() => setShowAppointmentBooking(true)}
