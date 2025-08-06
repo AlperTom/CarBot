@@ -1,4 +1,38 @@
 import Link from 'next/link'
+import { Metadata } from 'next'
+
+export const metadata = {
+  title: 'CarBot - KI-gestützte Kundenberatung für Autowerkstätten | 24/7 Chatbot',
+  description: 'Automatisieren Sie Ihre Kundenberatung mit CarBot. Terminbuchung, Lead-Generierung und Kundenservice in 4 Sprachen. 30 Tage kostenlos testen.',
+  keywords: 'KI Chatbot Autowerkstatt, Automatisierte Terminbuchung, Kundenberatung KFZ, Werkstatt Software, Lead Generierung, Automotive KI',
+  openGraph: {
+    title: 'CarBot - KI-gestützte Kundenberatung für Autowerkstätten',
+    description: 'Revolutionieren Sie Ihre Werkstatt mit KI-gestützter Kundenberatung. Automatische Terminbuchung, Lead-Generierung und 24/7 Service.',
+    type: 'website',
+    url: 'https://carbot.de',
+    siteName: 'CarBot',
+    images: [{
+      url: '/api/og?title=CarBot - KI für Autowerkstätten',
+      width: 1200,
+      height: 630,
+      alt: 'CarBot KI-Chatbot für Autowerkstätten'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CarBot - KI-gestützte Kundenberatung für Autowerkstätten',
+    description: 'Automatisieren Sie Terminbuchung und Kundenservice mit KI. 30 Tage kostenlos testen.',
+    images: ['/api/og?title=CarBot - KI für Autowerkstätten']
+  },
+  alternates: {
+    canonical: 'https://carbot.de'
+  },
+  robots: 'index, follow',
+  authors: [{ name: 'CarBot Team' }],
+  category: 'Automotive Software',
+  viewport: 'width=device-width, initial-scale=1',
+  themeColor: '#ea580c'
+}
 
 export default function Home() {
   return (
@@ -365,6 +399,352 @@ export default function Home() {
                 Tiefe Einblicke in Kundenverhalten, Lead-Qualität und ROI-Metriken. 
                 Datengetriebene Optimierung Ihrer Werkstatt-Performance.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Blog Section */}
+        <section style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '5rem 1.5rem'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <h2 style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              marginBottom: '1rem',
+              color: 'white'
+            }}>
+              Werkstatt-Expertise
+            </h2>
+            <p style={{
+              fontSize: '1.125rem',
+              color: '#d1d5db',
+              maxWidth: '512px',
+              margin: '0 auto'
+            }}>
+              Praktische Tipps und Trends für erfolgreiche Autowerkstätten
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '2rem'
+          }}>
+            <Link href="/blog/ki-chatbot-autowerkstatt" style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'block'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(249, 115, 22, 0.2)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <svg width="24" height="24" fill="#fb923c" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                KI-Chatbot für Autowerkstätten
+              </h3>
+              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
+                Automatisierte Kundenberatung, Terminbuchung und Lead-Generierung für Werkstätten
+              </p>
+            </Link>
+
+            <Link href="/blog/automatisierte-terminbuchung-werkstatt" style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'block'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(168, 85, 247, 0.2)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <svg width="24" height="24" fill="#a855f7" viewBox="0 0 24 24">
+                  <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                Automatisierte Terminbuchung
+              </h3>
+              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
+                Online-Terminbuchung, Kalenderintegration und automatische Erinnerungen
+              </p>
+            </Link>
+
+            <Link href="/blog/werkstatt-digitalisierung-2025" style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'block'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(59, 130, 246, 0.2)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <svg width="24" height="24" fill="#3b82f6" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                Werkstatt Digitalisierung 2025
+              </h3>
+              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
+                Kompletter Leitfaden zur digitalen Transformation von Autowerkstätten
+              </p>
+            </Link>
+
+            <Link href="/blog/lead-generierung-kfz-betriebe" style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'block'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(34, 197, 94, 0.2)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <svg width="24" height="24" fill="#22c55e" viewBox="0 0 24 24">
+                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                Lead-Generierung für KFZ-Betriebe
+              </h3>
+              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
+                Moderne Strategien für nachhaltige Neukundengewinnung in Autowerkstätten
+              </p>
+            </Link>
+
+            <Link href="/blog/customer-service-automatisierung-werkstatt" style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'block'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(251, 146, 60, 0.2)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <svg width="24" height="24" fill="#fb923c" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM13 19h-2v-2h2v2zm0-4h-2V7h2v8z"/>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                Customer Service Automatisierung
+              </h3>
+              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
+                Effizienz steigern durch intelligente Automatisierung im Werkstatt-Service
+              </p>
+            </Link>
+
+            <Link href="/blog/dsgvo-konforme-kundenkommunikation" style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'block'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(239, 68, 68, 0.2)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <svg width="24" height="24" fill="#ef4444" viewBox="0 0 24 24">
+                  <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                DSGVO-konforme Kommunikation
+              </h3>
+              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
+                Rechtssichere Kundenkommunikation und Datenschutz für Autowerkstätten
+              </p>
+            </Link>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+            <div style={{
+              display: 'inline-block',
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '12px',
+              padding: '1rem'
+            }}>
+              <p style={{ 
+                color: '#d1d5db', 
+                marginBottom: '1rem',
+                fontSize: '0.875rem'
+              }}>
+                Weitere Themen:
+              </p>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '0.75rem',
+                fontSize: '0.875rem'
+              }}>
+                <Link href="/blog/roi-werkstatt-software-investition" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  ROI Werkstatt-Software
+                </Link>
+                <Link href="/blog/mobile-first-werkstatt-experience" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  Mobile-First Experience
+                </Link>
+                <Link href="/blog/predictive-maintenance-ki-werkstatt" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  Predictive Maintenance
+                </Link>
+                <Link href="/blog/social-media-marketing-werkstatten" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  Social Media Marketing
+                </Link>
+                <Link href="/blog/elektroauto-wartung-werkstatten" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  Elektroauto-Wartung
+                </Link>
+                <Link href="/blog/werkstatt-crm-systeme-vergleich" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  CRM-Systeme Vergleich
+                </Link>
+                <Link href="/blog/kundenbindung-autowerkstatt-strategien" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  Kundenbindung Strategien
+                </Link>
+                <Link href="/blog/werkstatt-marketing-trends-2025" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  Marketing Trends 2025
+                </Link>
+                <Link href="/blog/nachhaltigkeit-kfz-betriebe-zukunft" style={{ 
+                  color: '#a855f7', 
+                  textDecoration: 'none',
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  transition: 'background-color 0.2s',
+                  display: 'block'
+                }}>
+                  Nachhaltigkeit in KFZ
+                </Link>
+              </div>
             </div>
           </div>
         </section>

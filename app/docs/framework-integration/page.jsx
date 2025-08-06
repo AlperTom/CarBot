@@ -112,7 +112,7 @@ export default function FrameworkIntegrationPage() {
               </p>
             </div>
             <div style={{
-              border: '2px solid '#dd0031',
+              border: '2px solid #dd0031',
               borderRadius: '8px',
               padding: '1rem',
               background: 'rgba(221, 0, 49, 0.1)',
