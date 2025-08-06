@@ -458,7 +458,7 @@ export default function BlogPost() {
                 <strong>KI-Empfehlungen:</strong><br />
                 💡 Nach Bremsenreparatur → "Reifen prüfen lassen?"<br />
                 💡 Bei Wintercheck → "Batterie-Test dazu buchen?"<br />
-                💡 Fahrzeug > 8 Jahre → "Zusätzliche Garantie?"
+                💡 Fahrzeug &gt; 8 Jahre → "Zusätzliche Garantie?"
               </div>
             </div>
           </GlassCard>

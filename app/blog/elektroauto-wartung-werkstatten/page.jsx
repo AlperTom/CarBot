@@ -634,7 +634,7 @@ export default function BlogPost() {
               }}>
                 <h4 style={{ color: '#ef4444', fontSize: '1rem', marginBottom: '0.5rem' }}>🚨 Rechtlich verpflichtend!</h4>
                 <p style={{ fontSize: '0.875rem', margin: 0 }}>
-                  Arbeiten an Hochvolt-Systemen (>60V) dürfen nur von qualifiziertem Personal 
+                  Arbeiten an Hochvolt-Systemen (&gt;60V) dürfen nur von qualifiziertem Personal 
                   durchgeführt werden. Ohne HV-Schein: <strong>Versicherungsschutz erlischt!</strong>
                 </p>
               </div>
