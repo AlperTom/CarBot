@@ -33,11 +33,5 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/pricing",
-      "permanent": false
-    }
-  ]
+  "redirects": []
 }
