@@ -53,7 +53,8 @@ export default function DashboardStats({ customerSlug }) {
       icon: '🎯',
       color: '#0070f3',
       suffix: '',
-      change: '+12%'
+      change: '+12%',
+      urgent: stats.leads > 80 && stats.leads < 100 // Near limit warning
     },
     {
       title: 'Conversion Rate',
@@ -196,6 +197,7 @@ export default function DashboardStats({ customerSlug }) {
             color={stat.color}
             suffix={stat.suffix}
             change={stat.change}
+            urgent={stat.urgent}
           />
         ))}
       </div>
@@ -237,7 +239,7 @@ export default function DashboardStats({ customerSlug }) {
   )
 }
 
-function StatCard({ title, value, icon, color, suffix, change }) {
+function StatCard({ title, value, icon, color, suffix, change, urgent = false }) {
   const isPositive = change && (change.includes('+') || change.includes('-') && title.includes('Antwortzeit'))
   
   return (
@@ -245,9 +247,10 @@ function StatCard({ title, value, icon, color, suffix, change }) {
       background: 'white',
       padding: '20px',
       borderRadius: '12px',
-      border: '1px solid #e2e8f0',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      transition: 'transform 0.2s, box-shadow 0.2s'
+      border: urgent ? '2px solid #f59e0b' : '1px solid #e2e8f0',
+      boxShadow: urgent ? '0 4px 12px rgba(245, 158, 11, 0.15)' : '0 1px 3px rgba(0,0,0,0.1)',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      position: 'relative'
     }}>
       <div style={{
         display: 'flex',

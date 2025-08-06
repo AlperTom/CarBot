@@ -1,20 +1,57 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
+import { 
+  QueryOptimizer, 
+  RequestOptimizer, 
+  PerformanceMonitor,
+  ResponseCache,
+  optimizedSupabase as supabase 
+} from '../../../lib/apiOptimizations'
 
 export async function GET(request) {
+  const requestId = `analytics_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  PerformanceMonitor.startTimer(requestId)
+  
   try {
     const { searchParams } = new URL(request.url)
-    const customerSlug = searchParams.get('customer')
-    const timeRange = searchParams.get('range') || '7d'
-    const metric = searchParams.get('metric') || 'overview'
+    const rawParams = Object.fromEntries(searchParams.entries())
+    const params = RequestOptimizer.sanitizeParams(rawParams)
+    
+    const customerSlug = params.customer
+    const timeRange = params.range || '7d'
+    const metric = params.metric || 'overview'
 
     if (!customerSlug) {
       return NextResponse.json({ error: 'Customer slug required' }, { status: 400 })
+    }
+
+    // Check rate limiting
+    const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
+    const rateLimit = RequestOptimizer.checkRateLimit(clientIP, 200, 60000) // 200 requests per minute
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded', retry_after: rateLimit.resetTime },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': rateLimit.resetTime.toString()
+          }
+        }
+      )
+    }
+
+    // Check cache first
+    const cacheKey = ResponseCache.generateKey('GET', '/api/analytics', params)
+    const cached = ResponseCache.getCached(cacheKey)
+    if (cached) {
+      const duration = PerformanceMonitor.endTimer(requestId, { cached: true })
+      return NextResponse.json(cached, {
+        headers: {
+          'X-Cache': 'HIT',
+          'X-Response-Time': `${duration}ms`
+        }
+      })
     }
 
     // Calculate date range
@@ -68,7 +105,26 @@ export async function GET(request) {
       }
     })
 
-    return NextResponse.json(analyticsData)
+    // Cache the response
+    const cachedResponse = ResponseCache.cacheResponse(cacheKey, analyticsData, 300) // 5 minutes cache
+    
+    // Compress large responses
+    const optimizedResponse = RequestOptimizer.compressResponse(cachedResponse)
+    
+    const duration = PerformanceMonitor.endTimer(requestId, { 
+      cached: false,
+      metric,
+      timeRange,
+      dataSize: JSON.stringify(analyticsData).length
+    })
+    
+    return NextResponse.json(optimizedResponse, {
+      headers: {
+        'X-Cache': 'MISS',
+        'X-Response-Time': `${duration}ms`,
+        'X-RateLimit-Remaining': rateLimit.remaining.toString()
+      }
+    })
 
   } catch (error) {
     console.error('Analytics API error:', error)

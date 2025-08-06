@@ -136,69 +136,132 @@ export default function UsageIndicator({ workshopId, compact = false }) {
     )
   }
 
-  const renderCompactView = () => (
-    <div style={{
-      padding: '12px',
-      background: 'white',
-      borderRadius: '6px',
-      border: '1px solid #e2e8f0',
-      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-    }}>
+  const renderCompactView = () => {
+    const leadsPercentage = getUsagePercentage(packageInfo.currentUsage.leads, packageInfo.limits.monthlyLeads)
+    const apiPercentage = packageInfo.features.apiAccess ? getUsagePercentage(packageInfo.currentUsage.apiCalls, packageInfo.limits.apiCalls) : 0
+    const shouldShowUpgrade = (leadsPercentage >= 80 || apiPercentage >= 80) && packageInfo.limits.monthlyLeads !== -1
+
+    return (
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '8px'
+        padding: '16px',
+        background: 'white',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+        position: 'relative'
       }}>
-        <span style={{
-          fontSize: '13px',
-          fontWeight: 'bold',
-          color: '#1f2937'
-        }}>
-          {packageInfo.name} Plan
-        </span>
-        <span style={{
-          fontSize: '11px',
-          background: '#e0f2fe',
-          color: '#0369a1',
-          padding: '2px 6px',
-          borderRadius: '4px'
-        }}>
-          {formatEuroCurrency(packageInfo.priceEur)}/Monat
-        </span>
-      </div>
-
-      {renderUsageBar(
-        'Leads',
-        packageInfo.currentUsage.leads,
-        packageInfo.limits.monthlyLeads
-      )}
-
-      {packageInfo.features.apiAccess && renderUsageBar(
-        'API Calls',
-        packageInfo.currentUsage.apiCalls,
-        packageInfo.limits.apiCalls
-      )}
-      
-      {(packageInfo.currentUsage.leads / packageInfo.limits.monthlyLeads) >= 0.8 && packageInfo.limits.monthlyLeads !== -1 && (
+        {/* Header with Plan Name and Status Indicator */}
         <div style={{
-          marginTop: '8px',
-          padding: '6px',
-          background: '#fef3c7',
-          borderRadius: '4px',
-          fontSize: '11px'
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '12px'
         }}>
-          <strong>Upgrade empfohlen:</strong> Wechseln Sie zu{' '}
-          <a 
-            href={generateUpgradeUrl(workshopId, 'professional')}
-            style={{ color: '#0070f3', textDecoration: 'none' }}
-          >
-            Professional
-          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              fontSize: '14px',
+              fontWeight: 'bold',
+              color: '#1f2937'
+            }}>
+              {packageInfo.name}
+            </span>
+            <span style={{
+              fontSize: '10px',
+              background: shouldShowUpgrade ? '#fef3c7' : '#ecfdf5',
+              color: shouldShowUpgrade ? '#92400e' : '#166534',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontWeight: '600'
+            }}>
+              {shouldShowUpgrade ? '⚠️ Limit erreicht' : '✅ Aktiv'}
+            </span>
+          </div>
+          <span style={{
+            fontSize: '12px',
+            background: '#f1f5f9',
+            color: '#1f2937',
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontWeight: '500'
+          }}>
+            {formatEuroCurrency(packageInfo.priceEur)}/Mon
+          </span>
         </div>
-      )}
-    </div>
-  )
+
+        {/* Critical Usage Alert */}
+        {leadsPercentage >= 95 && packageInfo.limits.monthlyLeads !== -1 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
+            border: '1px solid #fca5a5',
+            borderRadius: '8px',
+            padding: '8px',
+            marginBottom: '12px',
+            fontSize: '11px'
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#dc2626', marginBottom: '2px' }}>
+              🚨 Kritisches Limit erreicht!
+            </div>
+            <div style={{ color: '#991b1b' }}>
+              Nur noch {packageInfo.limits.monthlyLeads - packageInfo.currentUsage.leads} Leads verfügbar
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Usage Bars */}
+        <div style={{ marginBottom: shouldShowUpgrade ? '12px' : '0' }}>
+          {renderUsageBar(
+            'Leads',
+            packageInfo.currentUsage.leads,
+            packageInfo.limits.monthlyLeads
+          )}
+
+          {packageInfo.features.apiAccess && renderUsageBar(
+            'API Calls',
+            packageInfo.currentUsage.apiCalls,
+            packageInfo.limits.apiCalls
+          )}
+        </div>
+        
+        {/* Smart Upgrade Prompt */}
+        {shouldShowUpgrade && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+            borderRadius: '8px',
+            padding: '10px',
+            fontSize: '11px',
+            border: '1px solid #f59e0b'
+          }}>
+            <div style={{ fontWeight: 'bold', color: '#92400e', marginBottom: '4px' }}>
+              🚀 Zeit für ein Upgrade!
+            </div>
+            <div style={{ color: '#b45309', marginBottom: '6px' }}>
+              Sie nutzen {Math.max(leadsPercentage, apiPercentage).toFixed(0)}% Ihrer Kapazität. 
+              Vermeiden Sie Ausfallzeiten mit einem Upgrade.
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <a 
+                href={generateUpgradeUrl(workshopId, packageInfo.id === 'basic' ? 'professional' : 'enterprise')}
+                style={{ 
+                  background: '#059669',
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  fontSize: '10px',
+                  fontWeight: 'bold'
+                }}
+              >
+                Jetzt upgraden
+              </a>
+              <span style={{ color: '#78716c', fontSize: '10px' }}>
+                ab {formatEuroCurrency(packageInfo.id === 'basic' ? 9900 : 19900)}/Mon
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const renderFullView = () => (
     <div style={{

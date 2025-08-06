@@ -1,0 +1,312 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  e2e-tests:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        # Run tests in different browsers
+        project: [chromium, firefox, webkit]
+        
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    
+    - name: Set up test environment
+      run: |
+        # Copy environment variables for testing
+        echo "BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+        echo "NODE_ENV=test" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_TEST_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_TEST_SERVICE_KEY }}" >> $GITHUB_ENV
+        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_TEST_SECRET_KEY }}" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_TEST_API_KEY }}" >> $GITHUB_ENV
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Start application
+      run: |
+        npm start &
+        # Wait for application to be ready
+        npx wait-on http://localhost:3000 --timeout 60000
+      
+    - name: Run E2E tests
+      run: npx playwright test --project=${{ matrix.project }}
+      env:
+        CI: true
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-results-${{ matrix.project }}
+        path: |
+          test-results/
+          playwright-report/
+          test-artifacts/
+        retention-days: 7
+    
+    - name: Upload Playwright HTML Report
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-report-${{ matrix.project }}
+        path: playwright-report/
+        retention-days: 7
+
+  load-tests:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    # Only run on main branch pushes
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: Set up test environment
+      run: |
+        echo "BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+        echo "NODE_ENV=test" >> $GITHUB_ENV
+        echo "LOAD_TEST=true" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_TEST_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_TEST_SERVICE_KEY }}" >> $GITHUB_ENV
+        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_TEST_SECRET_KEY }}" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_TEST_API_KEY }}" >> $GITHUB_ENV
+    
+    - name: Build and start application
+      run: |
+        npm run build
+        npm start &
+        npx wait-on http://localhost:3000 --timeout 60000
+    
+    - name: Run Load Tests
+      run: npx playwright test tests/e2e/specs/performance.spec.js --project=chromium
+      
+    - name: Upload load test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: load-test-results
+        path: |
+          test-results/
+          test-artifacts/
+        retention-days: 14
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: Set up test environment
+      run: |
+        echo "BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+        echo "NODE_ENV=test" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_TEST_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_TEST_SERVICE_KEY }}" >> $GITHUB_ENV
+        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_TEST_SECRET_KEY }}" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_TEST_API_KEY }}" >> $GITHUB_ENV
+    
+    - name: Build and start application  
+      run: |
+        npm run build
+        npm start &
+        npx wait-on http://localhost:3000 --timeout 60000
+    
+    - name: Run Security Tests
+      run: npx playwright test tests/e2e/specs/security.spec.js --project=chromium
+      
+    - name: Upload security test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-test-results
+        path: |
+          test-results/
+          test-artifacts/
+        retention-days: 30
+
+  mobile-tests:
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: Set up test environment
+      run: |
+        echo "BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+        echo "NODE_ENV=test" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_TEST_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_TEST_SERVICE_KEY }}" >> $GITHUB_ENV
+        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_TEST_SECRET_KEY }}" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_TEST_API_KEY }}" >> $GITHUB_ENV
+    
+    - name: Build and start application
+      run: |
+        npm run build
+        npm start &
+        npx wait-on http://localhost:3000 --timeout 60000
+    
+    - name: Run Mobile Tests
+      run: npx playwright test --project="Mobile Chrome"
+      
+    - name: Upload mobile test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mobile-test-results
+        path: |
+          test-results/
+          playwright-report/
+          test-artifacts/
+        retention-days: 7
+
+  multi-language-tests:
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: Set up test environment
+      run: |
+        echo "BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+        echo "NODE_ENV=test" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_TEST_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_TEST_SERVICE_KEY }}" >> $GITHUB_ENV
+        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_TEST_SECRET_KEY }}" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_TEST_API_KEY }}" >> $GITHUB_ENV
+    
+    - name: Build and start application
+      run: |
+        npm run build
+        npm start &
+        npx wait-on http://localhost:3000 --timeout 60000
+    
+    - name: Run Multi-Language Tests
+      run: npx playwright test tests/e2e/specs/multi-language.spec.js
+      
+    - name: Upload language test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: multi-language-test-results
+        path: |
+          test-results/
+          test-artifacts/
+        retention-days: 7
+
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, security-scan, mobile-tests, multi-language-tests]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: test-results-all/
+    
+    - name: Generate Test Summary
+      run: |
+        echo "## E2E Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Count test results
+        total_tests=$(find test-results-all/ -name "*.json" -exec jq -r '.tests[]' {} \; 2>/dev/null | wc -l || echo "0")
+        echo "- **Total Tests Run**: $total_tests" >> $GITHUB_STEP_SUMMARY
+        
+        # Check if any jobs failed
+        if [[ "${{ needs.e2e-tests.result }}" == "failure" ]]; then
+          echo "- ❌ **E2E Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ✅ **E2E Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.security-scan.result }}" == "failure" ]]; then
+          echo "- ❌ **Security Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ✅ **Security Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.mobile-tests.result }}" == "failure" ]]; then
+          echo "- ❌ **Mobile Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ✅ **Mobile Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.multi-language-tests.result }}" == "failure" ]]; then
+          echo "- ❌ **Multi-Language Tests**: Failed" >> $GITHUB_STEP_SUMMARY  
+        else
+          echo "- ✅ **Multi-Language Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📊 **Test Artifacts**: Available in Actions tab" >> $GITHUB_STEP_SUMMARY
+        echo "🎯 **Coverage Areas**: User Journey, Security, Mobile, Multi-Language, Performance" >> $GITHUB_STEP_SUMMARY
