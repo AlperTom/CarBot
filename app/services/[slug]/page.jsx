@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getWorkshopService, getWorkshopServices } from '../../../lib/directus';
 import { ServiceHeroSection } from '../../../components/cms/HeroSection';
 import { ContentBlocks } from '../../../components/cms/ContentBlock';
-import { ImageGallery } from '../../../components/cms/ImageGallery';
+import ImageGallery from '../../../components/cms/ImageGallery';
 import { QuickContact } from '../../../components/cms/ContactInfo';
 
 // Generate metadata for SEO

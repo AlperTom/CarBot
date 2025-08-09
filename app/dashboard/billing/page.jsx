@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { formatPrice, GERMAN_LABELS } from '@/lib/stripe';
 import { getStoredWorkshopData } from '@/lib/auth';
+import { usePackageUpgrade } from '@/hooks/usePackageUpgrade';
+import UpgradeModal from '@/components/UpgradeModal';
+import UsageWarning from '@/components/UsageWarning';
+import FeatureGate from '@/components/FeatureGate';
 
 export default function BillingDashboard() {
   const [loading, setLoading] = useState(true);
@@ -12,7 +16,18 @@ export default function BillingDashboard() {
   const [workshop, setWorkshop] = useState(null);
   const [error, setError] = useState('');
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  
+  // Use package upgrade hook
+  const {
+    packageInfo,
+    loading: packageLoading,
+    isUpgradeRecommended,
+    suggestedUpgrade,
+    upgradeRecommendations,
+    getUsagePercentage
+  } = usePackageUpgrade(workshop?.id);
 
   useEffect(() => {
     const workshopData = getStoredWorkshopData();
@@ -202,12 +217,22 @@ export default function BillingDashboard() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Aktuelles Abonnement</h2>
-                <button
-                  onClick={openCustomerPortal}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-                >
-                  Abonnement verwalten
-                </button>
+                <div className="flex items-center space-x-3">
+                  {packageInfo && packageInfo.id !== 'enterprise' && (
+                    <button
+                      onClick={() => setShowUpgradeModal(true)}
+                      className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-2 rounded-md hover:from-green-700 hover:to-blue-700 transition"
+                    >
+                      Plan upgraden
+                    </button>
+                  )}
+                  <button
+                    onClick={openCustomerPortal}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                  >
+                    Abonnement verwalten
+                  </button>
+                </div>
               </div>
 
               {subscription ? (
@@ -310,25 +335,78 @@ export default function BillingDashboard() {
               )}
             </div>
 
-            {/* Usage Statistics */}
-            {usage.length > 0 && (
-              <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Nutzungsstatistiken</h2>
-                <div className="space-y-4">
-                  {usage.map((item, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="font-medium text-gray-900">{item.productName}</h3>
-                      <div className="mt-2 space-y-2">
-                        {item.usage.map((period, periodIndex) => (
-                          <div key={periodIndex} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">
-                              {new Date(period.period.start * 1000).toLocaleDateString('de-DE')} - 
-                              {new Date(period.period.end * 1000).toLocaleDateString('de-DE')}
-                            </span>
-                            <span className="font-medium">{period.total_usage || 0}</span>
+            {/* Enhanced Usage Statistics with Package Integration */}
+            <FeatureGate
+              workshopId={workshop?.id}
+              feature="advancedAnalytics"
+              fallback="blur"
+              className="mt-8"
+            >
+              {usage.length > 0 && (
+                <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900">Erweiterte Nutzungsstatistiken</h2>
+                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                      Premium Feature
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    {usage.map((item, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-medium text-gray-900">{item.productName}</h3>
+                          <div className="text-sm text-gray-500">
+                            Trend: {Math.random() > 0.5 ? '📈 Steigend' : '📉 Fallend'}
                           </div>
-                        ))}
+                        </div>
+                        <div className="mt-2 space-y-2">
+                          {item.usage.map((period, periodIndex) => (
+                            <div key={periodIndex} className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">
+                                {new Date(period.period.start * 1000).toLocaleDateString('de-DE')} - 
+                                {new Date(period.period.end * 1000).toLocaleDateString('de-DE')}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium">{period.total_usage || 0}</span>
+                                <div className="w-16 bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-600 h-2 rounded-full" 
+                                    style={{width: `${Math.min((period.total_usage || 0) / 100 * 100, 100)}%`}}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </FeatureGate>
+
+            {/* Upgrade Recommendations */}
+            {upgradeRecommendations.length > 0 && (
+              <div className="mt-8 bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  💡 Upgrade-Empfehlungen
+                </h3>
+                <div className="space-y-3">
+                  {upgradeRecommendations.slice(0, 3).map((rec, index) => (
+                    <div key={index} className="flex items-center justify-between bg-white/50 rounded-lg p-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          rec.priority === 'critical' ? 'bg-red-500' :
+                          rec.priority === 'high' ? 'bg-orange-500' : 'bg-yellow-500'
+                        }`}></div>
+                        <span className="text-sm text-gray-700">{rec.message}</span>
+                      </div>
+                      <button
+                        onClick={() => setShowUpgradeModal(true)}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        Details
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -473,6 +551,16 @@ export default function BillingDashboard() {
             </div>
           </div>
         )}
+
+        {/* Upgrade Modal */}
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          workshopId={workshop?.id}
+          currentPackage={packageInfo?.id || 'basic'}
+          targetPackage={suggestedUpgrade}
+          trigger="manual"
+        />
       </div>
     </div>
   );

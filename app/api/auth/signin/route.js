@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { authenticateUser, generateTokens } from '../../../../lib/jwt-auth.js'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -13,7 +14,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request) {
   try {
-    const { email, password } = await request.json()
+    const { email, password, useJWT = true } = await request.json()
 
     // Validate required fields
     if (!email || !password) {
@@ -23,88 +24,55 @@ export async function POST(request) {
       )
     }
 
-    // Authenticate user
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-
-    if (authError) {
+    // Use enhanced JWT authentication system
+    const authResult = await authenticateUser(email, password)
+    
+    if (!authResult.success) {
       return NextResponse.json(
-        { error: translateAuthError(authError.message) },
+        { error: translateAuthError(authResult.error) },
         { status: 401 }
       )
     }
 
-    // Get workshop information
-    let workshop = null
-    let role = 'customer'
+    const { user, workshop, role, session } = authResult
 
-    // Check if user is workshop owner
-    const { data: ownerWorkshop, error: ownerError } = await supabaseAdmin
-      .from('workshops')
-      .select('*')
-      .eq('owner_email', email)
-      .eq('active', true)
-      .single()
-
-    if (!ownerError && ownerWorkshop) {
-      workshop = ownerWorkshop
-      role = 'owner'
-    } else {
-      // Check if user is an employee
-      const { data: employeeData, error: employeeError } = await supabaseAdmin
-        .from('workshop_users')
-        .select(`
-          *,
-          workshop:workshops(*)
-        `)
-        .eq('user_id', authData.user.id)
-        .eq('active', true)
-        .single()
-
-      if (!employeeError && employeeData) {
-        workshop = employeeData.workshop
-        role = employeeData.role
-        
-        // Update last login
-        await supabaseAdmin
-          .from('workshop_users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', employeeData.id)
-      }
-    }
-
-    if (!workshop) {
-      return NextResponse.json(
-        { error: 'Kein Workshop für diese E-Mail gefunden. Bitte registrieren Sie sich zuerst.' },
-        { status: 404 }
-      )
+    // Generate JWT tokens if requested (default)
+    let tokens = null
+    if (useJWT) {
+      tokens = generateTokens(user, workshop, role)
     }
 
     // Get client IP for audit log
     const forwardedFor = request.headers.get('x-forwarded-for')
     const ip = forwardedFor ? forwardedFor.split(',')[0] : request.headers.get('x-real-ip')
 
-    // Create audit log
-    await supabaseAdmin.rpc('create_audit_log', {
-      p_user_id: authData.user.id,
-      p_workshop_id: workshop.id,
-      p_action: 'login',
-      p_resource_type: 'user',
-      p_resource_id: authData.user.id,
-      p_details: { role },
-      p_ip_address: ip,
-      p_user_agent: request.headers.get('user-agent')
-    })
+    // Create audit log if Supabase is available
+    try {
+      if (workshop?.id && supabaseAdmin) {
+        await supabaseAdmin.rpc('create_audit_log', {
+          p_user_id: user.id,
+          p_workshop_id: workshop.id,
+          p_action: 'login',
+          p_resource_type: 'user',
+          p_resource_id: user.id,
+          p_details: { role, auth_method: tokens ? 'jwt' : 'supabase' },
+          p_ip_address: ip,
+          p_user_agent: request.headers.get('user-agent')
+        })
+      }
+    } catch (auditError) {
+      console.warn('Failed to create audit log:', auditError)
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        user: authData.user,
-        session: authData.session,
+        user,
         workshop,
-        role
+        role,
+        session: tokens ? undefined : session, // Don't return Supabase session if using JWT
+        tokens: tokens || undefined,
+        authMethod: tokens ? 'jwt' : 'supabase'
       }
     })
 

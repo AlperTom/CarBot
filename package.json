@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "set NODE_OPTIONS=--max-old-space-size=8192 && next build",
+    "build:analyze": "cross-env ANALYZE=true npm run build",
+    "build:production": "cross-env NODE_ENV=production NODE_OPTIONS=\"--max-old-space-size=8192\" next build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
@@ -18,7 +20,21 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
     "test:install": "playwright install",
-    "test:all": "npm run test && npm run test:e2e"
+    "test:all": "npm run test && npm run test:e2e",
+    "uat:setup": "node scripts/uat-setup.js",
+    "uat:test": "node scripts/run-uat-tests.js",
+    "uat:test:headed": "node scripts/run-uat-tests.js --headed",
+    "uat:test:debug": "node scripts/run-uat-tests.js --debug --headed",
+    "uat:full": "npm run uat:setup && npm run uat:test",
+    "uat:production": "npm run uat:test --url https://carbot-uat.vercel.app --workers 5",
+    "validate:local": "npm run lint && npm run type-check && npm run build",
+    "deploy:uat": "npm run validate:local && npm run build:production",
+    "deploy": "node scripts/deploy.js",
+    "deploy:prod": "node scripts/deploy.js --prod",
+    "deploy:preview": "node scripts/deploy.js",
+    "deploy:setup-env": "node scripts/deploy.js --setup-env",
+    "vercel:deploy": "vercel",
+    "vercel:deploy:prod": "vercel --prod"
   },
   "dependencies": {
     "@directus/sdk": "^20.0.1",
@@ -34,19 +50,27 @@
     "postcss": "^8.5.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "redis": "^4.6.0",
     "resend": "^4.8.0",
     "stripe": "^14.9.0",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.3.3",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "web-vitals": "^3.5.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
+    "@types/jsonwebtoken": "^9.0.5",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
+    "@next/bundle-analyzer": "^15.4.4",
+    "cross-env": "^7.0.3",
     "eslint": "^8.56.0",
     "eslint-config-next": "^15.4.4",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "vitest": "^1.0.0",
+    "@vitejs/plugin-react": "^4.2.0"
   },
   "keywords": [
     "carbot",

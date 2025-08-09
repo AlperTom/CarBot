@@ -1,351 +1,342 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { signIn, validateEmail, storeWorkshopData, rateLimit, logSecurityEvent, sanitizeInput } from '../../../lib/auth'
-import SharedLayout, { GlassCard, PrimaryButton, SecondaryButton } from '@/components/SharedLayout'
 
-function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const [rateLimitInfo, setRateLimitInfo] = useState(null)
-  const [isBlocked, setIsBlocked] = useState(false)
-  const [securityWarning, setSecurityWarning] = useState('')
-  
+export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    // Check for return URL or messages from search params
-    const returnUrl = searchParams.get('returnUrl')
-    const message = searchParams.get('message')
-    const security = searchParams.get('security')
-    
-    if (message) {
-      setError(decodeURIComponent(message))
-    }
-    
-    if (security === 'session_expired') {
-      setSecurityWarning('Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.')
-      logSecurityEvent('session_expired_redirect')
-    } else if (security === 'suspicious_activity') {
-      setSecurityWarning('Verdächtige Aktivitäten erkannt. Bitte bestätigen Sie Ihre Identität.')
-    }
-  }, [searchParams])
-
-  // Check rate limiting when email changes
-  useEffect(() => {
-    if (email && validateEmail(email)) {
-      const rateLimitKey = `login:${email}`
-      const rateCheck = rateLimit.checkLimit(rateLimitKey, 5, 15 * 60 * 1000)
-      
-      setRateLimitInfo(rateCheck)
-      setIsBlocked(!rateCheck.allowed)
-      
-      if (!rateCheck.allowed) {
-        setError(`Zu viele Anmeldeversuche. Versuchen Sie es in ${rateCheck.retryAfter} Sekunden erneut.`)
-      } else if (rateCheck.remainingAttempts < 5) {
-        setError('')
-      }
-    }
-  }, [email])
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    if (isBlocked) {
-      setError('Account temporär gesperrt. Versuchen Sie es später erneut.')
-      return
-    }
-
-    if (!validateEmail(email)) {
-      setError('Bitte geben Sie eine gültige E-Mail-Adresse ein.')
-      return
-    }
-
-    if (!password || password.length < 6) {
-      setError('Passwort muss mindestens 6 Zeichen lang sein.')
-      return
-    }
-
-    setLoading(true)
+    setIsLoading(true)
     setError('')
 
     try {
-      const sanitizedEmail = sanitizeInput(email)
-      const result = await signIn(sanitizedEmail, password, rememberMe)
-      
-      if (result.success) {
-        // Store workshop data if provided
-        if (result.workshop) {
-          storeWorkshopData(result.workshop, result.token)
-        }
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          useJWT: true
+        })
+      })
 
-        // Redirect to return URL or dashboard
-        const returnUrl = searchParams.get('returnUrl') || '/dashboard'
-        router.push(returnUrl)
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Store tokens in localStorage
+        if (data.data.tokens) {
+          localStorage.setItem('carbot_auth_tokens', JSON.stringify(data.data.tokens))
+          localStorage.setItem('carbot_auth_user', JSON.stringify({
+            user: data.data.user,
+            workshop: data.data.workshop,
+            role: data.data.role
+          }))
+        }
+        
+        // Redirect to dashboard
+        router.push('/dashboard')
       } else {
-        // Handle rate limiting
-        const rateLimitKey = `login:${sanitizedEmail}`
-        rateLimit.incrementAttempt(rateLimitKey)
-        
-        setError(result.error || 'Anmeldung fehlgeschlagen')
-        
-        // Log security event for failed login
-        logSecurityEvent('login_failed', { email: sanitizedEmail })
+        setError(data.error || 'Login failed')
       }
     } catch (err) {
+      setError('Network error. Please try again.')
       console.error('Login error:', err)
-      setError('Ein unerwarteter Fehler ist aufgetreten. Versuchen Sie es erneut.')
-      
-      // Log security event for login error
-      logSecurityEvent('login_error', { error: err.message })
-    } finally {
-      setLoading(false)
     }
+
+    setIsLoading(false)
+  }
+
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
   }
 
   return (
     <div style={{
-      maxWidth: '400px',
-      margin: '0 auto',
-      padding: '2rem 1.5rem'
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #1e293b 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem'
     }}>
+      {/* Background Effects */}
       <div style={{
-        textAlign: 'center',
-        marginBottom: '2rem'
+        position: 'fixed',
+        inset: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: 0
       }}>
-        <h1 style={{
-          fontSize: '2rem',
-          fontWeight: 'bold',
-          color: 'white',
-          marginBottom: '0.5rem'
-        }}>
-          Willkommen zurück
-        </h1>
-        <p style={{
-          color: '#d1d5db'
-        }}>
-          Melden Sie sich in Ihrem CarBot-Konto an
-        </p>
+        <div style={{
+          position: 'absolute',
+          top: '-10rem',
+          right: '-10rem',
+          width: '20rem',
+          height: '20rem',
+          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
+          borderRadius: '50%',
+          filter: 'blur(3rem)'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '-10rem',
+          left: '-10rem',
+          width: '20rem',
+          height: '20rem',
+          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
+          borderRadius: '50%',
+          filter: 'blur(3rem)'
+        }}></div>
       </div>
 
-      {/* Security Warning */}
-      {securityWarning && (
+      <div style={{
+        position: 'relative',
+        zIndex: 10,
+        width: '100%',
+        maxWidth: '400px'
+      }}>
         <div style={{
-          background: 'rgba(245, 158, 11, 0.1)',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
-          borderRadius: '8px',
-          padding: '1rem',
-          marginBottom: '1.5rem',
-          color: '#fbbf24'
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '24px',
+          padding: '2rem',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            <span style={{ fontWeight: '600' }}>Sicherheitshinweis</span>
+          {/* Logo */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '2rem'
+          }}>
+            <Link href="/" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textDecoration: 'none'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 100%)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                </svg>
+              </div>
+              <span style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold', 
+                color: 'white',
+                fontFamily: 'Inter, sans-serif'
+              }}>
+                CarBot
+              </span>
+            </Link>
           </div>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-            {securityWarning}
-          </p>
-        </div>
-      )}
 
-      <GlassCard>
-        <form onSubmit={handleSubmit}>
+          {/* Header */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '2rem'
+          }}>
+            <h1 style={{
+              fontSize: '1.875rem',
+              fontWeight: 'bold',
+              color: 'white',
+              marginBottom: '0.5rem',
+              fontFamily: 'Inter, sans-serif'
+            }}>
+              Willkommen zurück
+            </h1>
+            <p style={{
+              color: '#9ca3af',
+              fontSize: '0.875rem'
+            }}>
+              Melden Sie sich in Ihrem CarBot-Account an
+            </p>
+          </div>
+
+          {/* Error Message */}
           {error && (
             <div style={{
               background: 'rgba(239, 68, 68, 0.1)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               borderRadius: '8px',
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              color: '#fca5a5'
+              padding: '0.75rem',
+              marginBottom: '1.5rem'
             }}>
-              {error}
+              <p style={{ 
+                color: '#f87171', 
+                fontSize: '0.875rem',
+                margin: 0,
+                textAlign: 'center'
+              }}>
+                {error}
+              </p>
             </div>
           )}
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              color: 'white',
-              fontWeight: '600',
-              marginBottom: '0.5rem'
-            }}>
-              E-Mail-Adresse
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                fontSize: '1rem',
-                boxSizing: 'border-box'
-              }}
-              placeholder="ihre@email.de"
-            />
-          </div>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              color: 'white',
-              fontWeight: '600',
-              marginBottom: '0.5rem'
-            }}>
-              Passwort
-            </label>
-            <div style={{ position: 'relative' }}>
+          {/* Login Form */}
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                E-Mail-Adresse
+              </label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 required
                 style={{
                   width: '100%',
                   padding: '0.75rem',
-                  paddingRight: '3rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
                   color: 'white',
                   fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
                   boxSizing: 'border-box'
                 }}
-                placeholder="Ihr Passwort"
+                placeholder="ihre@email.de"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
+            </div>
+
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                Passwort
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
                 style={{
-                  position: 'absolute',
-                  right: '0.75rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: '#9ca3af',
-                  cursor: 'pointer'
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="••••••••"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                background: isLoading ? 
+                  'linear-gradient(135deg, rgba(234, 88, 12, 0.5) 0%, rgba(147, 51, 234, 0.5) 100%)' : 
+                  'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid transparent',
+                    borderTop: '2px solid white',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                  Anmeldung läuft...
+                </>
+              ) : (
+                'Anmelden'
+              )}
+            </button>
+          </form>
+
+          {/* Register Link */}
+          <div style={{
+            textAlign: 'center',
+            marginTop: '2rem',
+            paddingTop: '2rem',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <p style={{ 
+              color: '#9ca3af', 
+              fontSize: '0.875rem',
+              margin: 0
+            }}>
+              Noch keinen Account?{' '}
+              <Link 
+                href="/auth/register" 
+                style={{ 
+                  color: '#3b82f6',
+                  textDecoration: 'none',
+                  fontWeight: '500'
                 }}
               >
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {showPassword ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  )}
-                </svg>
-              </button>
-            </div>
+                Kostenlos registrieren
+              </Link>
+            </p>
           </div>
-
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem'
-          }}>
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              color: '#d1d5db',
-              cursor: 'pointer'
-            }}>
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                style={{
-                  width: '16px',
-                  height: '16px'
-                }}
-              />
-              Angemeldet bleiben
-            </label>
-            <Link href="/auth/forgot-password" style={{
-              color: '#fb923c',
-              textDecoration: 'none',
-              fontSize: '0.875rem'
-            }}>
-              Passwort vergessen?
-            </Link>
-          </div>
-
-          <PrimaryButton
-            onClick={handleSubmit}
-            style={{
-              width: '100%',
-              opacity: loading || isBlocked ? 0.5 : 1,
-              cursor: loading || isBlocked ? 'not-allowed' : 'pointer'
-            }}
-            disabled={loading || isBlocked}
-          >
-            {loading ? 'Wird angemeldet...' : 'Anmelden'}
-          </PrimaryButton>
-        </form>
-
-        <div style={{
-          textAlign: 'center',
-          marginTop: '1.5rem',
-          paddingTop: '1.5rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-        }}>
-          <p style={{ color: '#d1d5db' }}>
-            Noch kein Konto?{' '}
-            <Link href="/auth/register" style={{
-              color: '#fb923c',
-              textDecoration: 'none',
-              fontWeight: '600'
-            }}>
-              Jetzt registrieren
-            </Link>
-          </p>
         </div>
-      </GlassCard>
+      </div>
 
-      {/* Rate Limit Info */}
-      {rateLimitInfo && rateLimitInfo.remainingAttempts < 5 && rateLimitInfo.remainingAttempts > 0 && (
-        <div style={{
-          background: 'rgba(245, 158, 11, 0.1)',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
-          borderRadius: '8px',
-          padding: '1rem',
-          marginTop: '1rem',
-          color: '#fbbf24',
-          textAlign: 'center',
-          fontSize: '0.875rem'
-        }}>
-          Warnung: Noch {rateLimitInfo.remainingAttempts} Anmeldeversuche übrig
-        </div>
-      )}
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <SharedLayout title="Anmelden" showNavigation={true}>
-      <Suspense fallback={
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <div style={{ color: 'white' }}>Lädt...</div>
-        </div>
-      }>
-        <LoginForm />
-      </Suspense>
-    </SharedLayout>
   )
 }

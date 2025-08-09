@@ -3,130 +3,35 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { validateEmail, validatePassword, validatePhoneNumber, validatePostalCode } from '../../../lib/auth'
-import SharedLayout, { GlassCard, PrimaryButton, SecondaryButton } from '@/components/SharedLayout'
 
 export default function RegisterPage() {
-  const [currentStep, setCurrentStep] = useState(1)
+  const router = useRouter()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: '',
+    businessName: '',
     name: '',
     phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    businessType: 'independent',
-    plan: 'basic'
+    templateType: 'klassische'
   })
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const router = useRouter()
 
-  const businessTypes = [
-    { value: 'independent', label: 'Unabhängige Werkstatt' },
-    { value: 'chain', label: 'Werkstattkette' },
-    { value: 'dealership', label: 'Vertragswerkstatt' },
-    { value: 'specialty', label: 'Spezialwerkstatt' }
+  const templateOptions = [
+    { value: 'klassische', label: '🏭 Klassische Werkstatt' },
+    { value: 'moderne', label: '🔧 Moderne Autowerkstatt' },
+    { value: 'premium', label: '⭐ Premium Service Center' },
+    { value: 'elektro', label: '⚡ Elektro & Hybrid Spezialist' },
+    { value: 'oldtimer', label: '🚗 Oldtimer Spezialwerkstatt' }
   ]
-
-  const plans = [
-    { 
-      value: 'basic', 
-      label: 'Basic Plan', 
-      price: '29€/Monat',
-      features: ['Bis zu 100 Leads/Monat', 'E-Mail Support', 'Basis-Dashboard']
-    },
-    { 
-      value: 'professional', 
-      label: 'Professional Plan', 
-      price: '79€/Monat',
-      features: ['Unbegrenzte Leads', 'Telefon Support', 'Erweiterte Analysen', 'API-Zugang']
-    },
-    { 
-      value: 'enterprise', 
-      label: 'Enterprise Plan', 
-      price: 'Individuell',
-      features: ['Maßgeschneiderte Lösungen', 'Persönlicher Support', 'Custom Integrationen']
-    }
-  ]
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    setError('')
-  }
-
-  const validateStep1 = () => {
-    if (!validateEmail(formData.email)) {
-      setError('Bitte geben Sie eine gültige E-Mail-Adresse ein.')
-      return false
-    }
-
-    if (!validatePassword(formData.password)) {
-      setError('Passwort muss mindestens 8 Zeichen, einen Groß- und Kleinbuchstaben sowie eine Zahl enthalten.')
-      return false
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwörter stimmen nicht überein.')
-      return false
-    }
-
-    return true
-  }
-
-  const validateStep2 = () => {
-    if (!formData.name.trim()) {
-      setError('Bitte geben Sie den Werkstattnamen ein.')
-      return false
-    }
-
-    if (!validatePhoneNumber(formData.phone)) {
-      setError('Bitte geben Sie eine gültige deutsche Telefonnummer ein.')
-      return false
-    }
-
-    if (!formData.address.trim()) {
-      setError('Bitte geben Sie die Adresse ein.')
-      return false
-    }
-
-    if (!formData.city.trim()) {
-      setError('Bitte geben Sie die Stadt ein.')
-      return false
-    }
-
-    if (!validatePostalCode(formData.postalCode)) {
-      setError('Bitte geben Sie eine gültige deutsche Postleitzahl ein.')
-      return false
-    }
-
-    return true
-  }
-
-  const handleNext = () => {
-    if (currentStep === 1 && validateStep1()) {
-      setCurrentStep(2)
-    } else if (currentStep === 2 && validateStep2()) {
-      setCurrentStep(3)
-    }
-  }
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
+    setIsLoading(true)
     setError('')
 
     try {
-      const response = await fetch('/api/auth/signup-simple', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -134,581 +39,462 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          workshopData: {
-            name: formData.name,
-            phone: formData.phone,
-            address: formData.address,
-            city: formData.city,
-            postalCode: formData.postalCode,
-            businessType: formData.businessType,
-            plan: formData.plan
-          }
+          businessName: formData.businessName,
+          name: formData.name,
+          phone: formData.phone,
+          templateType: formData.templateType,
+          useJWT: true
         })
       })
 
-      const result = await response.json()
+      const data = await response.json()
 
-      if (response.ok && result.success) {
-        if (result.data.requiresConfirmation) {
-          setSuccess(true)
-        } else {
-          // Registration complete, redirect to dashboard
-          router.push('/dashboard?onboarding=true')
+      if (response.ok && data.success) {
+        // Store tokens in localStorage
+        if (data.data.tokens) {
+          localStorage.setItem('carbot_auth_tokens', JSON.stringify(data.data.tokens))
+          localStorage.setItem('carbot_auth_user', JSON.stringify({
+            user: data.data.user,
+            workshop: data.data.workshop,
+            role: 'owner'
+          }))
         }
+        
+        // Redirect to dashboard
+        router.push('/dashboard')
       } else {
-        setError(result.error || 'Ein unerwarteter Fehler ist aufgetreten.')
+        setError(data.error || 'Registrierung fehlgeschlagen')
       }
-    } catch (error) {
-      console.error('Registration error:', error)
-      setError('Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.')
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      setError('Netzwerkfehler. Bitte versuchen Sie es erneut.')
+      console.error('Register error:', err)
     }
+
+    setIsLoading(false)
   }
 
-  if (success) {
-    return (
-      <SharedLayout title="Registrierung erfolgreich" showNavigation={true}>
-        <div style={{
-          maxWidth: '500px',
-          margin: '0 auto',
-          padding: '2rem 1.5rem',
-          textAlign: 'center'
-        }}>
-          <GlassCard>
-            <div style={{ fontSize: '60px', marginBottom: '1.5rem' }}>✅</div>
-            <h1 style={{ 
-              color: 'white', 
-              margin: '0 0 1rem 0', 
-              fontSize: '1.75rem',
-              fontWeight: 'bold'
-            }}>
-              Registrierung erfolgreich!
-            </h1>
-            <p style={{ 
-              color: '#d1d5db', 
-              margin: '0 0 2rem 0',
-              fontSize: '1rem',
-              lineHeight: '1.6'
-            }}>
-              Wir haben Ihnen eine Bestätigungs-E-Mail an <strong style={{ color: 'white' }}>{formData.email}</strong> gesendet. 
-              Bitte überprüfen Sie Ihr Postfach und klicken Sie auf den Bestätigungslink, um Ihr Konto zu aktivieren.
-            </p>
-            <PrimaryButton href="/auth/login">
-              Zur Anmeldung
-            </PrimaryButton>
-          </GlassCard>
-        </div>
-      </SharedLayout>
-    )
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
   }
-
-  const stepTitles = [
-    'Account erstellen',
-    'Werkstatt-Informationen',
-    'Plan auswählen'
-  ]
-
-  const progressPercentage = (currentStep / 3) * 100
 
   return (
-    <SharedLayout title="Registrierung" showNavigation={true}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #1e293b 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem'
+    }}>
+      {/* Background Effects */}
       <div style={{
-        maxWidth: '600px',
-        margin: '0 auto',
-        padding: '2rem 1.5rem'
+        position: 'fixed',
+        inset: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: 0
       }}>
-        <GlassCard>
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🚗</div>
-            <h1 style={{ 
-              color: 'white', 
-              margin: 0, 
-              fontSize: '1.75rem',
-              fontWeight: 'bold'
-            }}>
-              CarBot Workshop
-            </h1>
-            <p style={{ 
-              color: '#d1d5db', 
-              margin: '0.5rem 0 1.5rem 0',
-              fontSize: '1rem'
-            }}>
-              {stepTitles[currentStep - 1]}
-            </p>
+        <div style={{
+          position: 'absolute',
+          top: '-10rem',
+          right: '-10rem',
+          width: '20rem',
+          height: '20rem',
+          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
+          borderRadius: '50%',
+          filter: 'blur(3rem)'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '-10rem',
+          left: '-10rem',
+          width: '20rem',
+          height: '20rem',
+          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
+          borderRadius: '50%',
+          filter: 'blur(3rem)'
+        }}></div>
+      </div>
 
-            {/* Progress Bar */}
-            <div style={{
-              width: '100%',
-              height: '4px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '2px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                width: `${progressPercentage}%`,
-                height: '100%',
-                background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
-                transition: 'width 0.3s ease'
-              }} />
-            </div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginTop: '0.75rem',
-              fontSize: '0.875rem',
-              color: '#9ca3af'
-            }}>
-              <span>Schritt {currentStep} von 3</span>
-              <span>{Math.round(progressPercentage)}% abgeschlossen</span>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            {/* Step 1: Account Details */}
-            {currentStep === 1 && (
-              <div>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
-                    E-Mail-Adresse *
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      boxSizing: 'border-box',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white'
-                    }}
-                    placeholder="ihre.werkstatt@email.de"
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
-                    Passwort *
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      boxSizing: 'border-box',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white'
-                    }}
-                    placeholder="Mindestens 8 Zeichen"
-                  />
-                  <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.375rem' }}>
-                    Mindestens 8 Zeichen mit Buchstaben und Zahlen
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
-                    Passwort bestätigen *
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      boxSizing: 'border-box',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white'
-                    }}
-                    placeholder="Passwort wiederholen"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Workshop Information */}
-            {currentStep === 2 && (
-              <div>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
-                    Werkstattname *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      boxSizing: 'border-box',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white'
-                    }}
-                    placeholder="Müller KFZ-Werkstatt"
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
-                    Telefonnummer *
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      boxSizing: 'border-box',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white'
-                    }}
-                    placeholder="+49 30 12345678"
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div style={{ flex: '2' }}>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: 'white'
-                    }}>
-                      Adresse *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '8px',
-                        fontSize: '1rem',
-                        boxSizing: 'border-box',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        color: 'white'
-                      }}
-                      placeholder="Musterstraße 123"
-                    />
-                  </div>
-                  <div style={{ flex: '1' }}>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: 'white'
-                    }}>
-                      PLZ *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.postalCode}
-                      onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                      required
-                      maxLength={5}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '8px',
-                        fontSize: '1rem',
-                        boxSizing: 'border-box',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        color: 'white'
-                      }}
-                      placeholder="12345"
-                    />
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
-                    Stadt *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      boxSizing: 'border-box',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white'
-                    }}
-                    placeholder="München"
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'white'
-                  }}>
-                    Werkstatt-Typ
-                  </label>
-                  <select
-                    value={formData.businessType}
-                    onChange={(e) => handleInputChange('businessType', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      boxSizing: 'border-box',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'white'
-                    }}
-                  >
-                    {businessTypes.map(type => (
-                      <option key={type.value} value={type.value} style={{ background: '#1e293b', color: 'white' }}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Plan Selection */}
-            {currentStep === 3 && (
-              <div>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h3 style={{ 
-                    color: 'white',
-                    fontSize: '1.125rem',
-                    fontWeight: 'bold',
-                    marginBottom: '1rem'
-                  }}>
-                    Wählen Sie Ihren Plan
-                  </h3>
-                  <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: '1.5rem' }}>
-                    Sie können Ihren Plan jederzeit ändern. Die ersten 14 Tage sind kostenlos.
-                  </div>
-
-                  {plans.map(plan => (
-                    <div
-                      key={plan.value}
-                      onClick={() => handleInputChange('plan', plan.value)}
-                      style={{
-                        border: formData.plan === plan.value ? '2px solid #ea580c' : '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '12px',
-                        padding: '1.25rem',
-                        marginBottom: '1rem',
-                        cursor: 'pointer',
-                        background: formData.plan === plan.value ? 'rgba(234, 88, 12, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                        backdropFilter: 'blur(10px)',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <h4 style={{ 
-                          margin: 0,
-                          fontSize: '1rem',
-                          fontWeight: 'bold',
-                          color: 'white'
-                        }}>
-                          {plan.label}
-                        </h4>
-                        <div style={{
-                          fontSize: '1.125rem',
-                          fontWeight: 'bold',
-                          color: '#fb923c'
-                        }}>
-                          {plan.price}
-                        </div>
-                      </div>
-                      <ul style={{ 
-                        margin: 0,
-                        padding: 0,
-                        listStyle: 'none',
-                        fontSize: '0.875rem',
-                        color: '#d1d5db'
-                      }}>
-                        {plan.features.map((feature, index) => (
-                          <li key={index} style={{ 
-                            marginBottom: '0.375rem',
-                            paddingLeft: '1.25rem',
-                            position: 'relative'
-                          }}>
-                            <span style={{
-                              position: 'absolute',
-                              left: 0,
-                              color: '#22c55e'
-                            }}>✓</span>
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{
-                  background: 'rgba(245, 158, 11, 0.1)',
-                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  fontSize: '0.75rem',
-                  color: '#fbbf24',
-                  marginBottom: '1.5rem'
-                }}>
-                  <strong>Kostenlose Testphase:</strong> 14 Tage kostenfrei testen, danach automatische Verlängerung. 
-                  Jederzeit kündbar.
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                borderRadius: '8px',
-                padding: '1rem',
-                marginBottom: '1.5rem',
-                color: '#fca5a5'
-              }}>
-                {error}
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between',
-              gap: '1rem',
-              marginTop: '2rem'
-            }}>
-              {currentStep > 1 && (
-                <SecondaryButton type="button" onClick={handleBack}>
-                  Zurück
-                </SecondaryButton>
-              )}
-
-              {currentStep < 3 ? (
-                <PrimaryButton
-                  type="button"
-                  onClick={handleNext}
-                  style={{
-                    marginLeft: 'auto'
-                  }}
-                >
-                  Weiter
-                </PrimaryButton>
-              ) : (
-                <PrimaryButton
-                  type="submit"
-                  style={{
-                    marginLeft: 'auto',
-                    opacity: loading ? 0.5 : 1,
-                    cursor: loading ? 'not-allowed' : 'pointer'
-                  }}
-                  disabled={loading}
-                >
-                  {loading ? 'Registrierung läuft...' : 'Registrierung abschließen'}
-                </PrimaryButton>
-              )}
-            </div>
-          </form>
-
-          {/* Footer */}
-          <div style={{ 
-            textAlign: 'center', 
-            marginTop: '2rem',
-            fontSize: '0.875rem',
-            color: '#d1d5db',
-            paddingTop: '1.5rem',
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+      <div style={{
+        position: 'relative',
+        zIndex: 10,
+        width: '100%',
+        maxWidth: '500px'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '24px',
+          padding: '2rem',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }}>
+          {/* Logo */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '2rem'
           }}>
-            Haben Sie bereits ein Konto?{' '}
-            <Link 
-              href="/auth/login"
-              style={{ 
-                color: '#fb923c', 
-                textDecoration: 'none',
-                fontWeight: '600'
-              }}
-            >
-              Hier anmelden
+            <Link href="/" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textDecoration: 'none'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 100%)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                </svg>
+              </div>
+              <span style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold', 
+                color: 'white',
+                fontFamily: 'Inter, sans-serif'
+              }}>
+                CarBot
+              </span>
             </Link>
           </div>
-        </GlassCard>
+
+          {/* Header */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '2rem'
+          }}>
+            <h1 style={{
+              fontSize: '1.875rem',
+              fontWeight: 'bold',
+              color: 'white',
+              marginBottom: '0.5rem',
+              fontFamily: 'Inter, sans-serif'
+            }}>
+              Account erstellen
+            </h1>
+            <p style={{
+              color: '#9ca3af',
+              fontSize: '0.875rem'
+            }}>
+              Starten Sie Ihre CarBot-Reise
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              padding: '0.75rem',
+              marginBottom: '1.5rem'
+            }}>
+              <p style={{ 
+                color: '#f87171', 
+                fontSize: '0.875rem',
+                margin: 0,
+                textAlign: 'center'
+              }}>
+                {error}
+              </p>
+            </div>
+          )}
+
+          {/* Register Form */}
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                E-Mail-Adresse
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="ihre@email.de"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                Passwort
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="••••••••"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                Firmenname
+              </label>
+              <input
+                type="text"
+                name="businessName"
+                value={formData.businessName}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Müller KFZ-Werkstatt"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                Ansprechpartner
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Hans Müller"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                Telefon (optional)
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="+49 30 12345678"
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              />
+            </div>
+
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#d1d5db',
+                marginBottom: '0.5rem'
+              }}>
+                Werkstatt-Typ
+              </label>
+              <select
+                name="templateType"
+                value={formData.templateType}
+                onChange={handleChange}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              >
+                {templateOptions.map(option => (
+                  <option 
+                    key={option.value} 
+                    value={option.value}
+                    style={{ background: '#1e293b', color: 'white' }}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                background: isLoading ? 
+                  'linear-gradient(135deg, rgba(234, 88, 12, 0.5) 0%, rgba(147, 51, 234, 0.5) 100%)' : 
+                  'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid transparent',
+                    borderTop: '2px solid white',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                  Account wird erstellt...
+                </>
+              ) : (
+                'Account erstellen'
+              )}
+            </button>
+          </form>
+
+          {/* Login Link */}
+          <div style={{
+            textAlign: 'center',
+            marginTop: '2rem',
+            paddingTop: '2rem',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <p style={{ 
+              color: '#9ca3af', 
+              fontSize: '0.875rem',
+              margin: 0
+            }}>
+              Bereits registriert?{' '}
+              <Link 
+                href="/auth/login" 
+                style={{ 
+                  color: '#3b82f6',
+                  textDecoration: 'none',
+                  fontWeight: '500'
+                }}
+              >
+                Hier anmelden
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
-    </SharedLayout>
+
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
   )
 }

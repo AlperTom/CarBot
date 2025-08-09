@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { verifyToken, getUserById } from '../../../../lib/jwt-auth.js'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -19,58 +20,94 @@ export async function GET(request) {
     }
 
     const token = authHeader.split(' ')[1]
-
-    // Verify the JWT token
-    const { data: user, error } = await supabaseAdmin.auth.getUser(token)
-
-    if (error || !user) {
-      return NextResponse.json(
-        { error: 'Ungültige Sitzung.' },
-        { status: 401 }
-      )
+    
+    // Try JWT verification first
+    const decoded = verifyToken(token)
+    
+    if (decoded && decoded.type === 'access') {
+      // Valid JWT token - get user data
+      const userData = await getUserById(decoded.sub)
+      
+      if (userData) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            user: userData.user,
+            workshop: userData.workshop,
+            role: userData.role,
+            authMethod: 'jwt',
+            token: {
+              sub: decoded.sub,
+              exp: decoded.exp,
+              iat: decoded.iat,
+              workshop_id: decoded.workshop_id
+            }
+          }
+        })
+      }
     }
 
-    // Get workshop information
-    let workshop = null
-    let role = 'customer'
+    // Fallback to Supabase token verification
+    try {
+      const { data: user, error } = await supabaseAdmin.auth.getUser(token)
 
-    // Check if user is workshop owner
-    const { data: ownerWorkshop, error: ownerError } = await supabaseAdmin
-      .from('workshops')
-      .select('*')
-      .eq('owner_email', user.user.email)
-      .eq('active', true)
-      .single()
+      if (error || !user?.user) {
+        return NextResponse.json(
+          { error: 'Ungültige Sitzung.' },
+          { status: 401 }
+        )
+      }
 
-    if (!ownerError && ownerWorkshop) {
-      workshop = ownerWorkshop
-      role = 'owner'
-    } else {
-      // Check if user is an employee
-      const { data: employeeData, error: employeeError } = await supabaseAdmin
-        .from('workshop_users')
-        .select(`
-          *,
-          workshop:workshops(*)
-        `)
-        .eq('user_id', user.user.id)
+      // Get workshop information from Supabase
+      let workshop = null
+      let role = 'customer'
+
+      // Check if user is workshop owner
+      const { data: ownerWorkshop, error: ownerError } = await supabaseAdmin
+        .from('workshops')
+        .select('*')
+        .eq('owner_email', user.user.email)
         .eq('active', true)
         .single()
 
-      if (!employeeError && employeeData) {
-        workshop = employeeData.workshop
-        role = employeeData.role
-      }
-    }
+      if (!ownerError && ownerWorkshop) {
+        workshop = ownerWorkshop
+        role = 'owner'
+      } else {
+        // Check if user is an employee
+        const { data: employeeData, error: employeeError } = await supabaseAdmin
+          .from('workshop_users')
+          .select(`
+            *,
+            workshop:workshops(*)
+          `)
+          .eq('user_id', user.user.id)
+          .eq('active', true)
+          .single()
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        user: user.user,
-        workshop,
-        role
+        if (!employeeError && employeeData) {
+          workshop = employeeData.workshop
+          role = employeeData.role
+        }
       }
-    })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          user: user.user,
+          workshop,
+          role,
+          authMethod: 'supabase'
+        }
+      })
+      
+    } catch (supabaseError) {
+      console.warn('Supabase session verification failed:', supabaseError)
+      return NextResponse.json(
+        { error: 'Token konnte nicht verifiziert werden.' },
+        { status: 401 }
+      )
+    }
 
   } catch (error) {
     console.error('Session validation error:', error)

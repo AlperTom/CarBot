@@ -1,37 +1,101 @@
 {
-  "version": 2,
-  "name": "carbot-uat",
-  "framework": "nextjs",
-  "regions": ["fra1"],
-  "env": {
-    "NODE_ENV": "uat",
-    "UAT_MODE": "true",
-    "DEMO_DATA_ENABLED": "true"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "uat"
-    }
-  },
   "functions": {
-    "app/api/**/*.js": {
+    "app/api/widget/chat/route.js": {
       "maxDuration": 30
+    },
+    "app/api/widget/website-chat/route.js": {
+      "maxDuration": 30
+    },
+    "app/api/auth/signin/route.js": {
+      "maxDuration": 15
+    },
+    "app/api/auth/refresh/route.js": {
+      "maxDuration": 10
     }
+  },
+  "env": {
+    "NODE_ENV": "production"
   },
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
         {
-          "key": "X-Environment",
-          "value": "UAT"
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         },
         {
-          "key": "X-Demo-Mode",
-          "value": "true"
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Client-Key"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/widget.js",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
   ],
-  "redirects": []
+  "rewrites": [
+    {
+      "source": "/widget.js",
+      "destination": "/api/widget/embed"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/docs",
+      "destination": "/dashboard/docs",
+      "permanent": false
+    }
+  ]
 }
