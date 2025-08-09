@@ -521,7 +521,7 @@ export default function PricingPage() {
             }}>
               Sprechen Sie mit unserem Team über Ihre individuellen Anforderungen.
             </p>
-            <SecondaryButton href="mailto:sales@carbot.de">
+            <SecondaryButton href="mailto:sales@carbot.chat">
               Kontakt aufnehmen
             </SecondaryButton>
           </GlassCard>

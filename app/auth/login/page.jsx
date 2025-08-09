@@ -304,6 +304,26 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Forgot Password Link */}
+          <div style={{
+            textAlign: 'center',
+            marginTop: '1.5rem'
+          }}>
+            <Link 
+              href="/auth/forgot-password" 
+              style={{ 
+                color: '#9ca3af',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                transition: 'color 0.2s'
+              }}
+              onMouseOver={(e) => e.target.style.color = '#3b82f6'}
+              onMouseOut={(e) => e.target.style.color = '#9ca3af'}
+            >
+              Passwort vergessen?
+            </Link>
+          </div>
+
           {/* Register Link */}
           <div style={{
             textAlign: 'center',

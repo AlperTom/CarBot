@@ -34,7 +34,7 @@ export const metadata = {
     },
   },
   alternates: {
-    canonical: 'https://carbot.de/pricing',
+    canonical: 'https://carbot.chat/pricing',
   },
 };
 

@@ -46,7 +46,7 @@ export default function Datenschutz() {
               Musterstraße 123<br />
               12345 Berlin<br />
               Deutschland<br />
-              E-Mail: datenschutz@carbot.de
+              E-Mail: datenschutz@carbot.chat
             </p>
 
             <h3 style={{
@@ -95,7 +95,7 @@ export default function Datenschutz() {
               4. Ihre Rechte
             </h3>
             <p style={{ marginBottom: '1.5rem', color: '#d1d5db' }}>
-              Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch gegen die Verarbeitung und Datenübertragbarkeit. Bei Fragen zum Datenschutz wenden Sie sich bitte an datenschutz@carbot.de.
+              Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch gegen die Verarbeitung und Datenübertragbarkeit. Bei Fragen zum Datenschutz wenden Sie sich bitte an datenschutz@carbot.chat.
             </p>
 
             <h3 style={{

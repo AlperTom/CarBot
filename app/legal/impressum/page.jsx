@@ -53,8 +53,8 @@ export default function Impressum() {
             </h3>
             <p style={{ marginBottom: '1.5rem', color: '#d1d5db' }}>
               Telefon: +49 (0) 30 123 456 789<br />
-              E-Mail: info@carbot.de<br />
-              Website: https://carbot.de
+              E-Mail: info@carbot.chat<br />
+              Website: https://carbot.chat
             </p>
 
             <h3 style={{

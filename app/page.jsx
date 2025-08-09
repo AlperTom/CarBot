@@ -9,7 +9,7 @@ export const metadata = {
     title: 'CarBot - KI-gestützte Kundenberatung für Autowerkstätten',
     description: 'Revolutionieren Sie Ihre Werkstatt mit KI-gestützter Kundenberatung. Automatische Terminbuchung, Lead-Generierung und 24/7 Service.',
     type: 'website',
-    url: 'https://carbot.de',
+    url: 'https://carbot.chat',
     siteName: 'CarBot',
     images: [{
       url: '/api/og?title=CarBot - KI für Autowerkstätten',
@@ -25,7 +25,7 @@ export const metadata = {
     images: ['/api/og?title=CarBot - KI für Autowerkstätten']
   },
   alternates: {
-    canonical: 'https://carbot.de'
+    canonical: 'https://carbot.chat'
   },
   robots: 'index, follow',
   authors: [{ name: 'CarBot Team' }],
@@ -872,7 +872,7 @@ export default function Home() {
                 <h4 style={{ fontWeight: '600', marginBottom: '1rem', color: 'white' }}>Support</h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af' }}>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    <a href="mailto:support@carbot.de" style={{ color: '#9ca3af', textDecoration: 'none' }}>support@carbot.de</a>
+                    <a href="mailto:support@carbot.chat" style={{ color: '#9ca3af', textDecoration: 'none' }}>support@carbot.chat</a>
                   </li>
                   <li>
                     <a href="tel:+4930123456789" style={{ color: '#9ca3af', textDecoration: 'none' }}>+49 30 123 456 789</a>

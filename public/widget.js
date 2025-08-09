@@ -10,7 +10,7 @@
   // Widget configuration
   const CarBotWidget = {
     version: '2.0.0',
-    apiEndpoint: 'https://api.carbot.de/v1/widget',
+    apiEndpoint: 'https://api.carbot.chat/v1/widget',
     loaded: false,
     initialized: false,
     config: null,
