@@ -28,10 +28,23 @@ const protectedRoutes = [
   '/billing'
 ]
 
-// Public routes that should redirect authenticated users
+// Public routes that should redirect authenticated users (except registration)
 const publicRoutes = [
   '/auth/login',
   '/auth/register'
+]
+
+// Routes that should always be publicly accessible
+const alwaysPublicRoutes = [
+  '/',
+  '/pricing',
+  '/legal/',
+  '/l/', // Landing pages
+  '/api/auth/signup',
+  '/api/auth/signin',
+  '/api/auth/refresh',
+  '/api/landing/',
+  '/api/widget/'
 ]
 
 // Routes that require specific roles
@@ -71,6 +84,11 @@ function isProtectedRoute(pathname) {
 // Helper function to check if route is public (auth pages)
 function isPublicRoute(pathname) {
   return publicRoutes.some(route => pathname.startsWith(route))
+}
+
+// Helper function to check if route should always be public
+function isAlwaysPublicRoute(pathname) {
+  return alwaysPublicRoutes.some(route => pathname.startsWith(route))
 }
 
 // Helper function to check role-based access
@@ -269,16 +287,22 @@ export async function middleware(request) {
   const clientIP = getClientIP(request)
   const userAgent = request.headers.get('user-agent') || ''
   
-  // Skip middleware for static files, API routes (except protected ones), and Next.js internals
+  // Check for always public routes first
+  if (isAlwaysPublicRoute(pathname)) {
+    const response = NextResponse.next()
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value)
+    })
+    return response
+  }
+
+  // Skip middleware for static files and Next.js internals
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/robots.txt') ||
     pathname.startsWith('/sitemap.xml') ||
     pathname.includes('.') ||
-    pathname === '/' ||
-    pathname.startsWith('/pricing') ||
-    pathname.startsWith('/legal/') ||
     (pathname.startsWith('/api/') && 
      !pathname.startsWith('/api/leads') && 
      !pathname.startsWith('/api/analytics') && 
@@ -471,19 +495,9 @@ export async function middleware(request) {
 export const config = {
   matcher: [
     /*
-     * Run middleware only on protected routes
+     * Run middleware on protected routes and auth routes
+     * Always public routes are handled first in the middleware
      */
-    '/dashboard/:path*',
-    '/analytics/:path*',
-    '/cases/:path*',
-    '/settings/:path*',
-    '/profile/:path*',
-    '/workshop/:path*',
-    '/api/leads/:path*',
-    '/api/analytics/:path*',
-    '/api/webhooks/:path*',
-    '/billing/:path*',
-    '/auth/login',
-    '/auth/register'
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
   ],
 }

@@ -7,6 +7,13 @@ export default function UATDashboard() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
 
+  useEffect(() => {
+    // Only load stats in UAT environment
+    if (process.env.NODE_ENV === 'uat' || process.env.UAT_MODE) {
+      loadUATStats()
+    }
+  }, [])
+
   // Only show in UAT environment
   if (process.env.NODE_ENV !== 'uat' && !process.env.UAT_MODE) {
     return (
@@ -18,10 +25,6 @@ export default function UATDashboard() {
       </div>
     )
   }
-
-  useEffect(() => {
-    loadUATStats()
-  }, [])
 
   async function loadUATStats() {
     try {
