@@ -1,40 +1,9 @@
+'use client'
 import Link from 'next/link'
-import { Metadata } from 'next'
-
-export const metadata = {
-  title: 'CarBot - KI-gestützte Kundenberatung für Autowerkstätten | 24/7 Chatbot',
-  description: 'Automatisieren Sie Ihre Kundenberatung mit CarBot. Terminbuchung, Lead-Generierung und Kundenservice in 4 Sprachen. 30 Tage kostenlos testen.',
-  keywords: 'KI Chatbot Autowerkstatt, Automatisierte Terminbuchung, Kundenberatung KFZ, Werkstatt Software, Lead Generierung, Automotive KI',
-  openGraph: {
-    title: 'CarBot - KI-gestützte Kundenberatung für Autowerkstätten',
-    description: 'Revolutionieren Sie Ihre Werkstatt mit KI-gestützter Kundenberatung. Automatische Terminbuchung, Lead-Generierung und 24/7 Service.',
-    type: 'website',
-    url: 'https://carbot.chat',
-    siteName: 'CarBot',
-    images: [{
-      url: '/api/og?title=CarBot - KI für Autowerkstätten',
-      width: 1200,
-      height: 630,
-      alt: 'CarBot KI-Chatbot für Autowerkstätten'
-    }]
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'CarBot - KI-gestützte Kundenberatung für Autowerkstätten',
-    description: 'Automatisieren Sie Terminbuchung und Kundenservice mit KI. 30 Tage kostenlos testen.',
-    images: ['/api/og?title=CarBot - KI für Autowerkstätten']
-  },
-  alternates: {
-    canonical: 'https://carbot.chat'
-  },
-  robots: 'index, follow',
-  authors: [{ name: 'CarBot Team' }],
-  category: 'Automotive Software',
-  viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#ea580c'
-}
+import { useState } from 'react'
 
 export default function Home() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   return (
     <div style={{
       minHeight: '100vh',
@@ -90,7 +59,8 @@ export default function Home() {
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {/* Logo */}
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
               <div style={{
                 width: '32px',
                 height: '32px',
@@ -105,13 +75,13 @@ export default function Home() {
                 </svg>
               </div>
               <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white' }}>CarBot</span>
-            </div>
+            </Link>
+
+            {/* Desktop Navigation */}
             <div style={{ 
-              display: 'flex', 
               alignItems: 'center', 
-              gap: '1.5rem',
-              '@media (max-width: 768px)': { display: 'none' }
-            }}>
+              gap: '1.5rem'
+            }} className="hidden md:flex">
               <Link href="/pricing" style={{ 
                 color: '#d1d5db', 
                 textDecoration: 'none',
@@ -139,7 +109,91 @@ export default function Home() {
                 Kostenlos starten
               </Link>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                padding: '0.5rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+              </svg>
+            </button>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.9)',
+              backdropFilter: 'blur(10px)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '1rem'
+            }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                maxWidth: '1200px',
+                margin: '0 auto'
+              }}>
+                <Link 
+                  href="/pricing" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{ 
+                    color: '#d1d5db', 
+                    textDecoration: 'none',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    transition: 'background-color 0.2s',
+                    display: 'block'
+                  }}
+                >
+                  Preise
+                </Link>
+                <Link 
+                  href="/auth/login" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{ 
+                    color: '#d1d5db', 
+                    textDecoration: 'none',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    transition: 'background-color 0.2s',
+                    display: 'block'
+                  }}
+                >
+                  Anmelden
+                </Link>
+                <Link 
+                  href="/auth/register" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    color: 'white',
+                    textDecoration: 'none',
+                    display: 'block',
+                    textAlign: 'center',
+                    transition: 'transform 0.2s ease'
+                  }}
+                >
+                  Kostenlos starten
+                </Link>
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Hero Section */}
