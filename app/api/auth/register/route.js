@@ -5,7 +5,49 @@
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { generateTokens } from '../../../../lib/jwt-auth.js'
+// import { generateTokens } from '../../../../lib/jwt-auth.js'
+import jwt from 'jsonwebtoken'
+import { randomBytes } from 'crypto'
+
+// Simple token generation function for registration
+function generateTokensSimple(user, workshop, role = 'owner') {
+  const JWT_SECRET = process.env.JWT_SECRET || 'carbot_dev_secret_change_in_production'
+  
+  const payload = {
+    sub: user.id,
+    email: user.email,
+    role,
+    workshop_id: workshop?.id || null,
+    workshop_name: workshop?.name || null,
+    iat: Math.floor(Date.now() / 1000),
+    type: 'access'
+  }
+
+  const accessToken = jwt.sign(payload, JWT_SECRET, { 
+    expiresIn: '24h',
+    issuer: 'carbot-auth',
+    audience: 'carbot-api'
+  })
+
+  const refreshPayload = {
+    sub: user.id,
+    type: 'refresh',
+    jti: randomBytes(16).toString('hex')
+  }
+
+  const refreshToken = jwt.sign(refreshPayload, JWT_SECRET, {
+    expiresIn: '7d',
+    issuer: 'carbot-auth',
+    audience: 'carbot-api'
+  })
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresIn: '24h',
+    tokenType: 'Bearer'
+  }
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -83,23 +125,34 @@ export async function POST(request) {
           .single()
 
         if (workshopError) {
-          console.error('Workshop creation error:', workshopError)
+          console.error('Workshop creation error details:', {
+            message: workshopError.message,
+            details: workshopError.details,
+            hint: workshopError.hint,
+            code: workshopError.code
+          })
           return NextResponse.json({
             success: false,
-            error: 'Failed to create workshop account'
+            error: `Failed to create workshop account: ${workshopError.message}`,
+            debug: process.env.NODE_ENV === 'development' ? workshopError : undefined
           }, { status: 500 })
         }
 
         // Create user session record (password would be hashed in production)
         const userId = workshop.id // Using workshop ID as user ID for simplicity
         
-        // Generate JWT tokens
-        const tokens = generateTokens({
-          userId: userId,
-          email: email,
-          workshopId: workshop.id,
-          role: 'owner'
-        })
+        // Generate JWT tokens - use simple version for registration
+        const tokens = generateTokensSimple(
+          {
+            id: userId,
+            email: email
+          },
+          workshop,
+          'owner'
+        )
+
+        // Store refresh token in temporary storage (should be Redis in production)
+        console.log('JWT tokens generated successfully for user:', userId)
 
         // Store session in database
         const { error: sessionError } = await supabase
