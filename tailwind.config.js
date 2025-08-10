@@ -1,5 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-const colors = require('tailwindcss/colors')
 
 module.exports = {
   content: [
@@ -10,8 +9,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Keep all default colors and add custom ones
-        ...colors,
         'carbot-blue': {
           50: '#eff6ff',
           100: '#dbeafe',
