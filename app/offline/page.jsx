@@ -132,7 +132,4 @@ export default function OfflinePage() {
   );
 }
 
-export const metadata = {
-  title: 'Offline - CarBot',
-  description: 'CarBot ist momentan offline. Bitte überprüfen Sie Ihre Internetverbindung.',
-};
+// Metadata moved to layout or parent component - can't export from client component
