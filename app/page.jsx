@@ -1,9 +1,14 @@
 'use client'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
   return (
     <div style={{
       minHeight: '100vh',
@@ -78,10 +83,7 @@ export default function Home() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div style={{ 
-              alignItems: 'center', 
-              gap: '1.5rem'
-            }} className="hidden md:flex">
+            <div className="desktop-nav hidden md:flex items-center gap-6">
               <Link href="/pricing" style={{ 
                 color: '#d1d5db', 
                 textDecoration: 'none',
@@ -112,8 +114,9 @@ export default function Home() {
 
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden"
+              className="mobile-nav-button md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile menu"
               style={{
                 background: 'none',
                 border: 'none',
@@ -132,6 +135,9 @@ export default function Home() {
           </div>
 
           {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="mobile-menu-overlay md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>
+          )}
           {isMobileMenuOpen && (
             <div style={{
               background: 'rgba(0, 0, 0, 0.9)',

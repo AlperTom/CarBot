@@ -65,11 +65,7 @@ export default function DashboardNav({ user, workshop, onLogout }) {
         </Link>
 
         {/* Desktop Navigation */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '10px',
-          '@media (max-width: 768px)': { display: 'none' }
-        }}>
+        <div className="desktop-nav">
           {navItems.map(item => (
             <Link
               key={item.href}
@@ -176,10 +172,7 @@ export default function DashboardNav({ user, workshop, onLogout }) {
               zIndex: 1000
             }}>
               {/* Mobile Navigation */}
-              <div style={{ 
-                display: 'block',
-                '@media (min-width: 769px)': { display: 'none' }
-              }}>
+              <div className="mobile-nav-items">
                 {navItems.map(item => (
                   <Link
                     key={item.href}

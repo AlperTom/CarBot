@@ -408,3 +408,175 @@ button:active,
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* CRITICAL NAVIGATION FIXES */
+/* Navigation CSS fixes for media queries */
+.desktop-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.mobile-nav-items {
+  display: block;
+}
+
+.mobile-nav-button {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  
+  .mobile-nav-button {
+    display: block !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-nav-items {
+    display: none !important;
+  }
+  
+  .mobile-nav-button {
+    display: none !important;
+  }
+}
+
+/* Fallback navigation styles for no-JS scenarios */
+.nav-fallback {
+  display: none;
+}
+
+.no-js .nav-fallback {
+  display: block;
+  background: white;
+  border: 1px solid #e5e7eb;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.no-js .nav-fallback ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.no-js .nav-fallback a {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  color: #374151;
+  transition: background-color 0.2s;
+}
+
+.no-js .nav-fallback a:hover {
+  background: #e5e7eb;
+}
+
+/* PWA and mobile-first improvements */
+@media (max-width: 640px) {
+  .mobile-nav-button {
+    display: block !important;
+  }
+  
+  .desktop-nav {
+    display: none !important;
+  }
+}
+
+/* Touch improvements for mobile navigation */
+@media (pointer: coarse) {
+  nav button, nav a {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Mobile menu specific styles */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  backdrop-filter: blur(2px);
+}
+
+.mobile-menu-content {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  z-index: 999;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Hamburger menu animation */
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: currentColor;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-line:not(:last-child) {
+  margin-bottom: 4px;
+}
+
+.hamburger-active .hamburger-line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburger-active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-active .hamburger-line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Focus management for navigation */
+.nav-focus-trap {
+  position: relative;
+}
+
+.nav-focus-trap:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast navigation */
+@media (prefers-contrast: high) {
+  nav {
+    background: #fff;
+    color: #000;
+    border-bottom: 2px solid #000;
+  }
+  
+  nav a, nav button {
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+  }
+  
+  nav a:hover, nav button:hover {
+    background: #000;
+    color: #fff;
+  }
+}
