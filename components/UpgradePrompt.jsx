@@ -56,7 +56,7 @@ export default function UpgradePrompt({ workshopId, trigger = 'usage', onDismiss
 
     const isBasic = packageInfo.id === 'basic'
     const targetPlan = isBasic ? 'professional' : 'enterprise'
-    const targetPrice = isBasic ? '79€' : 'Individual'
+    const targetPrice = isBasic ? '99€' : 'Individual'
     
     const messages = {
       usage: {
