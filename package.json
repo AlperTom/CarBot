@@ -46,6 +46,7 @@
     "@types/react-dom": "^18.2.18",
     "autoprefixer": "^10.4.21",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.539.0",
     "next": "^15.4.4",
     "openai": "^4.20.0",
     "postcss": "^8.5.6",
