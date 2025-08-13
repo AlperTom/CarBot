@@ -232,7 +232,7 @@ export default function SharedLayout({ children, title = "CarBot", showNavigatio
                   <h4 style={{ fontWeight: '600', marginBottom: '1rem', color: 'white' }}>Support</h4>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af' }}>
                     <li style={{ marginBottom: '0.5rem' }}>
-                      <a href="mailto:support@carbot.de" style={{ color: '#9ca3af', textDecoration: 'none' }}>support@carbot.de</a>
+                      <a href="mailto:support@carbot.chat" style={{ color: '#9ca3af', textDecoration: 'none' }}>support@carbot.chat</a>
                     </li>
                     <li>
                       <a href="tel:+4930123456789" style={{ color: '#9ca3af', textDecoration: 'none' }}>+49 30 123 456 789</a>

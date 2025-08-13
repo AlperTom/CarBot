@@ -27,8 +27,8 @@ CarBot MVP delivers essential chatbot functionality for German automotive worksh
 **Purpose:** Enable workshops to create and manage client keys for widget embedding on multiple websites/domains.
 
 **Business Rules:**
-- Basic Package (€29): Up to 3 client keys
-- Premium Package (€79): Up to 10 client keys  
+- Basic Package (€49): Up to 3 client keys
+- Premium Package (€99): Up to 10 client keys  
 - Enterprise Package (€199): Unlimited client keys
 
 #### 1.2 User Stories
@@ -45,7 +45,7 @@ Acceptance Criteria:
 - Set authorized domains for security
 - Display integration code snippet immediately
 - Validate package limits before creation
-```
+
 
 **US-002: Manage Client Keys**
 ```
@@ -118,14 +118,16 @@ POST /api/leads/:clientKey - Capture leads
 ### 2. LANDING PAGE TEMPLATES SYSTEM (Premium Package)
 
 #### 2.1 Feature Overview
-**Purpose:** Provide professional landing pages for workshops without websites, available only in Premium (€79) and Enterprise (€199) packages.
+**Purpose:** Provide professional landing pages for workshops without websites, available only in Premium (€99) and Enterprise (€199) packages.
 
 **Business Rules:**
 - 5 pre-designed templates optimized for German automotive workshops
 - Template selection and customization interface
-- SEO-optimized URLs: `carbot.de/workshop/[workshop-slug]`
+- SEO-optimized URLs: `carbot.chat/workshop/[workshop-slug]`
 - Mobile-first responsive design
 - GDPR compliant contact forms
+- Allow client to fill out Impressum, Datenschutz and further compliance pages through CarBot UI
+- Give example Texts with remark that this is just a placeholder and they should validate it etc.
 
 #### 2.2 Template Specifications
 
@@ -173,7 +175,7 @@ Acceptance Criteria:
 - Customize basic colors, logo, contact information
 - Preview changes in real-time
 - Publish landing page with custom URL
-```
+- Create compliance relevant pages (e.g. Impressum/ Data privacy) and add my text field by field
 
 **US-005: Customize Landing Page Content**
 ```
@@ -188,7 +190,8 @@ Acceptance Criteria:
 - Customize service list with descriptions
 - Add testimonials/reviews section
 - Set call-to-action buttons
-```
+- Embedd the chatbot for the whole page (full screen view or widget)
+ - selectable view carbot UI
 
 **US-006: Manage Landing Page SEO**
 ```
@@ -274,6 +277,43 @@ Acceptance Criteria:
 - Include customization options (colors, position, language)
 - Test widget functionality before going live
 ```
+### 4. Client Journey
+
+#### 4.1 Clients should be able to find CarBot and register/ login. 
+- Onboarding Features required
+  - After registration CarBot needs company details for invoicing etc. 
+- Client needs to be able to login
+  - mantain session valid for 5 min without actions, autorefresh token required
+
+#### 4.2 Client Dashboard
+- See an empty dashboard with shortlink to "How to use" 
+ - "How to use" should contain all informations and buttons to download tutorials for setting up the widget via Snippet, API, Wordpress and all other simple website tools
+- If Client keys are already created 
+ - display kpi's with following information
+  - How many Users used CarBot the last 30 days
+  - How many leads were collected
+  - How many Client keys created/ in use
+- Allow adding content to lower part of the dashboard
+
+#### 4.3 Client Key Management
+- see **US-001: Create Client Key**
+
+#### 4.4 Landing Page 
+- see ### 2. LANDING PAGE TEMPLATES SYSTEM (Premium Package)
+
+#### 4.5 CarBot Chatbot
+- Make sure that the CarBot can understand when the potential client is interested in a service
+- Make sure that the CarBot is asking for specific information like: Car Details (Vin, other identifiactions and services), Availability of potential client for callbacks, Firstname/ Lastname and Phone Number. 
+- Make sure that the CarBot sends an email to the workshop (specific email address, should be changeable at any time by workshop) containing the informations from the pot. client
+
+#### 4.6 Dependancies
+
+- Client cannot create client keys as long as no services and fees are set up
+- Client can only publish a landingpage and use it as their main website if all compliance related pages are filled
+- the main content of the landingpages for the clients should be the chatbot
+- Once trial is over, decomission all services until payment is confirmed
+
+
 
 **US-008: Embed Widget on Website**
 ```
@@ -374,7 +414,7 @@ class CarBotWidget {
 
 ## 📊 PACKAGE SPECIFICATIONS
 
-### 5.1 Basic Package (€29/month)
+### 5.1 Basic Package (€49/month)
 **Target:** Small workshops with existing websites
 - ✅ Up to 3 client keys
 - ✅ Widget embedding
@@ -384,7 +424,7 @@ class CarBotWidget {
 - ❌ No landing pages
 - ❌ No template customization
 
-### 5.2 Premium Package (€79/month) 
+### 5.2 Premium Package (€99/month) 
 **Target:** Established workshops needing online presence
 - ✅ Up to 10 client keys
 - ✅ Widget embedding
@@ -394,7 +434,7 @@ class CarBotWidget {
 - ✅ **Template customization**
 - ✅ **SEO optimization**
 - ✅ Advanced analytics
-- ✅ Phone support
+- ✅ Email support
 
 ### 5.3 Enterprise Package (€199/month)
 **Target:** Large workshops/chains

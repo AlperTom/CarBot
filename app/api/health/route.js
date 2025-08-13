@@ -4,13 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { checkDatabaseHealth, getDatabaseDiagnostics } from '../../../lib/supabase-connection-manager.js'
 
 export async function GET(request) {
   const startTime = Date.now()
@@ -18,23 +12,34 @@ export async function GET(request) {
   let overallStatus = 'healthy'
   
   try {
-    // 1. Database connectivity check
+    // 1. Database connectivity check with enhanced diagnostics
     try {
-      const { data, error } = await supabase
-        .from('workshops')
-        .select('count')
-        .limit(1)
+      const dbStartTime = Date.now()
+      const healthStatus = await checkDatabaseHealth()
+      const diagnostics = getDatabaseDiagnostics()
       
       checks.database = {
-        status: error ? 'error' : 'healthy',
-        message: error ? error.message : 'Connected',
-        response_time: Date.now() - startTime
+        status: healthStatus.status,
+        message: healthStatus.message,
+        response_time: Date.now() - dbStartTime,
+        last_check: healthStatus.lastCheck,
+        cached: healthStatus.cached,
+        diagnostics: {
+          environment_valid: diagnostics.environment.valid,
+          environment_issues: diagnostics.environment.issues,
+          connection_initialized: diagnostics.connection.initialized
+        }
+      }
+      
+      if (healthStatus.status === 'error') {
+        overallStatus = 'degraded'
       }
     } catch (dbError) {
       checks.database = {
         status: 'error',
         message: dbError.message,
-        response_time: Date.now() - startTime
+        response_time: Date.now() - startTime,
+        diagnostics: getDatabaseDiagnostics()
       }
       overallStatus = 'degraded'
     }
@@ -178,23 +183,23 @@ export async function GET(request) {
 // Support HEAD requests for simple health checks
 export async function HEAD(request) {
   try {
-    // Quick database ping
-    const { error } = await supabase
-      .from('workshops')
-      .select('count')
-      .limit(1)
+    // Quick database health check
+    const healthStatus = await checkDatabaseHealth()
     
     return new NextResponse(null, {
-      status: error ? 503 : 200,
+      status: healthStatus.status === 'healthy' ? 200 : 503,
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'X-Database-Status': healthStatus.status,
+        'X-Last-Check': healthStatus.lastCheck.toString()
       }
     })
   } catch (error) {
     return new NextResponse(null, {
       status: 500,
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'X-Error': error.message
       }
     })
   }

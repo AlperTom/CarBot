@@ -63,10 +63,10 @@ export default function RegisterPage() {
         // Redirect to dashboard
         router.push('/dashboard')
       } else {
-        setError(data.error || 'Registrierung fehlgeschlagen')
+        setError(data.error || 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.')
       }
     } catch (err) {
-      setError('Netzwerkfehler. Bitte versuchen Sie es erneut.')
+      setError('Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung.')
       console.error('Register error:', err)
     }
 
@@ -186,7 +186,7 @@ export default function RegisterPage() {
               color: '#9ca3af',
               fontSize: '0.875rem'
             }}>
-              Starten Sie Ihre CarBot-Reise
+              Starten Sie Ihre digitale Werkstatt-Reise
             </p>
           </div>
 
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                 color: '#d1d5db',
                 marginBottom: '0.5rem'
               }}>
-                Telefon (optional)
+                Telefonnummer (optional)
               </label>
               <input
                 type="tel"

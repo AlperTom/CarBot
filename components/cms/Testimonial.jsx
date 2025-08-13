@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { formatDate } from '../../lib/i18n';
+import { FadeInOnScroll, StaggeredFadeIn } from '../animations/ScrollAnimations';
 
 export default function Testimonial({ 
   testimonial, 
@@ -41,7 +42,8 @@ export default function Testimonial({
   // Card variant (default)
   if (variant === 'card') {
     return (
-      <div className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300 ${className}`}>
+      <FadeInOnScroll direction="up" className={className}>
+        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-all duration-500 group transform hover:-translate-y-1 border border-transparent hover:border-blue-100">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -106,7 +108,8 @@ export default function Testimonial({
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </FadeInOnScroll>
     );
   }
 
@@ -199,23 +202,25 @@ export default function Testimonial({
   return null;
 }
 
-// Testimonials grid component
+// Testimonials grid component with staggered animations
 export function TestimonialGrid({ testimonials, language = 'de', className = '' }) {
   if (!testimonials || testimonials.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-gray-500">
-          <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-          </svg>
-          <p className="text-lg">Keine Bewertungen verfügbar</p>
+      <FadeInOnScroll>
+        <div className="text-center py-12">
+          <div className="text-gray-500">
+            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+            </svg>
+            <p className="text-lg">Keine Bewertungen verfügbar</p>
+          </div>
         </div>
-      </div>
+      </FadeInOnScroll>
     );
   }
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
+    <StaggeredFadeIn staggerDelay={100} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
       {testimonials.map((testimonial) => (
         <Testimonial 
           key={testimonial.id} 
@@ -224,7 +229,7 @@ export function TestimonialGrid({ testimonials, language = 'de', className = '' 
           variant="card"
         />
       ))}
-    </div>
+    </StaggeredFadeIn>
   );
 }
 

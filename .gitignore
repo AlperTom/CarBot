@@ -31,3 +31,18 @@ claude-flow.ps1
 hive-mind-prompt-*.txt
 
 .vercel
+.env.production.complete
+PRODUCTION_DEPLOYMENT_CHECKLIST.md
+PRODUCTION_READY_SUMMARY.md
+setup-production.sh
+vercel-env-setup.md
+.env.production.*
+PRODUCTION_*.md
+setup-production.*
+vercel-env-setup.*
+SECURITY_INCIDENT_REPORT.md
+.env.production.complete
+PRODUCTION_DEPLOYMENT_CHECKLIST.md
+PRODUCTION_READY_SUMMARY.md
+SECURITY_INCIDENT_REPORT.md
+vercel-env-setup.md

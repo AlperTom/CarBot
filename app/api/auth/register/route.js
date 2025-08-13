@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseConnectionManager } from '../../../../lib/supabase-connection-manager.js'
 import jwt from 'jsonwebtoken'
 import { randomBytes } from 'crypto'
 
@@ -48,48 +48,157 @@ function generateTokensSimple(user, workshop, role = 'owner') {
   }
 }
 
-// Initialize Supabase client with error handling
+// Mock database for fallback mode
+const mockDatabase = new Map()
+
+// Initialize Supabase client with error handling and mock fallback
 function initializeSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Missing Supabase configuration: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+  console.log('🔍 [Registration] Checking Supabase credentials...')
+  console.log('🔍 [Registration] URL:', supabaseUrl ? 'Present' : 'Missing')
+  console.log('🔍 [Registration] Service Key:', supabaseServiceKey ? 'Present (first 10 chars: ' + supabaseServiceKey.substring(0, 10) + '...)' : 'Missing')
+
+  // Check for placeholder values that indicate missing configuration
+  const hasPlaceholderKey = !supabaseServiceKey ||
+                           supabaseServiceKey.includes('your-production-supabase') || 
+                           supabaseServiceKey.includes('placeholder') ||
+                           supabaseServiceKey.includes('your_') ||
+                           supabaseServiceKey.length < 50 // Real Supabase service keys are much longer
+  
+  const hasPlaceholderUrl = !supabaseUrl || supabaseUrl.includes('placeholder')
+
+  if (hasPlaceholderKey || hasPlaceholderUrl) {
+    console.warn('⚠️ [Registration] Supabase credentials not properly configured, using mock mode')
+    console.warn('⚠️ [Registration] Placeholder key detected:', hasPlaceholderKey)
+    console.warn('⚠️ [Registration] Placeholder URL detected:', hasPlaceholderUrl)
+    return null // Return null to indicate mock mode should be used
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    },
-    db: {
-      schema: 'public'
-    },
-    global: {
-      headers: {
-        'x-application-name': 'carbot-registration'
+  try {
+    // Test if we can create a client successfully
+    const client = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'public'
+      },
+      global: {
+        headers: {
+          'x-application-name': 'carbot-registration'
+        }
       }
-    }
-  })
+    })
+
+    console.log('✅ [Registration] Supabase client created successfully')
+    return client
+  } catch (error) {
+    console.warn('⚠️ [Registration] Failed to create Supabase client:', error.message)
+    console.warn('⚠️ [Registration] Falling back to mock mode')
+    return null
+  }
 }
 
-const supabase = initializeSupabase()
+// Mock registration function
+async function handleMockRegistration(email, password, businessName, name, phone, templateType) {
+  console.log('🔄 [Mock Registration] Processing registration in mock mode...')
+  
+  // Check if user already exists in mock database
+  if (mockDatabase.has(email)) {
+    throw new Error('DUPLICATE_EMAIL')
+  }
+
+  // Create mock user and workshop data
+  const workshopId = `workshop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+  const workshop = {
+    id: workshopId,
+    business_name: businessName,
+    name: businessName,
+    owner_email: email,
+    phone: phone || null,
+    template_type: templateType,
+    active: true,
+    verified: false,
+    mock: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+
+  const user = {
+    id: userId,
+    email: email,
+    name: name,
+    workshop_id: workshopId,
+    mock: true,
+    created_at: new Date().toISOString()
+  }
+
+  // Generate JWT tokens with mock flag
+  const mockTokens = generateTokensSimple(user, workshop, 'owner')
+  // Add mock flag to tokens
+  mockTokens.mock = true
+
+  // Store in mock database
+  const userData = {
+    user,
+    workshop,
+    password: password, // In production, this would be hashed
+    tokens: mockTokens,
+    sessions: [],
+    created_at: new Date().toISOString()
+  }
+
+  mockDatabase.set(email, userData)
+
+  console.log(`✅ [Mock Registration] Mock account created: ${email}`)
+
+  return {
+    user: {
+      id: userId,
+      email: email,
+      name: name,
+      workshopId: workshopId,
+      role: 'owner'
+    },
+    workshop: workshop,
+    tokens: mockTokens,
+    authMethod: 'mock-jwt',
+    features: {
+      sessionStored: true,
+      clientKeyCreated: true,
+      mockMode: true
+    }
+  }
+}
+
+let supabase = null
+try {
+  supabase = initializeSupabase()
+} catch (error) {
+  console.warn('⚠️ [Registration] Supabase initialization failed, mock mode will be used')
+}
 
 export async function POST(request) {
   const startTime = Date.now()
-  let supabaseClient = null
+  let supabaseConnection = null
+  let useMockMode = false
   
   try {
-    // Initialize Supabase client with retry logic
-    try {
-      supabaseClient = initializeSupabase()
-    } catch (initError) {
-      console.error('❌ [Registration] Supabase initialization failed:', initError.message)
-      return NextResponse.json({
-        success: false,
-        error: 'Database service temporarily unavailable',
-        code: 'INIT_ERROR'
-      }, { status: 503 })
+    // Try to establish database connection with enhanced retry logic
+    console.log('🔄 [Registration] Establishing database connection...')
+    supabaseConnection = await getSupabaseConnection()
+    
+    if (!supabaseConnection.connected) {
+      console.log('🔄 [Registration] Database connection failed, using mock mode')
+      console.log('🔄 [Registration] Connection error:', supabaseConnection.error)
+      useMockMode = true
+    } else {
+      console.log('✅ [Registration] Database connection successful')
     }
     const body = await request.json()
     const { 
@@ -127,42 +236,111 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    // Check if user already exists with retry mechanism
-    let existingUser = null
-    let retryCount = 0
-    const maxRetries = 3
-    
-    while (retryCount < maxRetries) {
+    // Handle mock mode registration
+    if (useMockMode) {
       try {
-        const { data, error } = await supabaseClient
-          .from('workshops')
-          .select('id, owner_email')
-          .eq('owner_email', email)
-          .maybeSingle() // Use maybeSingle() to avoid error when no record found
+        const mockResult = await handleMockRegistration(email, password, businessName, name, phone, templateType)
+        const duration = Date.now() - startTime
         
-        if (error && error.code !== 'PGRST116') {
-          throw error
-        }
+        console.log(`✅ [Mock Registration] Account created in ${duration}ms for: ${email}`)
         
-        existingUser = data
-        break
+        return NextResponse.json({
+          success: true,
+          message: 'Account created successfully (Demo Mode)',
+          data: mockResult,
+          mock: true,
+          notice: 'This is a demo account. Data will be reset periodically.'
+        }, { 
+          status: 201,
+          headers: {
+            'X-Registration-Duration': duration.toString(),
+            'X-Registration-ID': mockResult.workshop.id,
+            'X-Mock-Mode': 'true'
+          }
+        })
         
-      } catch (checkError) {
-        retryCount++
-        console.warn(`⚠️ [Registration] User existence check attempt ${retryCount}/${maxRetries} failed:`, checkError.message)
-        
-        if (retryCount >= maxRetries) {
-          console.error('❌ [Registration] Failed to check existing user after retries:', checkError)
+      } catch (mockError) {
+        if (mockError.message === 'DUPLICATE_EMAIL') {
           return NextResponse.json({
             success: false,
-            error: 'Database connectivity issue. Please try again.',
-            code: 'DB_CHECK_ERROR',
-            debug: process.env.NODE_ENV === 'development' ? checkError.message : undefined
-          }, { status: 503 })
+            error: 'An account with this email already exists'
+          }, { status: 409 })
         }
         
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount))
+        console.error('❌ [Mock Registration] Error:', mockError.message)
+        return NextResponse.json({
+          success: false,
+          error: 'Registration failed. Please try again.',
+          code: 'MOCK_REGISTRATION_ERROR'
+        }, { status: 500 })
+      }
+    }
+
+    // Check if user already exists with enhanced retry mechanism
+    let existingUser = null
+    if (!useMockMode && supabaseConnection.connected) {
+      try {
+        const result = await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
+          const { data, error } = await adminClient
+            .from('workshops')
+            .select('id, owner_email')
+            .eq('owner_email', email)
+            .maybeSingle()
+          
+          if (error && error.code !== 'PGRST116') {
+            throw error
+          }
+          
+          return data
+        })
+        
+        existingUser = result
+        console.log('✅ [Registration] User existence check completed')
+        
+      } catch (checkError) {
+        console.warn('⚠️ [Registration] User existence check failed, switching to mock mode:', checkError.message)
+        useMockMode = true
+      }
+    }
+
+    // If we switched to mock mode due to database issues, handle it here
+    if (useMockMode) {
+      try {
+        const mockResult = await handleMockRegistration(email, password, businessName, name, phone, templateType)
+        const duration = Date.now() - startTime
+        
+        console.log(`✅ [Mock Registration] Account created in ${duration}ms for: ${email} (switched due to DB failure)`)
+        
+        return NextResponse.json({
+          success: true,
+          message: 'Account created successfully (Demo Mode - Database Fallback)',
+          data: mockResult,
+          mock: true,
+          notice: 'This is a demo account created due to database connectivity issues. Data will be reset periodically.'
+        }, { 
+          status: 201,
+          headers: {
+            'X-Registration-Duration': duration.toString(),
+            'X-Registration-ID': mockResult.workshop.id,
+            'X-Mock-Mode': 'true',
+            'X-Mock-Reason': 'database-fallback'
+          }
+        })
+        
+      } catch (mockError) {
+        if (mockError.message === 'DUPLICATE_EMAIL') {
+          return NextResponse.json({
+            success: false,
+            error: 'An account with this email already exists'
+          }, { status: 409 })
+        }
+        
+        console.error('❌ [Mock Registration] Error:', mockError.message)
+        return NextResponse.json({
+          success: false,
+          error: 'Registration failed. Please try again.',
+          code: 'MOCK_REGISTRATION_ERROR'
+        }, { status: 500 })
       }
     }
 
@@ -176,56 +354,34 @@ export async function POST(request) {
     if (useJWT) {
       // JWT-based registration with comprehensive error handling
       try {
-        // Create workshop record first with retry logic
-        let workshop = null
-        let workshopRetryCount = 0
-        const maxWorkshopRetries = 3
-        
-        while (workshopRetryCount < maxWorkshopRetries) {
-          try {
-            const { data, error } = await supabaseClient
-              .from('workshops')
-              .insert({
-                business_name: businessName,
-                name: businessName,
-                owner_email: email,
-                phone: phone || null,
-                template_type: templateType,
-                active: true,
-                verified: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
-              .select()
-              .single()
-              
-            if (error) {
-              if (error.code === '23505') { // Unique constraint violation
-                return NextResponse.json({
-                  success: false,
-                  error: 'An account with this email already exists',
-                  code: 'DUPLICATE_EMAIL'
-                }, { status: 409 })
-              }
-              throw error
+        // Create workshop record with enhanced retry logic
+        const workshop = await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
+          const { data, error } = await adminClient
+            .from('workshops')
+            .insert({
+              business_name: businessName,
+              name: businessName,
+              owner_email: email,
+              phone: phone || null,
+              template_type: templateType,
+              active: true,
+              verified: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select()
+            .single()
+            
+          if (error) {
+            if (error.code === '23505') { // Unique constraint violation
+              throw new Error('DUPLICATE_EMAIL')
             }
-            
-            workshop = data
-            console.log('✅ [Registration] Workshop created successfully:', workshop.id)
-            break
-            
-          } catch (workshopError) {
-            workshopRetryCount++
-            console.warn(`⚠️ [Registration] Workshop creation attempt ${workshopRetryCount}/${maxWorkshopRetries} failed:`, workshopError.message)
-            
-            if (workshopRetryCount >= maxWorkshopRetries) {
-              throw workshopError
-            }
-            
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, 2000 * workshopRetryCount))
+            throw error
           }
-        }
+          
+          console.log('✅ [Registration] Workshop created successfully:', data.id)
+          return data
+        })
 
         if (!workshop) {
           console.error('❌ [Registration] Workshop creation failed: No data returned')
@@ -281,64 +437,72 @@ export async function POST(request) {
         // Store refresh token in temporary storage (should be Redis in production)
         console.log('JWT tokens generated successfully for user:', userId)
 
-        // Store session in database with proper error handling
+        // Store session in database with enhanced error handling
         let sessionStored = false
         try {
-          const sessionData = {
-            user_id: userId,
-            workshop_id: workshop.id,
-            session_token: tokens.accessToken.length > 500 ? tokens.accessToken.substring(0, 500) : tokens.accessToken,
-            refresh_token_hash: tokens.refreshToken.length > 255 ? tokens.refreshToken.substring(0, 255) : tokens.refreshToken,
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            active: true,
-            ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
-            user_agent: request.headers.get('user-agent') || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-          
-          const { error: sessionError } = await supabaseClient
-            .from('user_sessions')
-            .insert(sessionData)
+          await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
+            const sessionData = {
+              user_id: userId,
+              workshop_id: workshop.id,
+              session_token: tokens.accessToken.length > 500 ? tokens.accessToken.substring(0, 500) : tokens.accessToken,
+              refresh_token_hash: tokens.refreshToken.length > 255 ? tokens.refreshToken.substring(0, 255) : tokens.refreshToken,
+              expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+              active: true,
+              ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
+              user_agent: request.headers.get('user-agent') || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
             
-          if (sessionError) {
-            console.warn('⚠️ [Registration] Session storage failed:', sessionError.message)
-            console.warn('⚠️ [Registration] Continuing without session storage - user can still login')
-          } else {
-            sessionStored = true
-            console.log('✅ [Registration] User session stored successfully')
-          }
+            const { error: sessionError } = await adminClient
+              .from('user_sessions')
+              .insert(sessionData)
+              
+            if (sessionError) {
+              throw sessionError
+            }
+            
+            return true
+          })
+          
+          sessionStored = true
+          console.log('✅ [Registration] User session stored successfully')
+          
         } catch (sessionError) {
           console.warn('⚠️ [Registration] Session storage error:', sessionError.message)
           console.warn('⚠️ [Registration] Continuing without session storage - user can still login')
         }
 
 
-        // Create default client key for the workshop with error handling
+        // Create default client key for the workshop with enhanced error handling
         let clientKeyCreated = false
         try {
-          const clientKeyData = {
-            workshop_id: workshop.id,
-            name: 'Default Key',
-            client_key_hash: `ck_live_${workshop.id}_${Date.now()}`,
-            prefix: 'ck_live_',
-            authorized_domains: ['localhost:3000', 'localhost:3001'],
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-          
-          const { error: keyError } = await supabaseClient
-            .from('client_keys')
-            .insert(clientKeyData)
+          await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
+            const clientKeyData = {
+              workshop_id: workshop.id,
+              name: 'Default Key',
+              client_key_hash: `ck_live_${workshop.id}_${Date.now()}`,
+              prefix: 'ck_live_',
+              authorized_domains: ['localhost:3000', 'localhost:3001'],
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
             
-          if (keyError) {
-            console.warn('⚠️ [Registration] Client key creation failed:', keyError.message)
-            console.warn('⚠️ [Registration] User can create client keys later in dashboard')
-          } else {
-            clientKeyCreated = true
-            console.log('✅ [Registration] Default client key created successfully')
-          }
+            const { error: keyError } = await adminClient
+              .from('client_keys')
+              .insert(clientKeyData)
+              
+            if (keyError) {
+              throw keyError
+            }
+            
+            return true
+          })
+          
+          clientKeyCreated = true
+          console.log('✅ [Registration] Default client key created successfully')
+          
         } catch (keyError) {
           console.warn('⚠️ [Registration] Client key creation error:', keyError.message)
           console.warn('⚠️ [Registration] User can create client keys later in dashboard')
@@ -391,6 +555,46 @@ export async function POST(request) {
           email: email,
           businessName: businessName
         })
+        
+        // If it's a duplicate email error, handle it specifically
+        if (jwtError.message === 'DUPLICATE_EMAIL') {
+          return NextResponse.json({
+            success: false,
+            error: 'An account with this email already exists',
+            code: 'DUPLICATE_EMAIL'
+          }, { status: 409 })
+        }
+        
+        // For other database errors, try mock mode as fallback
+        if (jwtError.message.includes('network') || jwtError.message.includes('fetch') || jwtError.message.includes('connection')) {
+          console.log('🔄 [Registration] Database error detected, attempting mock mode fallback')
+          
+          try {
+            const mockResult = await handleMockRegistration(email, password, businessName, name, phone, templateType)
+            const mockDuration = Date.now() - startTime
+            
+            console.log(`✅ [Mock Registration] Account created in ${mockDuration}ms for: ${email} (database fallback)`)
+            
+            return NextResponse.json({
+              success: true,
+              message: 'Account created successfully (Demo Mode - Database Fallback)',
+              data: mockResult,
+              mock: true,
+              notice: 'This is a demo account created due to database connectivity issues. Data will be reset periodically.'
+            }, { 
+              status: 201,
+              headers: {
+                'X-Registration-Duration': mockDuration.toString(),
+                'X-Registration-ID': mockResult.workshop.id,
+                'X-Mock-Mode': 'true',
+                'X-Mock-Reason': 'database-error-fallback'
+              }
+            })
+            
+          } catch (fallbackError) {
+            console.error('❌ [Registration] Mock fallback also failed:', fallbackError.message)
+          }
+        }
         
         // Determine appropriate error response based on error type
         let errorResponse = {

@@ -118,7 +118,7 @@ export default function Datenschutz() {
               borderTop: '1px solid rgba(255, 255, 255, 0.1)',
               paddingTop: '1rem'
             }}>
-              Letzte Aktualisierung: Januar 2024
+              Letzte Aktualisierung: Januar 2025
             </p>
           </div>
         </GlassCard>

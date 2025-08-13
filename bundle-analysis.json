@@ -1,0 +1,343 @@
+{
+  "timestamp": "2025-08-12T12:07:00.495Z",
+  "summary": {
+    "javascript": {
+      "totalSize": 1023483,
+      "totalSizeFormatted": "999.5 KB",
+      "gzipSize": 308651,
+      "gzipSizeFormatted": "301.42 KB",
+      "bundleCount": 26,
+      "status": "red"
+    },
+    "css": {
+      "totalSize": 0,
+      "totalSizeFormatted": "0 B",
+      "gzipSize": 20,
+      "gzipSizeFormatted": "20 B",
+      "bundleCount": 2,
+      "status": "green"
+    },
+    "images": {
+      "totalSize": 0,
+      "totalSizeFormatted": "0 B",
+      "imageCount": 0,
+      "status": "green"
+    },
+    "total": {
+      "size": 1023483,
+      "sizeFormatted": "999.5 KB"
+    }
+  },
+  "details": {
+    "javascript": {
+      "bundles": [
+        {
+          "file": "vendor-ff30e0d3-c5d775badc8c420d.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-ff30e0d3-c5d775badc8c420d.js",
+          "size": 172730,
+          "gzipSize": 54250,
+          "sizeFormatted": "168.68 KB",
+          "gzipSizeFormatted": "52.98 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "framework-ae0ac687229c2444.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\framework-ae0ac687229c2444.js",
+          "size": 139845,
+          "gzipSize": 44884,
+          "sizeFormatted": "136.57 KB",
+          "gzipSizeFormatted": "43.83 KB",
+          "category": "framework"
+        },
+        {
+          "file": "polyfills-42372ed130431b0a.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\polyfills-42372ed130431b0a.js",
+          "size": 112594,
+          "gzipSize": 39627,
+          "sizeFormatted": "109.96 KB",
+          "gzipSizeFormatted": "38.7 KB",
+          "category": "other"
+        },
+        {
+          "file": "vendor-742b1cb1-c94d021788171d3e.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-742b1cb1-c94d021788171d3e.js",
+          "size": 87248,
+          "gzipSize": 21734,
+          "sizeFormatted": "85.2 KB",
+          "gzipSizeFormatted": "21.22 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-89d5c698-299e5a5a94d716ba.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-89d5c698-299e5a5a94d716ba.js",
+          "size": 73489,
+          "gzipSize": 20463,
+          "sizeFormatted": "71.77 KB",
+          "gzipSizeFormatted": "19.98 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-351e52ed-1f8ee76f5d14234a.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-351e52ed-1f8ee76f5d14234a.js",
+          "size": 61945,
+          "gzipSize": 19582,
+          "sizeFormatted": "60.49 KB",
+          "gzipSizeFormatted": "19.12 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "supabase-55776fae-a24fdab2a123919a.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\supabase-55776fae-a24fdab2a123919a.js",
+          "size": 60820,
+          "gzipSize": 16183,
+          "sizeFormatted": "59.39 KB",
+          "gzipSizeFormatted": "15.8 KB",
+          "category": "other"
+        },
+        {
+          "file": "vendor-362d063c-dd6baa3ae6c845e7.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-362d063c-dd6baa3ae6c845e7.js",
+          "size": 55686,
+          "gzipSize": 13982,
+          "sizeFormatted": "54.38 KB",
+          "gzipSizeFormatted": "13.65 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "supabase-0d08456b-0a596e38489ab8dc.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\supabase-0d08456b-0a596e38489ab8dc.js",
+          "size": 53482,
+          "gzipSize": 15244,
+          "sizeFormatted": "52.23 KB",
+          "gzipSizeFormatted": "14.89 KB",
+          "category": "other"
+        },
+        {
+          "file": "vendor-4a7382ad-1cf7c83612575882.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-4a7382ad-1cf7c83612575882.js",
+          "size": 35698,
+          "gzipSize": 9547,
+          "sizeFormatted": "34.86 KB",
+          "gzipSizeFormatted": "9.32 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-6808aa01-fe97bb60696e5125.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-6808aa01-fe97bb60696e5125.js",
+          "size": 28921,
+          "gzipSize": 7360,
+          "sizeFormatted": "28.24 KB",
+          "gzipSizeFormatted": "7.19 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-9a5e4ce4-b935d793f7518ddd.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-9a5e4ce4-b935d793f7518ddd.js",
+          "size": 26025,
+          "gzipSize": 7400,
+          "sizeFormatted": "25.42 KB",
+          "gzipSizeFormatted": "7.23 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "common-7e9615bd8f382ca6.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\common-7e9615bd8f382ca6.js",
+          "size": 21946,
+          "gzipSize": 6729,
+          "sizeFormatted": "21.43 KB",
+          "gzipSizeFormatted": "6.57 KB",
+          "category": "page"
+        },
+        {
+          "file": "vendor-ad6a2f20-96b0b816ecdbf777.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-ad6a2f20-96b0b816ecdbf777.js",
+          "size": 14787,
+          "gzipSize": 4991,
+          "sizeFormatted": "14.44 KB",
+          "gzipSizeFormatted": "4.87 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-4c7823de-e8406ce260156303.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-4c7823de-e8406ce260156303.js",
+          "size": 14232,
+          "gzipSize": 3123,
+          "sizeFormatted": "13.9 KB",
+          "gzipSizeFormatted": "3.05 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-c3e638c6-dcade17c17f029d2.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-c3e638c6-dcade17c17f029d2.js",
+          "size": 13934,
+          "gzipSize": 4736,
+          "sizeFormatted": "13.61 KB",
+          "gzipSizeFormatted": "4.63 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-0fbe0e3f-4c6ebc167d4e665b.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-0fbe0e3f-4c6ebc167d4e665b.js",
+          "size": 11020,
+          "gzipSize": 3765,
+          "sizeFormatted": "10.76 KB",
+          "gzipSizeFormatted": "3.68 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-6185be05-7e1eeb341dc408e3.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-6185be05-7e1eeb341dc408e3.js",
+          "size": 10841,
+          "gzipSize": 3120,
+          "sizeFormatted": "10.59 KB",
+          "gzipSizeFormatted": "3.05 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-1fe1241d-c0c3794d067316d9.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-1fe1241d-c0c3794d067316d9.js",
+          "size": 9404,
+          "gzipSize": 3869,
+          "sizeFormatted": "9.18 KB",
+          "gzipSizeFormatted": "3.78 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-3d3a1b23-048d0a62643834a4.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-3d3a1b23-048d0a62643834a4.js",
+          "size": 8547,
+          "gzipSize": 3080,
+          "sizeFormatted": "8.35 KB",
+          "gzipSizeFormatted": "3.01 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "vendor-9c587c8a-59e4a8c3b5e084c7.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\vendor-9c587c8a-59e4a8c3b5e084c7.js",
+          "size": 5432,
+          "gzipSize": 2366,
+          "sizeFormatted": "5.3 KB",
+          "gzipSizeFormatted": "2.31 KB",
+          "category": "vendor"
+        },
+        {
+          "file": "webpack-80b5bc982db5e024.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\webpack-80b5bc982db5e024.js",
+          "size": 3425,
+          "gzipSize": 1704,
+          "sizeFormatted": "3.34 KB",
+          "gzipSizeFormatted": "1.66 KB",
+          "category": "webpack"
+        },
+        {
+          "file": "main-app-ddb414e926698588.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\main-app-ddb414e926698588.js",
+          "size": 619,
+          "gzipSize": 264,
+          "sizeFormatted": "619 B",
+          "gzipSizeFormatted": "264 B",
+          "category": "main"
+        },
+        {
+          "file": "pages/_app-0c88e2478b013bf0.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\pages\\_app-0c88e2478b013bf0.js",
+          "size": 316,
+          "gzipSize": 247,
+          "sizeFormatted": "316 B",
+          "gzipSizeFormatted": "247 B",
+          "category": "page"
+        },
+        {
+          "file": "pages/_error-b3ff58bcd5058589.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\pages\\_error-b3ff58bcd5058589.js",
+          "size": 302,
+          "gzipSize": 236,
+          "sizeFormatted": "302 B",
+          "gzipSizeFormatted": "236 B",
+          "category": "page"
+        },
+        {
+          "file": "main-1ecd7a6a09aaac7d.js",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\chunks\\main-1ecd7a6a09aaac7d.js",
+          "size": 195,
+          "gzipSize": 165,
+          "sizeFormatted": "195 B",
+          "gzipSizeFormatted": "165 B",
+          "category": "main"
+        }
+      ],
+      "totalSize": 1023483,
+      "totalGzipSize": 308651
+    },
+    "css": {
+      "bundles": [
+        {
+          "file": "globals.css",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\app\\globals.css",
+          "size": 20297,
+          "gzipSize": 4984,
+          "sizeFormatted": "19.82 KB",
+          "gzipSizeFormatted": "4.87 KB",
+          "category": "global"
+        },
+        {
+          "file": "ef46db3751d8e999.css",
+          "path": "C:\\Users\\Alper\\OneDrive\\Desktop\\Projects\\CarBot\\.next\\static\\css\\ef46db3751d8e999.css",
+          "size": 0,
+          "gzipSize": 20,
+          "sizeFormatted": "0 B",
+          "gzipSizeFormatted": "20 B",
+          "category": "chunk"
+        }
+      ],
+      "totalSize": 0,
+      "totalGzipSize": 20
+    },
+    "images": {
+      "images": [],
+      "totalSize": 0
+    }
+  },
+  "recommendations": [
+    {
+      "category": "JavaScript",
+      "priority": "High",
+      "issue": "Large JavaScript bundle size",
+      "description": "Consider code splitting and lazy loading to reduce initial bundle size",
+      "impact": "Current size: 999.5 KB",
+      "solutions": [
+        "Implement dynamic imports for non-critical components",
+        "Use Next.js automatic code splitting",
+        "Remove unused dependencies",
+        "Enable tree shaking optimization"
+      ]
+    },
+    {
+      "category": "Performance",
+      "priority": "High",
+      "issue": "Total bundle size impact on mobile",
+      "description": "Large total bundle size affects mobile performance",
+      "impact": "Total bundles: 999.5 KB",
+      "solutions": [
+        "Implement service worker caching",
+        "Use preload/prefetch for critical resources",
+        "Enable compression (gzip/brotli) on server",
+        "Consider progressive loading strategies"
+      ]
+    }
+  ],
+  "thresholds": {
+    "js": {
+      "warning": 409600,
+      "error": 614400
+    },
+    "css": {
+      "warning": 81920,
+      "error": 122880
+    },
+    "image": {
+      "warning": 204800,
+      "error": 512000
+    }
+  }
+}

@@ -393,7 +393,7 @@ export default function DocsPage() {
             Unser Support-Team steht Ihnen bei Fragen zur Verfügung.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <SecondaryButton href="mailto:support@carbot.de">
+            <SecondaryButton href="mailto:support@carbot.chat">
               📧 E-Mail Support
             </SecondaryButton>
             <SecondaryButton href="/docs/troubleshooting">

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
-import DashboardNav from '../../components/DashboardNav'
+import EnhancedDashboardNav from '../../components/EnhancedDashboardNav'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }) {
       background: '#f8fafc',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      <DashboardNav user={user} workshop={workshop} onLogout={() => {
+      <EnhancedDashboardNav user={user} workshop={workshop} onLogout={() => {
         supabase.auth.signOut()
         router.push('/auth/login')
       }} />

@@ -1,10 +1,20 @@
 'use client'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { 
+  ParallaxBackground, 
+  SmoothReveal,
+  StaggeredReveal, 
+  MagneticButton,
+  FloatingElement,
+  ScrollProgress,
+  useAppleScrollEffects
+} from '@/components/AppleStyleAnimations'
+import ModernNavigation from '@/components/ModernNavigation'
 
 export default function Home() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const { scrollY } = useAppleScrollEffects()
 
   useEffect(() => {
     setIsClient(true)
@@ -17,7 +27,10 @@ export default function Home() {
       fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       position: 'relative'
     }}>
-      {/* Background Effects */}
+      {/* Apple-Style Scroll Progress */}
+      <ScrollProgress />
+      
+      {/* Enhanced Background Effects with Parallax */}
       <div style={{
         position: 'fixed',
         inset: 0,
@@ -25,299 +38,278 @@ export default function Home() {
         pointerEvents: 'none',
         zIndex: 0
       }}>
-        <div style={{
-          position: 'absolute',
-          top: '-10rem',
-          right: '-10rem',
-          width: '20rem',
-          height: '20rem',
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)',
-          borderRadius: '50%',
-          filter: 'blur(3rem)'
-        }}></div>
-        <div style={{
-          position: 'absolute',
-          bottom: '-10rem',
-          left: '-10rem',
-          width: '20rem',
-          height: '20rem',
-          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%)',
-          borderRadius: '50%',
-          filter: 'blur(3rem)'
-        }}></div>
+        <ParallaxBackground speed={-0.2}>
+          <FloatingElement speed={0.5} amplitude={15}>
+            <div style={{
+              position: 'absolute',
+              top: '-10rem',
+              right: '-10rem',
+              width: '20rem',
+              height: '20rem',
+              background: 'radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%)',
+              borderRadius: '50%',
+              filter: 'blur(3rem)',
+              willChange: 'transform'
+            }}></div>
+          </FloatingElement>
+        </ParallaxBackground>
+        
+        <ParallaxBackground speed={-0.3}>
+          <FloatingElement speed={0.3} amplitude={20} direction="horizontal">
+            <div style={{
+              position: 'absolute',
+              bottom: '-10rem',
+              left: '-10rem',
+              width: '20rem',
+              height: '20rem',
+              background: 'radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, rgba(168, 85, 247, 0.2) 100%)',
+              borderRadius: '50%',
+              filter: 'blur(3rem)',
+              willChange: 'transform'
+            }}></div>
+          </FloatingElement>
+        </ParallaxBackground>
+        
+        {/* Additional floating automotive-themed elements */}
+        <ParallaxBackground speed={-0.1}>
+          <div style={{
+            position: 'absolute',
+            top: '30%',
+            right: '10%',
+            width: '4px',
+            height: '100px',
+            background: 'linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.1), transparent)',
+            transform: `translateY(${scrollY * 0.1}px)`,
+            willChange: 'transform'
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            bottom: '20%',
+            left: '15%',
+            width: '80px',
+            height: '4px',
+            background: 'linear-gradient(to right, transparent, rgba(249, 115, 22, 0.1), transparent)',
+            transform: `translateX(${scrollY * 0.15}px)`,
+            willChange: 'transform'
+          }}></div>
+        </ParallaxBackground>
       </div>
       
-      <main style={{ position: 'relative', zIndex: 10 }}>
-        {/* Navigation */}
-        <nav style={{
-          background: 'rgba(0, 0, 0, 0.2)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          position: 'relative',
-          zIndex: 50
-        }}>
-          <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '1rem 1.5rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            {/* Logo */}
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 100%)',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
-                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                </svg>
-              </div>
-              <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white' }}>CarBot</span>
-            </Link>
+      {/* Modern Navigation Component */}
+      <ModernNavigation variant="home" />
+      
+      <main style={{ position: 'relative', zIndex: 10, paddingTop: '80px' }}>
 
-            {/* Desktop Navigation */}
-            <div className="desktop-nav hidden md:flex items-center gap-6">
-              <Link href="/pricing" style={{ 
-                color: '#d1d5db', 
-                textDecoration: 'none',
-                transition: 'color 0.2s'
-              }}>
-                Preise
-              </Link>
-              <Link href="/auth/login" style={{ 
-                color: '#d1d5db', 
-                textDecoration: 'none',
-                transition: 'color 0.2s'
-              }}>
-                Anmelden
-              </Link>
-              <Link href="/auth/register" style={{
-                background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
-                padding: '0.5rem 1rem',
-                borderRadius: '8px',
-                fontWeight: '600',
-                color: 'white',
-                textDecoration: 'none',
-                display: 'inline-block',
-                transition: 'transform 0.2s ease'
-              }}>
-                Kostenlos starten
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              className="mobile-nav-button md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle mobile menu"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'white',
-                padding: '0.5rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-              </svg>
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMobileMenuOpen && (
-            <div className="mobile-menu-overlay md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>
-          )}
-          {isMobileMenuOpen && (
-            <div style={{
-              background: 'rgba(0, 0, 0, 0.9)',
-              backdropFilter: 'blur(10px)',
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-              padding: '1rem'
-            }}>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                maxWidth: '1200px',
-                margin: '0 auto'
-              }}>
-                <Link 
-                  href="/pricing" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  style={{ 
-                    color: '#d1d5db', 
-                    textDecoration: 'none',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    transition: 'background-color 0.2s',
-                    display: 'block'
-                  }}
-                >
-                  Preise
-                </Link>
-                <Link 
-                  href="/auth/login" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  style={{ 
-                    color: '#d1d5db', 
-                    textDecoration: 'none',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    transition: 'background-color 0.2s',
-                    display: 'block'
-                  }}
-                >
-                  Anmelden
-                </Link>
-                <Link 
-                  href="/auth/register" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  style={{
-                    background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    color: 'white',
-                    textDecoration: 'none',
-                    display: 'block',
-                    textAlign: 'center',
-                    transition: 'transform 0.2s ease'
-                  }}
-                >
-                  Kostenlos starten
-                </Link>
-              </div>
-            </div>
-          )}
-        </nav>
-
-        {/* Hero Section */}
+        {/* Enhanced Hero Section with Apple-style animations */}
         <section style={{
           maxWidth: '1200px',
           margin: '0 auto',
           padding: '5rem 1.5rem',
-          textAlign: 'center'
+          textAlign: 'center',
+          position: 'relative'
         }}>
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '0.5rem 1rem',
-            borderRadius: '9999px',
-            marginBottom: '2rem'
-          }}>
+          <SmoothReveal delay={0.2}>
             <div style={{
-              width: '8px',
-              height: '8px',
-              background: '#4ade80',
-              borderRadius: '50%',
-              marginRight: '0.5rem',
-              animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-            }}></div>
-            <span style={{ fontSize: '0.875rem', color: '#d1d5db' }}>Jetzt verfügbar in Deutschland</span>
-          </div>
-          
-          <h1 style={{
-            fontSize: '4rem',
-            fontWeight: 'bold',
-            marginBottom: '1.5rem',
-            lineHeight: '1.1'
-          }}>
-            <div style={{ color: 'white', marginBottom: '0.5rem' }}>KI-gestützte</div>
-            <div style={{
-              background: 'linear-gradient(135deg, #f97316 0%, #a855f7 50%, #3b82f6 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '0.5rem'
-            }}>
-              Kundenberatung
-            </div>
-            <div style={{ 
-              fontSize: '2rem', 
-              color: '#d1d5db', 
-              fontWeight: '300' 
-            }}>
-              für Autowerkstätten
-            </div>
-          </h1>
-          
-          <p style={{
-            fontSize: '1.25rem',
-            color: '#d1d5db',
-            marginBottom: '3rem',
-            lineHeight: '1.6',
-            maxWidth: '768px',
-            margin: '0 auto 3rem'
-          }}>
-            Automatisieren Sie Ihre Kundenberatung mit KI. Buchen Sie Termine, generieren Sie Leads 
-            und bedienen Sie Kunden <span style={{ color: 'white', fontWeight: '600' }}>24/7 in 4 Sprachen</span>.
-          </p>
-          
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: '4rem'
-          }}>
-            <Link href="/auth/register" style={{
-              background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '12px',
-              fontWeight: '600',
-              color: 'white',
-              textDecoration: 'none',
-              display: 'inline-block',
-              transition: 'transform 0.2s ease',
-              width: '300px'
-            }}>
-              30 Tage kostenlos testen
-            </Link>
-            
-            <Link href="/demo/workshop" style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '12px',
-              color: 'white',
-              textDecoration: 'none',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s ease',
-              width: '300px',
-              justifyContent: 'center'
+              padding: '0.75rem 1.5rem',
+              borderRadius: '9999px',
+              marginBottom: '2rem',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
             }}>
-              <div style={{
-                width: '16px',
-                height: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+              <FloatingElement speed={0.8} amplitude={3}>
+                <div style={{
+                  width: '10px',
+                  height: '10px',
+                  background: 'linear-gradient(135deg, #4ade80, #22c55e)',
+                  borderRadius: '50%',
+                  marginRight: '0.75rem',
+                  boxShadow: '0 0 20px rgba(74, 222, 128, 0.4)',
+                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                }}></div>
+              </FloatingElement>
+              <span style={{ 
+                fontSize: '0.875rem', 
+                color: '#f1f5f9',
+                fontWeight: '500',
+                letterSpacing: '0.025em'
               }}>
-                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
+                Jetzt verfügbar in Deutschland
+              </span>
+            </div>
+          </SmoothReveal>
+          
+          <SmoothReveal delay={0.4}>
+            <h1 style={{
+              fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
+              fontWeight: '800',
+              marginBottom: '1.5rem',
+              lineHeight: '1.1',
+              letterSpacing: '-0.02em'
+            }}>
+              <div style={{ 
+                color: 'white', 
+                marginBottom: '0.5rem',
+                transform: `translateY(${-scrollY * 0.05}px)`,
+                willChange: 'transform'
+              }}>
+                KI-gestützte
               </div>
-              Live Demo ansehen
-            </Link>
-          </div>
+              <div style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #a855f7 50%, #3b82f6 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '0.5rem',
+                position: 'relative',
+                transform: `translateY(${-scrollY * 0.02}px)`,
+                willChange: 'transform'
+              }}>
+                Kundenberatung
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(135deg, #f97316 0%, #a855f7 50%, #3b82f6 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  filter: 'blur(20px)',
+                  opacity: 0.3,
+                  zIndex: -1
+                }}>
+                  Kundenberatung
+                </div>
+              </div>
+              <div style={{ 
+                fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', 
+                color: '#cbd5e1', 
+                fontWeight: '400',
+                transform: `translateY(${-scrollY * 0.03}px)`,
+                willChange: 'transform'
+              }}>
+                für Autowerkstätten
+              </div>
+            </h1>
+          </SmoothReveal>
+          
+          <SmoothReveal delay={0.1}>
+            <p style={{
+              fontSize: 'clamp(1.125rem, 2.5vw, 1.375rem)',
+              color: '#e2e8f0',
+              marginBottom: '3rem',
+              lineHeight: '1.7',
+              maxWidth: '800px',
+              margin: '0 auto 3rem',
+              fontWeight: '400'
+            }}>
+              Automatisieren Sie Ihre Kundenberatung mit KI. Buchen Sie Termine, generieren Sie Leads 
+              und bedienen Sie Kunden <span style={{ 
+                color: 'white', 
+                fontWeight: '600',
+                background: 'linear-gradient(135deg, #f97316, #a855f7)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>24/7 in 4 Sprachen</span>.
+            </p>
+          </SmoothReveal>
+          
+          <SmoothReveal delay={0.2}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: '4rem'
+            }}>
+              <Link 
+                href="/auth/register"
+                style={{
+                  background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%)',
+                  padding: '1rem 2rem',
+                  borderRadius: '16px',
+                  fontWeight: '600',
+                  fontSize: '1.1rem',
+                  color: 'white',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  width: '320px',
+                  boxShadow: '0 10px 40px rgba(234, 88, 12, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px) scale(1.02)'
+                  e.target.style.boxShadow = '0 20px 60px rgba(234, 88, 12, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)'
+                  e.target.style.boxShadow = '0 10px 40px rgba(234, 88, 12, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                30 Tage kostenlos testen
+              </Link>
+              
+              <Link 
+                href="/demo/workshop"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  padding: '1rem 2rem',
+                  borderRadius: '16px',
+                  color: 'white',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  width: '320px',
+                  justifyContent: 'center',
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px) scale(1.02)'
+                  e.target.style.background = 'rgba(255, 255, 255, 0.12)'
+                  e.target.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)'
+                  e.target.style.background = 'rgba(255, 255, 255, 0.08)'
+                  e.target.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                <FloatingElement speed={0.6} amplitude={2}>
+                  <div style={{
+                    width: '18px',
+                    height: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'linear-gradient(135deg, #f97316, #a855f7)',
+                    borderRadius: '50%',
+                    boxShadow: '0 0 12px rgba(249, 115, 22, 0.4)'
+                  }}>
+                    <svg width="8" height="8" fill="white" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </FloatingElement>
+                Live Demo ansehen
+              </Link>
+            </div>
+          </SmoothReveal>
           
           <div style={{ textAlign: 'center' }}>
             <p style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '1rem' }}>
@@ -338,66 +330,119 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* Enhanced Features Section with Apple-style animations */}
         <section style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '5rem 1.5rem'
+          padding: '6rem 1.5rem',
+          position: 'relative'
         }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 style={{
-              fontSize: '2.5rem',
-              fontWeight: 'bold',
-              marginBottom: '1rem',
-              color: 'white'
-            }}>
-              Warum CarBot?
-            </h2>
-            <p style={{
-              fontSize: '1.125rem',
-              color: '#d1d5db',
-              maxWidth: '512px',
-              margin: '0 auto'
-            }}>
-              Modernste KI-Technologie trifft auf jahrelange Automotive-Expertise
-            </p>
-          </div>
+          <SmoothReveal delay={0.2}>
+            <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+              <h2 style={{
+                fontSize: 'clamp(2rem, 5vw, 3rem)',
+                fontWeight: '700',
+                marginBottom: '1.5rem',
+                color: 'white',
+                letterSpacing: '-0.02em'
+              }}>
+                Warum CarBot?
+              </h2>
+              <p style={{
+                fontSize: 'clamp(1rem, 2vw, 1.25rem)',
+                color: '#cbd5e1',
+                maxWidth: '600px',
+                margin: '0 auto',
+                lineHeight: '1.6'
+              }}>
+                Modernste KI-Technologie trifft auf jahrelange Automotive-Expertise
+              </p>
+            </div>
+          </SmoothReveal>
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '2rem'
           }}>
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              padding: '1.5rem',
-              transition: 'all 0.3s ease'
-            }}>
+            <SmoothReveal delay={0.4}>
               <div style={{
-                width: '48px',
-                height: '48px',
-                background: 'rgba(249, 115, 22, 0.2)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}>
-                <svg width="24" height="24" fill="none" stroke="#fb923c" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+                background: 'rgba(255, 255, 255, 0.06)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '24px',
+                padding: '2rem',
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-8px) scale(1.02)'
+                e.target.style.boxShadow = '0 20px 60px rgba(249, 115, 22, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0) scale(1)'
+                e.target.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.02), rgba(168, 85, 247, 0.02))',
+                  opacity: 0,
+                  transition: 'opacity 0.4s ease',
+                  borderRadius: '24px'
+                }} className="feature-glow" />
+                
+                <FloatingElement speed={0.8} amplitude={5}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(251, 146, 60, 0.3))',
+                    borderRadius: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 0 30px rgba(249, 115, 22, 0.2)',
+                    position: 'relative'
+                  }}>
+                    <svg width="28" height="28" fill="none" stroke="#fb923c" viewBox="0 0 24 24" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(251, 146, 60, 0.3))',
+                      borderRadius: '20px',
+                      filter: 'blur(15px)',
+                      opacity: 0.6,
+                      zIndex: -1
+                    }} />
+                  </div>
+                </FloatingElement>
+                
+                <h3 style={{ 
+                  fontSize: '1.375rem', 
+                  fontWeight: '600', 
+                  color: 'white', 
+                  marginBottom: '1rem',
+                  letterSpacing: '-0.01em'
+                }}>
+                  Intelligente KI-Beratung
+                </h3>
+                <p style={{ 
+                  color: '#cbd5e1', 
+                  lineHeight: '1.7',
+                  fontSize: '1rem'
+                }}>
+                  Hochentwickelte KI versteht Fahrzeugprobleme, erstellt automatisch 
+                  Kostenvoranschläge und schlägt optimale Termine vor.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
-                Intelligente KI-Beratung
-              </h3>
-              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
-                Hochentwickelte KI versteht Fahrzeugprobleme, erstellt automatisch 
-                Kostenvoranschläge und schlägt optimale Termine vor.
-              </p>
-            </div>
+            </SmoothReveal>
             
             <div style={{
               background: 'rgba(255, 255, 255, 0.05)',
@@ -469,128 +514,160 @@ export default function Home() {
           margin: '0 auto',
           padding: '5rem 1.5rem'
         }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 style={{
-              fontSize: '2.5rem',
-              fontWeight: 'bold',
-              marginBottom: '1rem',
-              color: 'white'
-            }}>
-              Werkstatt-Expertise
-            </h2>
-            <p style={{
-              fontSize: '1.125rem',
-              color: '#d1d5db',
-              maxWidth: '512px',
-              margin: '0 auto'
-            }}>
-              Praktische Tipps und Trends für erfolgreiche Autowerkstätten
-            </p>
+          <SmoothReveal delay={0.2}>
+            <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+              <h2 style={{
+                fontSize: '2.5rem',
+                fontWeight: 'bold',
+                marginBottom: '1rem',
+                color: 'white'
+              }}>
+                Werkstatt-Expertise
+              </h2>
+              <p style={{
+                fontSize: '1.125rem',
+                color: '#d1d5db',
+                maxWidth: '512px',
+                margin: '0 auto'
+              }}>
+                Praktische Tipps und Trends für erfolgreiche Autowerkstätten
+              </p>
+            </div>
+          </SmoothReveal>
+
+          {/* Main Featured Articles - Vertical Layout */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            maxWidth: '700px',
+            margin: '0 auto 3rem'
+          }}>
+            <SmoothReveal delay={0.2}>
+              <Link href="/blog/ki-chatbot-autowerkstatt" style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                transition: 'all 0.3s ease',
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  background: 'rgba(249, 115, 22, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <svg width="24" height="24" fill="#fb923c" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                    KI-Chatbot für Autowerkstätten
+                  </h3>
+                  <p style={{ color: '#d1d5db', lineHeight: '1.6', fontSize: '0.9rem' }}>
+                    Automatisierte Kundenberatung, Terminbuchung und Lead-Generierung für Werkstätten
+                  </p>
+                </div>
+              </Link>
+            </SmoothReveal>
+
+            <SmoothReveal delay={0.3}>
+              <Link href="/blog/automatisierte-terminbuchung-werkstatt" style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                transition: 'all 0.3s ease',
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  background: 'rgba(168, 85, 247, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <svg width="24" height="24" fill="#a855f7" viewBox="0 0 24 24">
+                    <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                    Automatisierte Terminbuchung
+                  </h3>
+                  <p style={{ color: '#d1d5db', lineHeight: '1.6', fontSize: '0.9rem' }}>
+                    Online-Terminbuchung, Kalenderintegration und automatische Erinnerungen
+                  </p>
+                </div>
+              </Link>
+            </SmoothReveal>
+
+            <SmoothReveal delay={0.4}>
+              <Link href="/blog/werkstatt-digitalisierung-2025" style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                transition: 'all 0.3s ease',
+                textDecoration: 'none',
+                color: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  background: 'rgba(59, 130, 246, 0.2)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <svg width="24" height="24" fill="#3b82f6" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                    Werkstatt Digitalisierung 2025
+                  </h3>
+                  <p style={{ color: '#d1d5db', lineHeight: '1.6', fontSize: '0.9rem' }}>
+                    Kompletter Leitfaden zur digitalen Transformation von Autowerkstätten
+                  </p>
+                </div>
+              </Link>
+            </SmoothReveal>
           </div>
 
+          {/* Additional Topics Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-            gap: '2rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '1.5rem'
           }}>
-            <Link href="/blog/ki-chatbot-autowerkstatt" style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              padding: '1.5rem',
-              transition: 'all 0.3s ease',
-              textDecoration: 'none',
-              color: 'inherit',
-              display: 'block'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                background: 'rgba(249, 115, 22, 0.2)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}>
-                <svg width="24" height="24" fill="#fb923c" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
-                KI-Chatbot für Autowerkstätten
-              </h3>
-              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
-                Automatisierte Kundenberatung, Terminbuchung und Lead-Generierung für Werkstätten
-              </p>
-            </Link>
-
-            <Link href="/blog/automatisierte-terminbuchung-werkstatt" style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              padding: '1.5rem',
-              transition: 'all 0.3s ease',
-              textDecoration: 'none',
-              color: 'inherit',
-              display: 'block'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                background: 'rgba(168, 85, 247, 0.2)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}>
-                <svg width="24" height="24" fill="#a855f7" viewBox="0 0 24 24">
-                  <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
-                </svg>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
-                Automatisierte Terminbuchung
-              </h3>
-              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
-                Online-Terminbuchung, Kalenderintegration und automatische Erinnerungen
-              </p>
-            </Link>
-
-            <Link href="/blog/werkstatt-digitalisierung-2025" style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              padding: '1.5rem',
-              transition: 'all 0.3s ease',
-              textDecoration: 'none',
-              color: 'inherit',
-              display: 'block'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                background: 'rgba(59, 130, 246, 0.2)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '1rem'
-              }}>
-                <svg width="24" height="24" fill="#3b82f6" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
-                Werkstatt Digitalisierung 2025
-              </h3>
-              <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
-                Kompletter Leitfaden zur digitalen Transformation von Autowerkstätten
-              </p>
-            </Link>
+            <SmoothReveal delay={0.5}>
 
             <Link href="/blog/lead-generierung-kfz-betriebe" style={{
               background: 'rgba(255, 255, 255, 0.05)',
@@ -689,7 +766,8 @@ export default function Home() {
               <p style={{ color: '#d1d5db', lineHeight: '1.6' }}>
                 Rechtssichere Kundenkommunikation und Datenschutz für Autowerkstätten
               </p>
-            </Link>
+              </Link>
+            </SmoothReveal>
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '3rem' }}>
@@ -922,8 +1000,14 @@ export default function Home() {
                   <li style={{ marginBottom: '0.5rem' }}>
                     <Link href="/legal/datenschutz" style={{ color: '#9ca3af', textDecoration: 'none' }}>Datenschutz</Link>
                   </li>
-                  <li>
+                  <li style={{ marginBottom: '0.5rem' }}>
                     <Link href="/legal/impressum" style={{ color: '#9ca3af', textDecoration: 'none' }}>Impressum</Link>
+                  </li>
+                  <li style={{ marginBottom: '0.5rem' }}>
+                    <Link href="/legal/agb" style={{ color: '#9ca3af', textDecoration: 'none' }}>AGB</Link>
+                  </li>
+                  <li>
+                    <Link href="/legal/cookies" style={{ color: '#9ca3af', textDecoration: 'none' }}>Cookie-Richtlinie</Link>
                   </li>
                 </ul>
               </div>
@@ -948,7 +1032,7 @@ export default function Home() {
               textAlign: 'center',
               color: '#9ca3af'
             }}>
-              <p>&copy; 2024 CarBot. Alle Rechte vorbehalten.</p>
+              <p>&copy; 2025 CarBot. Alle Rechte vorbehalten.</p>
             </div>
           </div>
         </footer>

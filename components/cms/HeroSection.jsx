@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getOptimizedImageUrl } from '../../lib/directus';
+import { ParallaxBackground, FadeInOnScroll, StaggeredFadeIn } from '../animations/ScrollAnimations';
 
 export default function HeroSection({ 
   hero, 
@@ -37,65 +38,90 @@ export default function HeroSection({
       )
     : null;
 
-  // Default variant - centered content with background image
+  // Default variant - centered content with background image and parallax
   if (variant === 'default') {
     return (
-      <section className={`relative min-h-[500px] md:min-h-[600px] flex items-center justify-center ${className}`}>
-        {/* Background Image */}
+      <section className={`relative min-h-[500px] md:min-h-[600px] flex items-center justify-center overflow-hidden ${className}`}>
+        {/* Parallax Background Image */}
         {imageUrl && !imageError && (
-          <div className="absolute inset-0">
+          <ParallaxBackground speed={-0.3} className="absolute inset-0" enableMobile={false}>
             <Image
               src={imageUrl}
               alt={title}
               fill
-              className="object-cover"
+              className="object-cover scale-110"
               onError={() => setImageError(true)}
               priority
               sizes="100vw"
             />
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black/50" />
-          </div>
+            {/* Animated Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60" />
+          </ParallaxBackground>
         )}
 
-        {/* Content */}
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-purple-500/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
+        {/* Content with Staggered Animation */}
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-            {title}
-          </h1>
+          <FadeInOnScroll direction="down" delay={200}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
+              {title}
+            </h1>
+          </FadeInOnScroll>
           
           {subtitle && (
-            <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto">
-              {subtitle}
-            </p>
+            <FadeInOnScroll direction="up" delay={400}>
+              <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto drop-shadow-lg">
+                {subtitle}
+              </p>
+            </FadeInOnScroll>
           )}
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* CTA Buttons with Staggered Animation */}
+          <StaggeredFadeIn staggerDelay={200} className="flex flex-col sm:flex-row gap-4 justify-center">
             {hero.cta_link && (
               <Link 
                 href={hero.cta_link}
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg"
+                className="group bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg transform hover:scale-105 hover:shadow-xl"
               >
-                {ctaText}
+                <span className="inline-flex items-center">
+                  {ctaText}
+                  <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
               </Link>
             )}
             
             <Link 
               href="/contact"
-              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg hover:bg-white hover:text-gray-900 transition-colors font-semibold text-lg"
+              className="group bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold text-lg backdrop-blur-sm hover:scale-105 hover:shadow-xl"
             >
-              Kontakt aufnehmen
-            </Link>
-          </div>
+              <span className="inline-flex items-center">
+                Kontakt aufnehmen
+                <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </span>
+              </Link>
+          </StaggeredFadeIn>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </div>
+        {/* Enhanced Scroll indicator */}
+        <FadeInOnScroll direction="up" delay={800}>
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <div className="flex flex-col items-center text-white/80">
+              <span className="text-sm mb-2 font-medium">Scroll down</span>
+              <div className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center">
+                <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </FadeInOnScroll>
       </section>
     );
   }
