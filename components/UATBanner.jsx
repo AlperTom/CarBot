@@ -5,14 +5,8 @@ import { useState } from 'react'
 export default function UATBanner() {
   const [isVisible, setIsVisible] = useState(true)
   
-  // Only show in UAT environment - STRICT PRODUCTION CHECK
-  if (process.env.NODE_ENV === 'production' || typeof window !== 'undefined' && window.location.hostname === 'carbot.chat') {
-    return null
-  }
-  
-  if (!process.env.UAT_MODE && !window?.location?.hostname?.includes('uat') && !window?.location?.hostname?.includes('localhost')) {
-    return null
-  }
+  // ALWAYS HIDE UAT BANNER - DISABLED FOR PRODUCTION
+  return null
 
   if (!isVisible) return null
 

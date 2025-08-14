@@ -1,0 +1,47 @@
+<svg width="180" height="50" viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradTech" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0F172A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentTech" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EF4444;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded Tech Background -->
+  <rect x="2" y="5" width="40" height="40" rx="8" fill="url(#gradTech)"/>
+  
+  <!-- Car Icon (modern sedan) + AI Tools Icon -->
+  <g transform="translate(12, 17)">
+    <!-- Car Body - Modern sedan design -->
+    <path d="M2 10 Q2 8 4 8 L14 8 Q16 8 16 10 L16 12 Q16 14 14 14 L4 14 Q2 14 2 12 Z" fill="url(#accentTech)"/>
+    <!-- Car roof/windshield -->
+    <path d="M4 8 Q5 6 7 6 L11 6 Q13 6 14 8" fill="url(#accentTech)" opacity="0.8"/>
+    <!-- Wheels -->
+    <circle cx="5" cy="14" r="2" fill="white" stroke="url(#accentTech)" stroke-width="1"/>
+    <circle cx="13" cy="14" r="2" fill="white" stroke="url(#accentTech)" stroke-width="1"/>
+    <!-- Wheel details -->
+    <circle cx="5" cy="14" r="1" fill="url(#accentTech)"/>
+    <circle cx="13" cy="14" r="1" fill="url(#accentTech)"/>
+    <!-- Headlight -->
+    <circle cx="16" cy="10" r="0.8" fill="white" opacity="0.9"/>
+    
+    <!-- AI Tools Icon (electronic/chip style) -->
+    <g transform="translate(18, 8)" fill="white" opacity="0.9">
+      <!-- Circuit chip design -->
+      <rect x="0" y="0" width="6" height="6" rx="1" fill="url(#accentTech)" stroke="white" stroke-width="0.5"/>
+      <!-- Circuit lines -->
+      <path d="M1 2 L2 2 M4 2 L5 2 M1 4 L2 4 M4 4 L5 4" stroke="white" stroke-width="0.5"/>
+      <!-- AI indicator dots -->
+      <circle cx="3" cy="3" r="0.8" fill="white" opacity="0.8"/>
+      <!-- Connection lines -->
+      <path d="M3 -1 L3 0 M3 6 L3 7 M-1 3 L0 3 M6 3 L7 3" stroke="white" stroke-width="0.8" opacity="0.6"/>
+    </g>
+  </g>
+  
+  <!-- CarBot Text - Clean Tech Style -->
+  <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0F172A">Car</text>
+  <text x="85" y="32" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="url(#accentTech)">Bot</text>
+</svg>

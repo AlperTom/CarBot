@@ -1,0 +1,72 @@
+<svg width="180" height="50" viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Enhanced gradients for professional appearance -->
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F97316;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EF4444;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="containerBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E293B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#334155;stop-opacity:1" />
+    </linearGradient>
+    <!-- Drop shadow filter for depth -->
+    <filter id="iconShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <!-- Professional container with subtle shadow -->
+  <rect x="1" y="3" width="44" height="44" rx="6" fill="url(#containerBg)" filter="url(#iconShadow)"/>
+  
+  <!-- Refined Car Icon - Professional sedan design -->
+  <g transform="translate(8, 12)">
+    <!-- Main car body - simplified and refined -->
+    <path d="M3 18 Q3 16 5 16 L25 16 Q27 16 27 18 L27 22 Q27 24 25 24 L5 24 Q3 24 3 22 Z" 
+          fill="url(#brandGradient)" stroke="white" stroke-width="0.5" opacity="0.95"/>
+    
+    <!-- Windshield and roof - cleaner lines -->
+    <path d="M6 16 Q8 12 12 12 L18 12 Q22 12 24 16" 
+          fill="url(#brandGradient)" opacity="0.7" stroke="white" stroke-width="0.3"/>
+    
+    <!-- Side windows for depth -->
+    <path d="M7 15.5 Q8.5 13 11 13 L14 13" stroke="white" stroke-width="0.4" opacity="0.6" fill="none"/>
+    <path d="M16 13 L19 13 Q21.5 13 23 15.5" stroke="white" stroke-width="0.4" opacity="0.6" fill="none"/>
+    
+    <!-- Professional wheels with clean design -->
+    <circle cx="8" cy="24" r="3" fill="white" stroke="url(#brandGradient)" stroke-width="1.2"/>
+    <circle cx="22" cy="24" r="3" fill="white" stroke="url(#brandGradient)" stroke-width="1.2"/>
+    
+    <!-- Wheel centers - simplified -->
+    <circle cx="8" cy="24" r="1.5" fill="url(#brandGradient)"/>
+    <circle cx="22" cy="24" r="1.5" fill="url(#brandGradient)"/>
+    
+    <!-- Professional headlight -->
+    <ellipse cx="27.5" cy="18.5" rx="1.2" ry="2" fill="white" opacity="0.9"/>
+    
+    <!-- AI Integration Symbol - Minimalist approach -->
+    <g transform="translate(12, 8)">
+      <!-- Clean circuit board representation -->
+      <rect x="2" y="2" width="6" height="4" rx="1" fill="white" opacity="0.9" 
+            stroke="url(#brandGradient)" stroke-width="0.8"/>
+      
+      <!-- AI brain center -->
+      <circle cx="5" cy="4" r="1.2" fill="url(#brandGradient)"/>
+      <circle cx="5" cy="4" r="0.6" fill="white" opacity="0.8"/>
+      
+      <!-- Connection points -->
+      <rect x="1" y="3.5" width="1" height="1" rx="0.2" fill="url(#brandGradient)" opacity="0.7"/>
+      <rect x="8" y="3.5" width="1" height="1" rx="0.2" fill="url(#brandGradient)" opacity="0.7"/>
+      <rect x="4.5" y="1" width="1" height="1" rx="0.2" fill="url(#brandGradient)" opacity="0.7"/>
+    </g>
+  </g>
+  
+  <!-- Enhanced Typography with improved spacing -->
+  <g font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif">
+    <!-- "Car" text - refined weight and spacing -->
+    <text x="52" y="32" font-size="20" font-weight="600" letter-spacing="-0.02em" fill="#1E293B">Car</text>
+    
+    <!-- "Bot" text - gradient with better contrast -->
+    <text x="82" y="32" font-size="20" font-weight="600" letter-spacing="-0.02em" fill="url(#brandGradient)">Bot</text>
+  </g>
+</svg>

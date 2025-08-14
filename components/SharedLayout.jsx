@@ -242,7 +242,7 @@ export default function SharedLayout({ children, title = "CarBot", showNavigatio
               </div>
               
               <div style={footerBottomStyle}>
-                <p>&copy; 2024 CarBot. Alle Rechte vorbehalten.</p>
+                <p>&copy; 2025 CarBot. Alle Rechte vorbehalten.</p>
               </div>
             </div>
           </footer>

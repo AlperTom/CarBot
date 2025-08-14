@@ -98,13 +98,13 @@ export default function Home() {
       {/* Modern Navigation Component */}
       <ModernNavigation variant="home" />
       
-      <main style={{ position: 'relative', zIndex: 10, paddingTop: '80px' }}>
+      <main style={{ position: 'relative', zIndex: 10, paddingTop: '0px' }}>
 
         {/* Enhanced Hero Section with Apple-style animations */}
         <section style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '5rem 1.5rem',
+          padding: '6rem 1.5rem 5rem 1.5rem',
           textAlign: 'center',
           position: 'relative'
         }}>
@@ -535,12 +535,12 @@ export default function Home() {
             </div>
           </SmoothReveal>
 
-          {/* Main Featured Articles - Vertical Layout */}
+          {/* Main Featured Articles - Responsive Grid Layout */}
           <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem',
-            maxWidth: '700px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '2rem',
+            maxWidth: '1200px',
             margin: '0 auto 3rem'
           }}>
             <SmoothReveal delay={0.2}>
@@ -553,9 +553,8 @@ export default function Home() {
                 transition: 'all 0.3s ease',
                 textDecoration: 'none',
                 color: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem'
+                display: 'block',
+                height: '100%'
               }}>
                 <div style={{
                   width: '48px',
@@ -565,7 +564,7 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0
+                  marginBottom: '1rem'
                 }}>
                   <svg width="24" height="24" fill="#fb923c" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -592,9 +591,8 @@ export default function Home() {
                 transition: 'all 0.3s ease',
                 textDecoration: 'none',
                 color: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem'
+                display: 'block',
+                height: '100%'
               }}>
                 <div style={{
                   width: '48px',
@@ -604,7 +602,7 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0
+                  marginBottom: '1rem'
                 }}>
                   <svg width="24" height="24" fill="#a855f7" viewBox="0 0 24 24">
                     <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
@@ -631,9 +629,8 @@ export default function Home() {
                 transition: 'all 0.3s ease',
                 textDecoration: 'none',
                 color: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem'
+                display: 'block',
+                height: '100%'
               }}>
                 <div style={{
                   width: '48px',
@@ -643,7 +640,7 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0
+                  marginBottom: '1rem'
                 }}>
                   <svg width="24" height="24" fill="#3b82f6" viewBox="0 0 24 24">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -664,12 +661,12 @@ export default function Home() {
           {/* Additional Topics Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '1.5rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '2rem',
+            marginBottom: '3rem'
           }}>
             <SmoothReveal delay={0.5}>
-
-            <Link href="/blog/lead-generierung-kfz-betriebe" style={{
+              <Link href="/blog/lead-generierung-kfz-betriebe" style={{
               background: 'rgba(255, 255, 255, 0.05)',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -701,8 +698,10 @@ export default function Home() {
                 Moderne Strategien für nachhaltige Neukundengewinnung in Autowerkstätten
               </p>
             </Link>
+            </SmoothReveal>
 
-            <Link href="/blog/customer-service-automatisierung-werkstatt" style={{
+            <SmoothReveal delay={0.6}>
+              <Link href="/blog/customer-service-automatisierung-werkstatt" style={{
               background: 'rgba(255, 255, 255, 0.05)',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -734,8 +733,10 @@ export default function Home() {
                 Effizienz steigern durch intelligente Automatisierung im Werkstatt-Service
               </p>
             </Link>
+            </SmoothReveal>
 
-            <Link href="/blog/dsgvo-konforme-kundenkommunikation" style={{
+            <SmoothReveal delay={0.7}>
+              <Link href="/blog/dsgvo-konforme-kundenkommunikation" style={{
               background: 'rgba(255, 255, 255, 0.05)',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
