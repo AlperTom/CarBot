@@ -1,18 +1,6 @@
+'use client'
 import Link from 'next/link'
 import ModernNavigation from '@/components/ModernNavigation'
-
-// Generate metadata for SEO
-export const metadata = {
-  title: 'Blog & Insights | CarBot',
-  description: 'Neueste Artikel über KI-gestützte Kundenberatung, Werkstatt-Digitalisierung und Automotive-Trends.',
-  openGraph: {
-    title: 'Blog & Insights | CarBot',
-    description: 'Neueste Artikel über KI-gestützte Kundenberatung, Werkstatt-Digitalisierung und Automotive-Trends.',
-    type: 'website',
-  },
-  themeColor: '#ea580c',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes'
-};
 
 export default function BlogPage({ searchParams }) {
   // Static blog posts for production
