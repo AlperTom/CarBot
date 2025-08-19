@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import SharedLayout, { GlassCard } from '../../../components/SharedLayout'
+import ModernNavigation from '../../../components/ModernNavigation'
+import { GlassCard } from '../../../components/SharedLayout'
 
 export const metadata = {
   title: 'KI-Chatbot für Autowerkstätten: Kundenservice revolutionieren | CarBot',
@@ -19,12 +20,20 @@ export const metadata = {
 
 export default function BlogPost() {
   return (
-    <SharedLayout title="KI-Chatbot für Autowerkstätten" showNavigation={true}>
-      <article style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        padding: '2rem 1.5rem'
-      }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #1e293b 100%)',
+      color: 'white'
+    }}>
+      {/* Modern Navigation */}
+      <ModernNavigation variant="page" />
+      
+      <main id="main-content">
+        <article style={{
+          maxWidth: '800px',
+          margin: '0 auto',
+          padding: '2rem 1.5rem'
+        }}>
         {/* Breadcrumbs */}
         <nav style={{ marginBottom: '2rem', fontSize: '0.875rem', color: '#9ca3af' }}>
           <Link href="/" style={{ color: '#fb923c', textDecoration: 'none' }}>Home</Link>
@@ -399,7 +408,26 @@ export default function BlogPost() {
             </Link>
           </div>
         </footer>
-      </article>
-    </SharedLayout>
+        </article>
+      </main>
+      
+      {/* Footer */}
+      <footer style={{
+        background: 'rgba(0, 0, 0, 0.2)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(107, 114, 128, 1)',
+        marginTop: '4rem'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '2rem 1.5rem',
+          textAlign: 'center',
+          color: '#9ca3af'
+        }}>
+          <p>&copy; 2025 CarBot. Alle Rechte vorbehalten.</p>
+        </div>
+      </footer>
+    </div>
   )
 }

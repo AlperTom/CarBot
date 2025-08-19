@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { getStoredWorkshopData } from '@/lib/auth';
-import SharedLayout, { GlassCard, PrimaryButton, SecondaryButton } from '@/components/SharedLayout';
+import ModernNavigation from '@/components/ModernNavigation';
+import { GlassCard, PrimaryButton, SecondaryButton } from '@/components/SharedLayout';
 
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -151,8 +152,15 @@ export default function PricingPage() {
   };
 
   return (
-    <SharedLayout title="Preise">
-      <div style={{
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #1e293b 100%)',
+      color: 'white'
+    }}>
+      {/* Modern Navigation */}
+      <ModernNavigation variant="page" />
+      
+      <main id="main-content" style={{
         maxWidth: '1200px',
         margin: '0 auto',
         padding: '2rem 1.5rem'
@@ -526,7 +534,104 @@ export default function PricingPage() {
             </SecondaryButton>
           </GlassCard>
         </div>
-      </div>
-    </SharedLayout>
+      </main>
+      
+      {/* Footer */}
+      <footer style={{
+        background: 'rgba(0, 0, 0, 0.2)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(107, 114, 128, 1)',
+        marginTop: '4rem'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '3rem 1.5rem'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '2rem'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 100%)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white' }}>CarBot</span>
+              </div>
+              <p style={{ color: '#9ca3af', lineHeight: '1.6' }}>
+                KI-gestützte Kundenberatung für moderne Autowerkstätten in Deutschland.
+              </p>
+            </div>
+            
+            <div>
+              <h4 style={{ fontWeight: '600', marginBottom: '1rem', color: 'white' }}>Produkt</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af' }}>
+                <li style={{ marginBottom: '0.5rem' }}>
+                  <a href="/pricing" style={{ color: '#9ca3af', textDecoration: 'none' }}>Preise</a>
+                </li>
+                <li style={{ marginBottom: '0.5rem' }}>
+                  <a href="/demo/workshop" style={{ color: '#9ca3af', textDecoration: 'none' }}>Demo</a>
+                </li>
+                <li>
+                  <a href="/auth/register" style={{ color: '#9ca3af', textDecoration: 'none' }}>Kostenlos testen</a>
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 style={{ fontWeight: '600', marginBottom: '1rem', color: 'white' }}>Rechtliches</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af' }}>
+                <li style={{ marginBottom: '0.5rem' }}>
+                  <a href="/legal/datenschutz" style={{ color: '#9ca3af', textDecoration: 'none' }}>Datenschutz</a>
+                </li>
+                <li style={{ marginBottom: '0.5rem' }}>
+                  <a href="/legal/impressum" style={{ color: '#9ca3af', textDecoration: 'none' }}>Impressum</a>
+                </li>
+                <li style={{ marginBottom: '0.5rem' }}>
+                  <a href="/legal/agb" style={{ color: '#9ca3af', textDecoration: 'none' }}>AGB</a>
+                </li>
+                <li>
+                  <a href="/legal/cookies" style={{ color: '#9ca3af', textDecoration: 'none' }}>Cookie-Richtlinie</a>
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 style={{ fontWeight: '600', marginBottom: '1rem', color: 'white' }}>Support</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#9ca3af' }}>
+                <li style={{ marginBottom: '0.5rem' }}>
+                  <a href="mailto:support@carbot.chat" style={{ color: '#9ca3af', textDecoration: 'none' }}>support@carbot.chat</a>
+                </li>
+                <li>
+                  <a href="tel:+4930123456789" style={{ color: '#9ca3af', textDecoration: 'none' }}>+49 30 123 456 789</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div style={{
+            borderTop: '1px solid rgba(107, 114, 128, 1)',
+            marginTop: '2rem',
+            paddingTop: '1.5rem',
+            textAlign: 'center',
+            color: '#9ca3af'
+          }}>
+            <p>&copy; 2025 CarBot. Alle Rechte vorbehalten.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

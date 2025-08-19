@@ -1,4 +1,5 @@
-import SharedLayout, { GlassCard } from '@/components/SharedLayout';
+import ModernNavigation from '@/components/ModernNavigation';
+import { GlassCard } from '@/components/SharedLayout';
 
 export const metadata = {
   title: 'Datenschutzerklärung - CarBot',
@@ -7,8 +8,15 @@ export const metadata = {
 
 export default function Datenschutz() {
   return (
-    <SharedLayout title="Datenschutzerklärung">
-      <div style={{
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #1e293b 100%)',
+      color: 'white'
+    }}>
+      {/* Modern Navigation */}
+      <ModernNavigation variant="legal" />
+      
+      <main id="main-content" style={{
         maxWidth: '800px',
         margin: '0 auto',
         padding: '2rem 1.5rem'
@@ -122,7 +130,25 @@ export default function Datenschutz() {
             </p>
           </div>
         </GlassCard>
-      </div>
-    </SharedLayout>
+      </main>
+      
+      {/* Footer */}
+      <footer style={{
+        background: 'rgba(0, 0, 0, 0.2)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(107, 114, 128, 1)',
+        marginTop: '4rem'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '2rem 1.5rem',
+          textAlign: 'center',
+          color: '#9ca3af'
+        }}>
+          <p>&copy; 2025 CarBot. Alle Rechte vorbehalten.</p>
+        </div>
+      </footer>
+    </div>
   );
 }

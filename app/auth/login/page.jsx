@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -117,7 +118,7 @@ export default function LoginPage() {
           padding: '2rem',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}>
-          {/* Logo */}
+          {/* Logo with Professional Branding */}
           <div style={{
             textAlign: 'center',
             marginBottom: '2rem'
@@ -125,30 +126,23 @@ export default function LoginPage() {
             <Link href="/" style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.75rem',
+              justifyContent: 'center',
               textDecoration: 'none'
             }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                background: 'linear-gradient(135deg, #ea580c 0%, #9333ea 100%)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                </svg>
+              <div style={{ height: '44px', width: '160px' }}>
+                <Image
+                  src="/CarBot_Logo_Professional_Short.svg"
+                  alt="CarBot - KI-gestützte Kundenberatung für Autowerkstätten"
+                  width={160}
+                  height={44}
+                  priority
+                  style={{ 
+                    height: '100%', 
+                    width: '100%', 
+                    objectFit: 'contain'
+                  }}
+                />
               </div>
-              <span style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 'bold', 
-                color: 'white',
-                fontFamily: 'Inter, sans-serif'
-              }}>
-                CarBot
-              </span>
             </Link>
           </div>
 
