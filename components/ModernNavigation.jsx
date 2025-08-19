@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -7,570 +7,489 @@ import { usePathname } from 'next/navigation'
 export default function ModernNavigation({ variant = 'home' }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isClient, setIsClient] = useState(false)
-  const [isNavVisible, setIsNavVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
   const pathname = usePathname()
-  const navRef = useRef(null)
-  const mobileMenuRef = useRef(null)
-  const logoRef = useRef(null)
 
-  // Handle client-side hydration
+  // Scroll detection with emergency fallback
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  // Enhanced scroll handling with hide/show navigation
-  const handleScroll = useCallback(() => {
-    if (typeof window === 'undefined') return
-
-    const currentScrollY = window.scrollY
-    const scrollThreshold = 10
-    const hideNavThreshold = 100
-
-    // Set scrolled state for styling changes
-    setIsScrolled(currentScrollY > scrollThreshold)
-
-    // Hide/show navigation on mobile for better UX
-    if (currentScrollY > hideNavThreshold) {
-      const isScrollingDown = currentScrollY > lastScrollY
-      setIsNavVisible(!isScrollingDown || currentScrollY < lastScrollY - 50)
-    } else {
-      setIsNavVisible(true)
+    const handleScroll = () => {
+      try {
+        setIsScrolled(window.scrollY > 10)
+      } catch (error) {
+        console.error('Scroll handler error:', error)
+      }
     }
-
-    setLastScrollY(currentScrollY)
-  }, [lastScrollY])
-
-  useEffect(() => {
-    // Throttled scroll handler for better performance
-    let ticking = false
     
-    const throttledScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll()
-          ticking = false
-        })
-        ticking = true
-      }
-    }
-
-    window.addEventListener('scroll', throttledScroll, { passive: true })
-    return () => window.removeEventListener('scroll', throttledScroll)
-  }, [handleScroll])
-
-  // Enhanced mobile menu management with accessibility
-  const closeMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(false)
-    // Return focus to menu button for accessibility
-    const menuButton = document.querySelector('[data-mobile-menu-button]')
-    if (menuButton) {
-      menuButton.focus()
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', handleScroll, { passive: true })
+      return () => window.removeEventListener('scroll', handleScroll)
     }
   }, [])
 
-  const toggleMobileMenu = useCallback((e) => {
-    e.preventDefault()
-    setIsMobileMenuOpen(prev => {
-      const newState = !prev
-      // Announce state change for screen readers
-      const announcement = newState ? 'Menu opened' : 'Menu closed'
-      const liveRegion = document.querySelector('[aria-live="polite"]')
-      if (liveRegion) {
-        liveRegion.textContent = announcement
-      }
-      return newState
-    })
-  }, [])
-
+  // Close mobile menu on escape
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isMobileMenuOpen) {
         setIsMobileMenuOpen(false)
       }
     }
-
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isMobileMenuOpen) {
-        closeMobileMenu()
-      }
-    }
-
-    const handleClickOutside = (e) => {
-      if (isMobileMenuOpen && 
-          mobileMenuRef.current && 
-          !mobileMenuRef.current.contains(e.target) &&
-          !e.target.closest('[data-mobile-menu-button]')) {
-        closeMobileMenu()
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-    document.addEventListener('keydown', handleEscape)
-    document.addEventListener('mousedown', handleClickOutside)
     
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      document.removeEventListener('keydown', handleEscape)
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isMobileMenuOpen, closeMobileMenu])
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
     if (isMobileMenuOpen) {
+      document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
     }
-
+    
     return () => {
+      document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = 'unset'
     }
   }, [isMobileMenuOpen])
-
-  // Navigation items with enhanced accessibility and performance
-  const navigationItems = [
-    { 
-      href: '/pricing', 
-      label: 'Preisübersicht', 
-      showOnDesktop: true,
-      ariaLabel: 'Preisübersicht und Tarifinformationen anzeigen',
-      icon: '💰'
-    },
-    { 
-      href: '/demo/workshop', 
-      label: 'Live Demo', 
-      showOnDesktop: true,
-      ariaLabel: 'Interaktive CarBot Demo starten',
-      icon: '▶️'
-    },
-    { 
-      href: '/docs', 
-      label: 'Dokumentation', 
-      showOnDesktop: true,
-      ariaLabel: 'API Dokumentation und Guides öffnen',
-      icon: '📚'
-    },
-    { 
-      href: '/blog', 
-      label: 'Blog', 
-      showOnDesktop: true,
-      ariaLabel: 'Blog und Fachbeiträge lesen',
-      icon: '📝'
-    },
-    { 
-      href: '/products', 
-      label: 'Produkte', 
-      showOnDesktop: false,
-      ariaLabel: 'Alle CarBot Produkte anzeigen',
-      icon: '🔧'
-    },
-    { 
-      href: '/cases', 
-      label: 'Fallstudien', 
-      showOnDesktop: false,
-      ariaLabel: 'Erfolgsgeschichten und Referenzen',
-      icon: '✨'
-    }
-  ]
-
-  const authItems = [
-    { 
-      href: '/auth/login', 
-      label: 'Anmelden', 
-      style: 'ghost',
-      ariaLabel: 'Bei CarBot anmelden'
-    },
-    { 
-      href: '/auth/register', 
-      label: 'Jetzt starten', 
-      style: 'primary',
-      ariaLabel: '30 Tage kostenlosen Test starten'
-    }
-  ]
 
   const isActive = (href) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
   }
 
-  // Server-side fallback with professional logo and accessibility
-  if (!isClient) {
-    return (
-      <nav 
-        className="fixed top-0 left-0 right-0 z-[9999] h-16"
-        style={{
-          background: variant === 'home' 
-            ? 'rgba(17, 24, 39, 0.95)' 
-            : 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: variant === 'home'
-            ? '1px solid rgba(75, 85, 99, 0.3)'
-            : '1px solid rgba(229, 231, 235, 1)'
-        }}
-        role="navigation"
-        aria-label="CarBot Hauptnavigation"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-          <div className="flex-shrink-0">
-            <Link 
-              href="/" 
-              className="flex items-center transition-all duration-300 hover:opacity-90"
-              aria-label="CarBot Startseite"
-            >
-              <div className="h-10 w-36">
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
+
+  const navItems = [
+    { href: '/pricing', label: 'Preisübersicht', icon: '💰' },
+    { href: '/demo/workshop', label: 'Live Demo', icon: '▶️' },
+    { href: '/docs', label: 'Dokumentation', icon: '📚' },
+    { href: '/blog', label: 'Blog', icon: '📝' }
+  ]
+
+  const authItems = [
+    { href: '/auth/login', label: 'Anmelden', style: 'ghost' },
+    { href: '/auth/register', label: 'Jetzt starten', style: 'primary' }
+  ]
+
+  // Emergency inline styles for guaranteed rendering
+  const emergencyStyles = `
+    .emergency-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+      height: 64px;
+      transition: all 0.3s ease;
+    }
+    
+    .emergency-nav.scrolled {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(229, 231, 235, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .emergency-nav.home {
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+    }
+    
+    .emergency-nav.page {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(229, 231, 235, 1);
+    }
+    
+    .emergency-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .emergency-logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .emergency-logo:hover {
+      opacity: 0.9;
+    }
+    
+    .emergency-desktop-nav {
+      display: none;
+      align-items: center;
+      gap: 2rem;
+    }
+    
+    .emergency-nav-link {
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .emergency-nav-link.active {
+      font-weight: 600;
+      background: rgba(234, 88, 12, 0.1);
+      color: #ea580c;
+    }
+    
+    .emergency-auth-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .emergency-auth-link {
+      padding: 0.625rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    
+    .emergency-auth-primary {
+      background: linear-gradient(135deg, #ea580c 0%, #9333ea 50%, #2563eb 100%);
+      color: white;
+      border: none;
+    }
+    
+    .emergency-auth-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+    }
+    
+    .emergency-auth-ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #e5e7eb;
+    }
+    
+    .emergency-auth-ghost.scrolled {
+      color: #374151;
+      border-color: #d1d5db;
+    }
+    
+    .emergency-auth-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .emergency-mobile-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .emergency-hamburger {
+      width: 20px;
+      height: 2px;
+      background: currentColor;
+      margin: 2px 0;
+      transition: all 0.3s ease;
+      border-radius: 1px;
+    }
+    
+    .emergency-hamburger.active:nth-child(1) {
+      transform: rotate(45deg) translateY(6px);
+    }
+    
+    .emergency-hamburger.active:nth-child(2) {
+      opacity: 0;
+    }
+    
+    .emergency-hamburger.active:nth-child(3) {
+      transform: rotate(-45deg) translateY(-6px);
+    }
+    
+    .emergency-mobile-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+      padding: 1.5rem;
+      max-height: calc(100vh - 64px);
+      overflow-y: auto;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .emergency-mobile-menu.open {
+      display: block;
+    }
+    
+    .emergency-mobile-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 0;
+      text-decoration: none;
+      color: #374151;
+      font-weight: 500;
+      font-size: 16px;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+      transition: all 0.3s ease;
+    }
+    
+    .emergency-mobile-link.active {
+      color: #ea580c;
+      font-weight: 600;
+    }
+    
+    .emergency-mobile-link:hover {
+      color: #ea580c;
+    }
+    
+    .emergency-mobile-auth {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    .emergency-spacer {
+      height: 64px;
+    }
+    
+    /* Emergency text colors based on state */
+    .emergency-nav.home .emergency-nav-link:not(.active) {
+      color: #e5e7eb;
+    }
+    
+    .emergency-nav.home .emergency-nav-link:not(.active):hover {
+      color: #ea580c;
+    }
+    
+    .emergency-nav.scrolled .emergency-nav-link:not(.active),
+    .emergency-nav.page .emergency-nav-link:not(.active) {
+      color: #374151;
+    }
+    
+    .emergency-nav.scrolled .emergency-nav-link:not(.active):hover,
+    .emergency-nav.page .emergency-nav-link:not(.active):hover {
+      color: #ea580c;
+    }
+    
+    .emergency-nav.home .emergency-mobile-button {
+      color: #e5e7eb;
+    }
+    
+    .emergency-nav.scrolled .emergency-mobile-button,
+    .emergency-nav.page .emergency-mobile-button {
+      color: #374151;
+    }
+    
+    @media (min-width: 1024px) {
+      .emergency-desktop-nav {
+        display: flex !important;
+      }
+      .emergency-mobile-button {
+        display: none !important;
+      }
+    }
+    
+    @media (max-width: 1023px) {
+      .emergency-desktop-nav {
+        display: none !important;
+      }
+      .emergency-mobile-button {
+        display: flex !important;
+      }
+    }
+  `
+
+  const getNavClasses = () => {
+    let classes = 'emergency-nav'
+    if (isScrolled) classes += ' scrolled'
+    else if (variant === 'home') classes += ' home'
+    else classes += ' page'
+    return classes
+  }
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: emergencyStyles }} />
+      
+      <nav className={getNavClasses()} role="navigation" aria-label="CarBot Hauptnavigation">
+        <div className="emergency-container">
+          {/* Logo */}
+          <div>
+            <Link href="/" className="emergency-logo" aria-label="CarBot Startseite">
+              <div style={{ height: '40px', width: '144px' }}>
                 <Image
                   src="/CarBot_Logo_Professional_Short.svg"
                   alt="CarBot - KI-gestützte Kundenberatung für Autowerkstätten"
                   width={144}
                   height={40}
                   priority
-                  className="h-full w-full object-contain"
                   style={{ 
-                    filter: variant === 'home' ? 'none' : 'brightness(0.8)' 
+                    height: '100%', 
+                    width: '100%', 
+                    objectFit: 'contain'
                   }}
                 />
               </div>
             </Link>
           </div>
-          
-          <div className="hidden lg:flex items-center gap-8">
-            {navigationItems.filter(item => item.showOnDesktop !== false).map((item) => (
+
+          {/* Desktop Navigation */}
+          <div className="emergency-desktop-nav">
+            {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  variant === 'home' 
-                    ? 'text-gray-300 hover:text-white' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                aria-label={item.ariaLabel}
+                className={`emergency-nav-link ${isActive(item.href) ? 'active' : ''}`}
+                aria-current={isActive(item.href) ? 'page' : undefined}
               >
+                <span role="img" aria-hidden="true">{item.icon}</span>
                 {item.label}
               </Link>
             ))}
-            
-            <div className="flex items-center gap-3">
+
+            {/* Auth Buttons */}
+            <div className="emergency-auth-buttons">
               {authItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    item.style === 'primary'
-                      ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-sm'
-                      : variant === 'home'
-                        ? 'text-gray-300 hover:text-white hover:bg-white/10'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  className={`emergency-auth-link emergency-auth-${item.style} ${
+                    item.style === 'ghost' && (isScrolled || variant !== 'home') ? 'scrolled' : ''
                   }`}
-                  aria-label={item.ariaLabel}
                 >
                   {item.label}
+                  {item.style === 'primary' && <span style={{ marginLeft: '4px' }}>✨</span>}
                 </Link>
               ))}
             </div>
           </div>
-        </div>
-        
-        {/* Screen reader announcement region */}
-        <div aria-live="polite" aria-atomic="true" className="sr-only"></div>
-      </nav>
-    )
-  }
 
-  return (
-    <>
-      <nav 
-        ref={navRef}
-        className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-500 ease-apple-signature ${
-          !isNavVisible ? 'transform -translate-y-full' : 'transform translate-y-0'
-        } ${
-          isScrolled 
-            ? 'h-16 bg-white/98 backdrop-blur-xl border-b border-gray-200 shadow-lg' 
-            : 'h-16 bg-gray-900/95 backdrop-blur-xl border-b border-gray-700'
-        }`}
-        style={{
-          // Professional styling with enhanced blur effects
-          ...(!isScrolled && {
-            background: 'rgba(17, 24, 39, 0.95)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            borderBottom: '1px solid rgba(75, 85, 99, 0.3)'
-          })
-        }}
-        role="navigation"
-        aria-label="CarBot Hauptnavigation"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex items-center justify-between h-full">
-            
-            {/* Enhanced Professional CarBot Logo */}
-            <div className="flex-shrink-0">
-              <Link 
-                href="/" 
-                ref={logoRef}
-                className="flex items-center group transition-all duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-transparent rounded-lg p-1"
-                aria-label="CarBot Startseite - KI-gestützte Kundenberatung für Autowerkstätten"
-              >
-                <div className="h-10 w-36 relative overflow-hidden">
-                  <Image
-                    src="/CarBot_Logo_Professional_Short.svg"
-                    alt="CarBot - KI-gestützte Kundenberatung für Autowerkstätten"
-                    width={144}
-                    height={40}
-                    priority
-                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                    style={{ 
-                      filter: isScrolled ? 'brightness(0.8)' : 'none',
-                      transform: 'translateZ(0)' // GPU acceleration
-                    }}
-                  />
-                  <div 
-                    className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/10 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    aria-hidden="true"
-                  />
-                </div>
-              </Link>
-            </div>
-
-            {/* Enhanced Desktop Navigation with Accessibility */}
-            <div className="hidden lg:flex lg:items-center lg:gap-8">
-              {navigationItems.filter(item => item.showOnDesktop !== false).map((item, index) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`text-sm font-medium transition-all duration-300 relative px-3 py-2 rounded-lg 
-                    focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-transparent
-                    ${
-                    isActive(item.href)
-                      ? isScrolled
-                        ? 'text-gray-900 bg-gray-100/80'
-                        : 'text-white bg-white/10'
-                      : isScrolled
-                        ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
-                        : 'text-gray-300 hover:text-white hover:bg-white/10'
-                  }`}
-                  aria-current={isActive(item.href) ? 'page' : undefined}
-                  aria-label={item.ariaLabel}
-                  style={{
-                    animationDelay: `${index * 0.1}s`,
-                    transform: 'translateZ(0)'
-                  }}
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="text-xs" role="img" aria-hidden="true">
-                      {item.icon}
-                    </span>
-                    {item.label}
-                  </span>
-                  {isActive(item.href) && (
-                    <div 
-                      className={`absolute -bottom-1 left-3 right-3 h-0.5 rounded-full transition-all duration-300 ${
-                        isScrolled ? 'bg-orange-600' : 'bg-orange-400'
-                      }`}
-                      aria-hidden="true"
-                    />
-                  )}
-                </Link>
-              ))}
-            </div>
-
-            {/* Enhanced Desktop Auth Buttons */}
-            <div className="hidden lg:flex lg:items-center lg:gap-3">
-              {authItems.map((item, index) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 
-                    focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-transparent
-                    transform hover:scale-105 active:scale-95 ${
-                    item.style === 'primary'
-                      ? 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg hover:shadow-xl'
-                      : isScrolled
-                        ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 border border-gray-200 hover:border-gray-300'
-                        : 'text-gray-300 hover:text-white hover:bg-white/10 border border-white/20 hover:border-white/30'
-                  }`}
-                  aria-label={item.ariaLabel}
-                  style={{
-                    animationDelay: `${(navigationItems.length + index) * 0.1}s`,
-                    transform: 'translateZ(0)'
-                  }}
-                >
-                  {item.label}
-                  {item.style === 'primary' && (
-                    <span className="ml-1" role="img" aria-hidden="true">✨</span>
-                  )}
-                </Link>
-              ))}
-            </div>
-
-            {/* Enhanced Mobile Menu Button */}
-            <div className="lg:hidden">
-              <button
-                type="button"
-                data-mobile-menu-button
-                className={`inline-flex items-center justify-center p-3 rounded-xl transition-all duration-300 
-                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-transparent
-                  transform hover:scale-105 active:scale-95 ${
-                  isScrolled
-                    ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80'
-                    : 'text-gray-300 hover:text-white hover:bg-white/10'
-                } ${isMobileMenuOpen ? 'bg-orange-500 text-white' : ''}`}
-                aria-expanded={isMobileMenuOpen}
-                aria-label={isMobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'}
-                aria-controls="mobile-menu"
-                onClick={toggleMobileMenu}
-              >
-                <div className="w-6 h-6 flex flex-col items-center justify-center">
-                  <div className={`hamburger-line transition-all duration-300 ${
-                    isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''
-                  }`} />
-                  <div className={`hamburger-line transition-all duration-300 ${
-                    isMobileMenuOpen ? 'opacity-0' : 'opacity-100'
-                  }`} />
-                  <div className={`hamburger-line transition-all duration-300 ${
-                    isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''
-                  }`} />
-                </div>
-              </button>
-            </div>
-          </div>
+          {/* Mobile Menu Button */}
+          <button
+            className="emergency-mobile-button"
+            onClick={toggleMobileMenu}
+            aria-expanded={isMobileMenuOpen}
+            aria-label={isMobileMenuOpen ? 'Menü schließen' : 'Menü öffnen'}
+          >
+            <div className={`emergency-hamburger ${isMobileMenuOpen ? 'active' : ''}`} />
+            <div className={`emergency-hamburger ${isMobileMenuOpen ? 'active' : ''}`} />
+            <div className={`emergency-hamburger ${isMobileMenuOpen ? 'active' : ''}`} />
+          </button>
         </div>
 
-        {/* Enhanced Mobile Menu Overlay */}
-        <div
-          className={`lg:hidden fixed inset-0 bg-black/30 backdrop-blur-sm transition-all duration-300 ${
-            isMobileMenuOpen 
-              ? 'opacity-100 pointer-events-auto z-[9998]' 
-              : 'opacity-0 pointer-events-none z-[-1]'
-          }`}
-          style={{ top: '64px' }}
-          aria-hidden="true"
-          onClick={closeMobileMenu}
-        />
+        {/* Mobile Menu */}
+        <div className={`emergency-mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`emergency-mobile-link ${isActive(item.href) ? 'active' : ''}`}
+              onClick={closeMobileMenu}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >
+              <span role="img" aria-hidden="true">{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
 
-        {/* Enhanced Mobile Menu */}
-        <div
-          id="mobile-menu"
-          ref={mobileMenuRef}
-          className={`lg:hidden absolute left-0 right-0 glass-apple shadow-2xl transition-all duration-500 ease-apple-reveal ${
-            isMobileMenuOpen 
-              ? 'translate-y-0 opacity-100 scale-100' 
-              : '-translate-y-4 opacity-0 scale-95 pointer-events-none'
-          }`}
-          style={{
-            top: '100%',
-            maxHeight: 'calc(100vh - 64px)',
-            overflowY: 'auto',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            borderBottom: '1px solid rgba(229, 231, 235, 0.8)'
-          }}
-          role="menu"
-          aria-label="Mobile Navigation Menu"
-        >
-          <div className="px-6 py-8 space-y-2">
-            {/* Mobile Navigation Links with Enhanced Accessibility */}
-            {navigationItems.map((item, index) => (
+          <div className="emergency-mobile-auth">
+            {authItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-4 px-4 py-4 rounded-xl text-base font-medium transition-all duration-300 
-                  focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-white
-                  transform hover:scale-[1.02] active:scale-[0.98] ${
-                  isActive(item.href)
-                    ? 'bg-gradient-to-r from-orange-50 to-orange-100 text-orange-900 border border-orange-200'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50/80'
-                }`}
+                className={`emergency-auth-link emergency-auth-${item.style}`}
                 onClick={closeMobileMenu}
-                aria-current={isActive(item.href) ? 'page' : undefined}
-                aria-label={item.ariaLabel}
-                role="menuitem"
-                style={{
-                  animationDelay: `${index * 0.1}s`,
-                  transform: 'translateZ(0)'
-                }}
+                style={{ textAlign: 'center' }}
               >
-                <span className="text-lg flex-shrink-0" role="img" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <span className="flex-1">{item.label}</span>
-                {isActive(item.href) && (
-                  <span className="text-orange-600" role="img" aria-label="Aktuelle Seite">
-                    ●
-                  </span>
-                )}
+                {item.label}
+                {item.style === 'primary' && <span style={{ marginLeft: '4px' }}>✨</span>}
               </Link>
             ))}
+          </div>
 
-            {/* Enhanced Mobile Auth Buttons */}
-            <div className="pt-8 border-t border-gray-200/50 space-y-4">
-              <div className="text-sm text-gray-500 text-center mb-4">
-                Starten Sie noch heute
-              </div>
-              {authItems.map((item, index) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-semibold transition-all duration-300 
-                    focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-white
-                    transform hover:scale-[1.02] active:scale-[0.98] ${
-                    item.style === 'primary'
-                      ? 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg hover:shadow-xl'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 border-2 border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={closeMobileMenu}
-                  aria-label={item.ariaLabel}
-                  role="menuitem"
-                  style={{
-                    animationDelay: `${(navigationItems.length + index) * 0.1}s`,
-                    transform: 'translateZ(0)'
-                  }}
-                >
-                  {item.label}
-                  {item.style === 'primary' && (
-                    <span className="ml-1" role="img" aria-hidden="true">✨</span>
-                  )}
-                </Link>
-              ))}
-            </div>
-
-            {/* Quick Info Section */}
-            <div className="pt-6 border-t border-gray-200/50 text-center text-sm text-gray-500">
-              <p>
-                🚀 30 Tage kostenlos testen<br/>
-                🔒 DSGVO-konform
-              </p>
-            </div>
+          <div style={{ 
+            marginTop: '1.5rem', 
+            paddingTop: '1.5rem', 
+            borderTop: '1px solid rgba(229, 231, 235, 0.5)',
+            textAlign: 'center',
+            fontSize: '14px',
+            color: '#6b7280'
+          }}>
+            🚀 30 Tage kostenlos testen<br/>
+            🔒 DSGVO-konform
           </div>
         </div>
       </nav>
 
-      {/* Enhanced Spacer with Dynamic Height */}
-      <div 
-        className="transition-all duration-500"
-        style={{ 
-          height: isNavVisible ? '64px' : '0px',
-          pointerEvents: 'none' 
-        }} 
-        aria-hidden="true" 
-      />
-      
-      {/* Screen Reader Live Region for Announcements */}
-      <div 
-        aria-live="polite" 
-        aria-atomic="true" 
-        className="sr-only"
-        role="status"
-      ></div>
-      
-      {/* Skip Navigation Link for Accessibility */}
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '64px',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.3)',
+            zIndex: 9998,
+            backdropFilter: 'blur(2px)'
+          }}
+          onClick={closeMobileMenu}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Spacer */}
+      <div className="emergency-spacer" aria-hidden="true" />
+
+      {/* Skip Navigation Link */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[10000] 
-          focus:px-4 focus:py-2 focus:bg-orange-600 focus:text-white focus:rounded-lg focus:shadow-lg
-          focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+        style={{
+          position: 'absolute',
+          top: '-100px',
+          left: '1rem',
+          zIndex: 10000,
+          padding: '0.5rem 1rem',
+          background: '#ea580c',
+          color: 'white',
+          borderRadius: '6px',
+          textDecoration: 'none',
+          fontSize: '14px',
+          fontWeight: '600',
+          transition: 'all 0.3s ease'
+        }}
+        onFocus={(e) => {
+          e.target.style.top = '1rem'
+        }}
+        onBlur={(e) => {
+          e.target.style.top = '-100px'
+        }}
       >
         Zum Hauptinhalt springen
       </a>
