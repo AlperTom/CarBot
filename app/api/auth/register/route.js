@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js'
 import { supabaseConnectionManager } from '../../../../lib/supabase-connection-manager.js'
 import jwt from 'jsonwebtoken'
 import { randomBytes } from 'crypto'
+import { sendWelcomeEmail, sendEmailConfirmation } from '../../../../lib/email.js'
 
 // Simple token generation function for registration
 function generateTokensSimple(user, workshop, role = 'owner') {
@@ -242,6 +243,26 @@ export async function POST(request) {
         const duration = Date.now() - startTime
         
         console.log(`✅ [Mock Registration] Account created in ${duration}ms for: ${email}`)
+
+        // Send welcome email (async - don't wait for it)
+        try {
+          console.log('📧 [Mock Registration] Sending welcome email...')
+          sendWelcomeEmail({
+            email: email,
+            workshopName: businessName,
+            ownerName: name
+          }).then(emailResult => {
+            if (emailResult.success) {
+              console.log('✅ [Mock Registration] Welcome email sent successfully:', emailResult.id)
+            } else {
+              console.warn('⚠️ [Mock Registration] Welcome email failed:', emailResult.error)
+            }
+          }).catch(emailError => {
+            console.warn('⚠️ [Mock Registration] Welcome email error:', emailError.message)
+          })
+        } catch (emailError) {
+          console.warn('⚠️ [Mock Registration] Email sending failed:', emailError.message)
+        }
         
         return NextResponse.json({
           success: true,
@@ -305,6 +326,26 @@ export async function POST(request) {
         const duration = Date.now() - startTime
         
         console.log(`✅ [Mock Registration] Account created in ${duration}ms for: ${email} (switched due to DB failure)`)
+
+        // Send welcome email (async - don't wait for it)
+        try {
+          console.log('📧 [Mock Registration] Sending welcome email...')
+          sendWelcomeEmail({
+            email: email,
+            workshopName: businessName,
+            ownerName: name
+          }).then(emailResult => {
+            if (emailResult.success) {
+              console.log('✅ [Mock Registration] Welcome email sent successfully:', emailResult.id)
+            } else {
+              console.warn('⚠️ [Mock Registration] Welcome email failed:', emailResult.error)
+            }
+          }).catch(emailError => {
+            console.warn('⚠️ [Mock Registration] Welcome email error:', emailError.message)
+          })
+        } catch (emailError) {
+          console.warn('⚠️ [Mock Registration] Email sending failed:', emailError.message)
+        }
         
         return NextResponse.json({
           success: true,
@@ -509,6 +550,26 @@ export async function POST(request) {
           sessionStored,
           clientKeyCreated
         })
+
+        // Send welcome email (async - don't wait for it)
+        try {
+          console.log('📧 [Registration] Sending welcome email...')
+          sendWelcomeEmail({
+            email: email,
+            workshopName: businessName,
+            ownerName: name
+          }).then(emailResult => {
+            if (emailResult.success) {
+              console.log('✅ [Registration] Welcome email sent successfully:', emailResult.id)
+            } else {
+              console.warn('⚠️ [Registration] Welcome email failed:', emailResult.error)
+            }
+          }).catch(emailError => {
+            console.warn('⚠️ [Registration] Welcome email error:', emailError.message)
+          })
+        } catch (emailError) {
+          console.warn('⚠️ [Registration] Email sending failed:', emailError.message)
+        }
         
         return NextResponse.json({
           success: true,
@@ -558,6 +619,26 @@ export async function POST(request) {
             const mockDuration = Date.now() - startTime
             
             console.log(`✅ [Mock Registration] Account created in ${mockDuration}ms for: ${email} (database fallback)`)
+
+            // Send welcome email (async - don't wait for it)
+            try {
+              console.log('📧 [Mock Registration] Sending welcome email...')
+              sendWelcomeEmail({
+                email: email,
+                workshopName: businessName,
+                ownerName: name
+              }).then(emailResult => {
+                if (emailResult.success) {
+                  console.log('✅ [Mock Registration] Welcome email sent successfully:', emailResult.id)
+                } else {
+                  console.warn('⚠️ [Mock Registration] Welcome email failed:', emailResult.error)
+                }
+              }).catch(emailError => {
+                console.warn('⚠️ [Mock Registration] Welcome email error:', emailError.message)
+              })
+            } catch (emailError) {
+              console.warn('⚠️ [Mock Registration] Email sending failed:', emailError.message)
+            }
             
             return NextResponse.json({
               success: true,
