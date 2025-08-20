@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import SharedLayout, { GlassCard, PrimaryButton, SecondaryButton } from '@/components/SharedLayout';
+import ModernNavigation from '@/components/ModernNavigation';
+import { GlassCard, PrimaryButton, SecondaryButton } from '@/components/SharedLayout';
 
 export default function ChatDemo() {
   const [messages, setMessages] = useState([
@@ -49,12 +50,20 @@ export default function ChatDemo() {
   ];
 
   return (
-    <SharedLayout title="Live Demo">
-      <div style={{
-        maxWidth: '900px',
-        margin: '0 auto',
-        padding: '2rem 1.5rem'
-      }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #1e293b 100%)',
+      color: 'white',
+      fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
+      <ModernNavigation variant="page" />
+      
+      <main style={{ paddingTop: '4rem' }}>
+        <div style={{
+          maxWidth: '900px',
+          margin: '0 auto',
+          padding: '2rem 1.5rem'
+        }}>
         {/* Demo Introduction */}
         <div style={{
           textAlign: 'center',
@@ -338,7 +347,31 @@ export default function ChatDemo() {
             </div>
           </GlassCard>
         </div>
-      </div>
-    </SharedLayout>
+        </div>
+      </main>
+      
+      {/* Professional Footer */}
+      <footer style={{
+        background: 'rgba(0, 0, 0, 0.2)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(107, 114, 128, 1)',
+        marginTop: '4rem',
+        padding: '3rem 1.5rem'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          textAlign: 'center',
+          color: '#9ca3af'
+        }}>
+          <p>&copy; 2025 CarBot. Alle Rechte vorbehalten.</p>
+          <p style={{ marginTop: '1rem' }}>
+            <a href="mailto:support@carbot.chat" style={{ color: '#9ca3af', textDecoration: 'none' }}>
+              support@carbot.chat
+            </a>
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
