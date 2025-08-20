@@ -192,14 +192,12 @@ export async function POST(request) {
   try {
     // Try to establish database connection with enhanced retry logic
     console.log('🔄 [Registration] Establishing database connection...')
-    supabaseConnection = await getSupabaseConnection()
     
-    if (!supabaseConnection.connected) {
-      console.log('🔄 [Registration] Database connection failed, using mock mode')
-      console.log('🔄 [Registration] Connection error:', supabaseConnection.error)
+    if (!supabase) {
+      console.log('🔄 [Registration] Supabase not initialized, using mock mode')
       useMockMode = true
     } else {
-      console.log('✅ [Registration] Database connection successful')
+      console.log('✅ [Registration] Supabase client available')
     }
     const body = await request.json()
     const { 
@@ -279,23 +277,19 @@ export async function POST(request) {
 
     // Check if user already exists with enhanced retry mechanism
     let existingUser = null
-    if (!useMockMode && supabaseConnection.connected) {
+    if (!useMockMode && supabase) {
       try {
-        const result = await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
-          const { data, error } = await adminClient
-            .from('workshops')
-            .select('id, owner_email')
-            .eq('owner_email', email)
-            .maybeSingle()
-          
-          if (error && error.code !== 'PGRST116') {
-            throw error
-          }
-          
-          return data
-        })
+        const { data, error } = await supabase
+          .from('workshops')
+          .select('id, owner_email')
+          .eq('owner_email', email)
+          .maybeSingle()
         
-        existingUser = result
+        if (error && error.code !== 'PGRST116') {
+          throw error
+        }
+        
+        existingUser = data
         console.log('✅ [Registration] User existence check completed')
         
       } catch (checkError) {
@@ -356,33 +350,30 @@ export async function POST(request) {
       // JWT-based registration with comprehensive error handling
       try {
         // Create workshop record with enhanced retry logic
-        const workshop = await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
-          const { data, error } = await adminClient
-            .from('workshops')
-            .insert({
-              business_name: businessName,
-              name: businessName,
-              owner_email: email,
-              phone: phone || null,
-              template_type: templateType,
-              active: true,
-              verified: false,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .select()
-            .single()
-            
-          if (error) {
-            if (error.code === '23505') { // Unique constraint violation
-              throw new Error('DUPLICATE_EMAIL')
-            }
-            throw error
-          }
+        const { data: workshop, error: workshopError } = await supabase
+          .from('workshops')
+          .insert({
+            business_name: businessName,
+            name: businessName,
+            owner_email: email,
+            phone: phone || null,
+            template_type: templateType,
+            active: true,
+            verified: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single()
           
-          console.log('✅ [Registration] Workshop created successfully:', data.id)
-          return data
-        })
+        if (workshopError) {
+          if (workshopError.code === '23505') { // Unique constraint violation
+            throw new Error('DUPLICATE_EMAIL')
+          }
+          throw workshopError
+        }
+        
+        console.log('✅ [Registration] Workshop created successfully:', workshop.id)
 
         if (!workshop) {
           console.error('❌ [Registration] Workshop creation failed: No data returned')
@@ -419,7 +410,7 @@ export async function POST(request) {
           
           // Cleanup workshop if token generation fails
           try {
-            await supabaseClient
+            await supabase
               .from('workshops')
               .delete()
               .eq('id', workshop.id)
@@ -441,30 +432,26 @@ export async function POST(request) {
         // Store session in database with enhanced error handling
         let sessionStored = false
         try {
-          await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
-            const sessionData = {
-              user_id: userId,
-              workshop_id: workshop.id,
-              session_token: tokens.accessToken.length > 500 ? tokens.accessToken.substring(0, 500) : tokens.accessToken,
-              refresh_token_hash: tokens.refreshToken.length > 255 ? tokens.refreshToken.substring(0, 255) : tokens.refreshToken,
-              expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-              active: true,
-              ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
-              user_agent: request.headers.get('user-agent') || null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
+          const sessionData = {
+            user_id: userId,
+            workshop_id: workshop.id,
+            session_token: tokens.accessToken.length > 500 ? tokens.accessToken.substring(0, 500) : tokens.accessToken,
+            refresh_token_hash: tokens.refreshToken.length > 255 ? tokens.refreshToken.substring(0, 255) : tokens.refreshToken,
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            active: true,
+            ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
+            user_agent: request.headers.get('user-agent') || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          
+          const { error: sessionError } = await supabase
+            .from('user_sessions')
+            .insert(sessionData)
             
-            const { error: sessionError } = await adminClient
-              .from('user_sessions')
-              .insert(sessionData)
-              
-            if (sessionError) {
-              throw sessionError
-            }
-            
-            return true
-          })
+          if (sessionError) {
+            throw sessionError
+          }
           
           sessionStored = true
           console.log('✅ [Registration] User session stored successfully')
@@ -478,28 +465,24 @@ export async function POST(request) {
         // Create default client key for the workshop with enhanced error handling
         let clientKeyCreated = false
         try {
-          await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
-            const clientKeyData = {
-              workshop_id: workshop.id,
-              name: 'Default Key',
-              client_key_hash: `ck_live_${workshop.id}_${Date.now()}`,
-              prefix: 'ck_live_',
-              authorized_domains: ['localhost:3000', 'localhost:3001'],
-              is_active: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
+          const clientKeyData = {
+            workshop_id: workshop.id,
+            name: 'Default Key',
+            client_key_hash: `ck_live_${workshop.id}_${Date.now()}`,
+            prefix: 'ck_live_',
+            authorized_domains: ['localhost:3000', 'localhost:3001'],
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          
+          const { error: keyError } = await supabase
+            .from('client_keys')
+            .insert(clientKeyData)
             
-            const { error: keyError } = await adminClient
-              .from('client_keys')
-              .insert(clientKeyData)
-              
-            if (keyError) {
-              throw keyError
-            }
-            
-            return true
-          })
+          if (keyError) {
+            throw keyError
+          }
           
           clientKeyCreated = true
           console.log('✅ [Registration] Default client key created successfully')
@@ -722,8 +705,8 @@ export async function POST(request) {
     
     // Log error to database if possible
     try {
-      if (supabaseClient) {
-        await supabaseClient
+      if (supabase) {
+        await supabase
           .from('error_logs')
           .insert({
             error_type: 'registration_error',
