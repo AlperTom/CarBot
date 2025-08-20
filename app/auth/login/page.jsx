@@ -35,16 +35,21 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        // Store tokens in localStorage
+        console.log('✅ [Login] Login successful, storing tokens...')
+        
+        // Store tokens in localStorage with correct keys for dashboard
         if (data.data.tokens) {
-          localStorage.setItem('carbot_auth_tokens', JSON.stringify(data.data.tokens))
+          localStorage.setItem('carbot_access_token', data.data.tokens.accessToken)
+          localStorage.setItem('carbot_refresh_token', data.data.tokens.refreshToken)
           localStorage.setItem('carbot_auth_user', JSON.stringify({
             user: data.data.user,
             workshop: data.data.workshop,
             role: data.data.role
           }))
+          console.log('✅ [Login] Tokens stored successfully')
         }
         
+        console.log('🔄 [Login] Redirecting to dashboard...')
         // Redirect to dashboard
         router.push('/dashboard')
       } else {

@@ -9,6 +9,12 @@ import { supabaseConnectionManager } from '../../../../lib/supabase-connection-m
 import jwt from 'jsonwebtoken'
 import { randomBytes } from 'crypto'
 import { sendWelcomeEmail, sendEmailConfirmation } from '../../../../lib/email.js'
+import { logAuthError, logEmailError, measurePerformance } from '../../../../lib/error-logger.js'
+import { createRateLimiter } from '../../../../lib/rate-limiter.js'
+import { sanitizeInput } from '../../../../lib/security-headers.js'
+
+// Apply rate limiting to registration endpoint
+const registrationRateLimit = createRateLimiter('REGISTER')
 
 // Simple token generation function for registration
 function generateTokensSimple(user, workshop, role = 'owner') {
@@ -187,8 +193,29 @@ try {
 
 export async function POST(request) {
   const startTime = Date.now()
+  const performanceTracker = measurePerformance('user_registration')
   let supabaseConnection = null
   let useMockMode = false
+  
+  // Apply rate limiting
+  try {
+    await new Promise((resolve, reject) => {
+      registrationRateLimit(request, { 
+        status: (code) => ({ json: (data) => reject({ status: code, data }) }),
+        set: () => {},
+        setHeader: () => {}
+      }, resolve)
+    })
+  } catch (rateLimitError) {
+    if (rateLimitError.status === 429) {
+      await logAuthError('Registration rate limit exceeded', {
+        ip: request.headers.get('x-forwarded-for'),
+        userAgent: request.headers.get('user-agent')
+      })
+      
+      return NextResponse.json(rateLimitError.data, { status: rateLimitError.status })
+    }
+  }
   
   try {
     // Try to establish database connection with enhanced retry logic
@@ -563,13 +590,34 @@ export async function POST(request) {
               console.log('✅ [Registration] Welcome email sent successfully:', emailResult.id)
             } else {
               console.warn('⚠️ [Registration] Welcome email failed:', emailResult.error)
+              logEmailError('Welcome email delivery failed', {
+                email: email,
+                workshopName: businessName,
+                error: emailResult.error
+              })
             }
           }).catch(emailError => {
             console.warn('⚠️ [Registration] Welcome email error:', emailError.message)
+            logEmailError('Welcome email error', {
+              email: email,
+              workshopName: businessName,
+              error: emailError.message
+            })
           })
         } catch (emailError) {
           console.warn('⚠️ [Registration] Email sending failed:', emailError.message)
+          logEmailError('Email system error', {
+            email: email,
+            error: emailError.message
+          })
         }
+        
+        // Track performance
+        await performanceTracker.end(true, {
+          registrationType: 'jwt',
+          emailSent: true,
+          workshopId: workshop.id
+        })
         
         return NextResponse.json({
           success: true,

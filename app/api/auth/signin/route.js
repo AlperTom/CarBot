@@ -2,6 +2,11 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { randomBytes } from 'crypto'
+import { logAuthError, measurePerformance } from '../../../../lib/error-logger.js'
+import { createRateLimiter } from '../../../../lib/rate-limiter.js'
+
+// Apply rate limiting to authentication endpoint
+const authRateLimit = createRateLimiter('AUTH')
 
 // Simple token generation function for login (same as registration)
 function generateTokensSimple(user, workshop, role = 'owner') {
@@ -143,6 +148,28 @@ async function authenticateUserSimple(email, password) {
 }
 
 export async function POST(request) {
+  const performanceTracker = measurePerformance('user_login')
+  
+  // Apply rate limiting
+  try {
+    await new Promise((resolve, reject) => {
+      authRateLimit(request, { 
+        status: (code) => ({ json: (data) => reject({ status: code, data }) }),
+        set: () => {},
+        setHeader: () => {}
+      }, resolve)
+    })
+  } catch (rateLimitError) {
+    if (rateLimitError.status === 429) {
+      await logAuthError('Login rate limit exceeded', {
+        ip: request.headers.get('x-forwarded-for'),
+        userAgent: request.headers.get('user-agent')
+      })
+      
+      return NextResponse.json(rateLimitError.data, { status: rateLimitError.status })
+    }
+  }
+  
   try {
     const { email, password, useJWT = true } = await request.json()
 
@@ -194,6 +221,13 @@ export async function POST(request) {
       console.warn('Failed to create audit log:', auditError)
     }
 
+    // Track successful login performance
+    await performanceTracker.end(true, {
+      authMethod: tokens ? 'jwt' : 'supabase',
+      email: email,
+      workshopId: workshop?.id
+    })
+
     return NextResponse.json({
       success: true,
       data: {
@@ -208,6 +242,21 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Sign in error:', error)
+    
+    // Log authentication error
+    await logAuthError('Login authentication failed', {
+      email: email || 'unknown',
+      error: error.message,
+      ip: request.headers.get('x-forwarded-for'),
+      userAgent: request.headers.get('user-agent')
+    })
+    
+    // Track failed login performance
+    await performanceTracker.end(false, {
+      error: error.message,
+      email: email || 'unknown'
+    })
+    
     return NextResponse.json(
       { error: 'Ein unerwarteter Fehler ist aufgetreten.' },
       { status: 500 }

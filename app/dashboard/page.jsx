@@ -26,16 +26,57 @@ export default function DashboardPage() {
 
   const loadDashboardData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      // First try to get user from JWT token
+      let user = null
+      let workshopData = null
       
-      if (!user) return
+      const jwtToken = localStorage.getItem('carbot_access_token')
+      if (jwtToken) {
+        // Try to decode JWT token for user info
+        try {
+          const base64Url = jwtToken.split('.')[1]
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+          const decoded = JSON.parse(window.atob(base64))
+          
+          // Check if token is expired
+          const currentTime = Math.floor(Date.now() / 1000)
+          if (decoded.exp && decoded.exp >= currentTime) {
+            user = {
+              id: decoded.sub,
+              email: decoded.email
+            }
+            
+            // Create workshop data from JWT
+            workshopData = {
+              id: decoded.workshop_id,
+              name: decoded.workshop_name,
+              owner_email: decoded.email,
+              slug: decoded.workshop_id // Use workshop_id as slug
+            }
+            
+            console.log('✅ [Dashboard Page] Using JWT token data')
+          }
+        } catch (tokenError) {
+          console.warn('⚠️ [Dashboard Page] JWT token decode failed:', tokenError.message)
+        }
+      }
+      
+      // Fallback to Supabase auth if no valid JWT
+      if (!user) {
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+        
+        if (!supabaseUser) return
+        user = supabaseUser
 
-      // Load workshop data
-      const { data: workshopData } = await supabase
-        .from('workshops')
-        .select('*')
-        .eq('owner_email', user.email)
-        .single()
+        // Load workshop data from database
+        const { data: supabaseWorkshopData } = await supabase
+          .from('workshops')
+          .select('*')
+          .eq('owner_email', user.email)
+          .single()
+          
+        workshopData = supabaseWorkshopData
+      }
 
       if (workshopData) {
         setWorkshop(workshopData)
