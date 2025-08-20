@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { supabaseConnectionManager } from '../../../../lib/supabase-connection-manager.js'
 import jwt from 'jsonwebtoken'
 import { randomBytes } from 'crypto'
