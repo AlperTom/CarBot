@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import ModernNavigation from '@/components/ModernNavigation';
+import MainNavigation from '@/components/MainNavigation';
 import { GlassCard, PrimaryButton, SecondaryButton } from '@/components/SharedLayout';
 
 export default function ChatDemo() {
@@ -22,17 +22,28 @@ export default function ChatDemo() {
     setLoading(true);
     
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/widget/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({ 
+          message: input,
+          clientKey: 'demo',
+          consent: true,
+          metadata: { source: 'demo', language: 'de' }
+        }),
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.choices[0].message.content },
+        { role: 'assistant', content: data.response || 'Entschuldigung, ich konnte keine Antwort generieren.' },
       ]);
     } catch (err) {
+      console.error('Chat error:', err);
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: 'Entschuldigung, es gab einen Fehler beim Verarbeiten Ihrer Nachricht. Versuchen Sie es bitte erneut.' },
@@ -56,7 +67,7 @@ export default function ChatDemo() {
       color: 'white',
       fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      <ModernNavigation variant="page" />
+      <MainNavigation variant="page" />
       
       <main style={{ paddingTop: '4rem' }}>
         <div style={{
