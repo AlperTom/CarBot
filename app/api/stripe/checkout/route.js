@@ -75,29 +75,20 @@ export async function POST(request) {
       stripeCustomerId = existingWorkshop.stripe_customer_id;
     } else {
       // Create new Stripe customer
-      const customerResult = await createStripeCustomer({
+      const customer = await createStripeCustomer({
         email: customerData.email,
         name: customerData.name || workshopData.name,
-        phone: customerData.phone,
-        address: customerData.address,
-        city: customerData.city,
-        postalCode: customerData.postalCode,
-        country: customerData.country || 'DE',
-        workshopId: workshopData.id,
-        businessType: workshopData.businessType,
-        vatNumber: customerData.vatNumber,
-        gdprConsent: customerData.gdprConsent,
-        marketingConsent: customerData.marketingConsent,
+        workshopName: workshopData.name,
+        address: customerData.address ? {
+          street: customerData.address,
+          city: customerData.city,
+          postalCode: customerData.postalCode,
+          country: customerData.country || 'DE'
+        } : undefined,
+        taxId: customerData.vatNumber
       });
 
-      if (!customerResult.success) {
-        return NextResponse.json(
-          { error: `Fehler beim Erstellen des Kunden: ${customerResult.error}` },
-          { status: 500 }
-        );
-      }
-
-      stripeCustomerId = customerResult.customer.id;
+      stripeCustomerId = customer.id;
 
       // Update workshop with Stripe customer ID
       await supabase
@@ -110,26 +101,16 @@ export async function POST(request) {
     }
 
     // Create checkout session
-    const sessionResult = await createCheckoutSession({
-      customerId: stripeCustomerId,
+    const session = await createCheckoutSession({
       priceId,
-      mode: 'subscription',
+      customerId: stripeCustomerId,
+      customerEmail: customerData.email,
+      workshopId: workshopData.id,
       successUrl: sessionSuccessUrl,
       cancelUrl: sessionCancelUrl,
-      trialDays,
-      workshopData: {
-        id: workshopData.id,
-        name: workshopData.name,
-        plan: planId,
-      },
+      trialPeriodDays: trialDays,
+      userId: workshopData.owner_id || workshopData.id // Pass user ID for validation
     });
-
-    if (!sessionResult.success) {
-      return NextResponse.json(
-        { error: `Fehler beim Erstellen der Checkout-Session: ${sessionResult.error}` },
-        { status: 500 }
-      );
-    }
 
     // Log checkout session creation
     await supabase
@@ -137,10 +118,10 @@ export async function POST(request) {
       .insert({
         workshop_id: workshopData.id,
         event_type: 'checkout_session_created',
-        stripe_session_id: sessionResult.session.id,
+        stripe_session_id: session.id,
         plan_id: planId,
         billing_interval: billingInterval,
-        amount: product[`${billingInterval}lyPrice`],
+        amount: product[billingInterval === 'year' ? 'yearly' : 'monthly'].price,
         currency: 'eur',
         metadata: {
           customer_id: stripeCustomerId,
@@ -151,8 +132,8 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      sessionId: sessionResult.session.id,
-      url: sessionResult.session.url,
+      sessionId: session.id,
+      url: session.url,
       customerId: stripeCustomerId,
     });
 

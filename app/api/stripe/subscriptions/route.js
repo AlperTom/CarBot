@@ -38,18 +38,11 @@ export async function GET(request) {
 
     // Get subscription by ID
     if (subscriptionId) {
-      const result = await getSubscription(subscriptionId);
-      
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
+      const subscription = await getSubscription(subscriptionId);
 
       return NextResponse.json({
         success: true,
-        subscription: result.subscription,
+        subscription: subscription,
       });
     }
 
@@ -68,18 +61,11 @@ export async function GET(request) {
         );
       }
 
-      const result = await getSubscription(workshop.stripe_subscription_id);
-      
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error },
-          { status: 500 }
-        );
-      }
+      const subscription = await getSubscription(workshop.stripe_subscription_id);
 
       return NextResponse.json({
         success: true,
-        subscription: result.subscription,
+        subscription: subscription,
       });
     }
 
@@ -138,14 +124,7 @@ export async function PUT(request) {
     }
 
     // Update the subscription
-    const result = await updateSubscription(subscriptionId, newPriceId);
-    
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
-    }
+    const updatedSubscription = await updateSubscription(subscriptionId, { priceId: newPriceId });
 
     // Update workshop record
     if (workshopId) {
@@ -176,7 +155,7 @@ export async function PUT(request) {
 
     return NextResponse.json({
       success: true,
-      subscription: result.subscription,
+      subscription: updatedSubscription,
       message: 'Abonnement erfolgreich aktualisiert.',
     });
 
@@ -211,14 +190,7 @@ export async function DELETE(request) {
     }
 
     // Cancel the subscription
-    const result = await cancelSubscription(subscriptionId, reason);
-    
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
-    }
+    const canceledSubscription = await cancelSubscription(subscriptionId, { immediately });
 
     // Update workshop record
     if (workshopId) {
@@ -253,7 +225,7 @@ export async function DELETE(request) {
 
     return NextResponse.json({
       success: true,
-      subscription: result.subscription,
+      subscription: canceledSubscription,
       message: immediate 
         ? 'Abonnement wurde sofort gekündigt.' 
         : 'Abonnement wird zum Ende der Abrechnungsperiode gekündigt.',

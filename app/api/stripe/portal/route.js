@@ -53,14 +53,7 @@ export async function POST(request) {
     }
 
     // Create portal session
-    const result = await createPortalSession(stripeCustomerId, sessionReturnUrl);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: `Fehler beim Erstellen der Portal-Session: ${result.error}` },
-        { status: 500 }
-      );
-    }
+    const session = await createCustomerPortalSession(stripeCustomerId, sessionReturnUrl);
 
     // Log portal access
     if (workshopId) {
@@ -81,8 +74,8 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      url: result.session.url,
-      sessionId: result.session.id,
+      url: session.url,
+      sessionId: session.id,
     });
 
   } catch (error) {

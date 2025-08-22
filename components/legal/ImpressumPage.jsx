@@ -350,7 +350,7 @@ export default function ImpressumPage({ config }) {
             })}</p>
             <p>
               Erstellt mit <span className="text-blue-600 font-medium">CarBot</span> - 
-              Deutsche Automotive SaaS
+              Deutsche Automotive SaaS | carbot.chat
             </p>
           </div>
         </section>

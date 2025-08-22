@@ -387,7 +387,7 @@ export default function WebsiteLayout({
                 <p className="mt-2 md:mt-0">
                   Website powered by{' '}
                   <a 
-                    href="https://carbot.de" 
+                    href="https://carbot.chat" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="hover:text-white transition-colors"

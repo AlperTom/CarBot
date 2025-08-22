@@ -210,7 +210,25 @@ export default function EnhancedDashboardNav({ user, workshop, onLogout }) {
               aria-label="Dashboard Home"
             >
               <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-lg">🚗</span>
+                <svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="dashLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style={{stopColor:'#FFFFFF', stopOpacity:1}} />
+                      <stop offset="100%" style={{stopColor:'#F3F4F6', stopOpacity:1}} />
+                    </linearGradient>
+                  </defs>
+                  <g transform="translate(6, 8)">
+                    <path d="M2 12 Q2 10 4 10 L16 10 Q18 10 18 12 L18 14 Q18 16 16 16 L4 16 Q2 16 2 14 Z" 
+                          fill="url(#dashLogoGrad)"/>
+                    <path d="M4.5 10 Q6 8 8 8 L12 8 Q14 8 15.5 10" fill="url(#dashLogoGrad)" opacity="0.7"/>
+                    <circle cx="6" cy="16" r="2" fill="white" stroke="url(#dashLogoGrad)" strokeWidth="0.5"/>
+                    <circle cx="14" cy="16" r="2" fill="white" stroke="url(#dashLogoGrad)" strokeWidth="0.5"/>
+                    <circle cx="6" cy="16" r="1" fill="url(#dashLogoGrad)"/>
+                    <circle cx="14" cy="16" r="1" fill="url(#dashLogoGrad)"/>
+                    <circle cx="10" cy="6" r="1.5" fill="white" opacity="0.9"/>
+                    <circle cx="10" cy="6" r="0.8" fill="url(#dashLogoGrad)"/>
+                  </g>
+                </svg>
               </div>
               <span className="text-xl font-bold text-gray-900">CarBot</span>
             </Link>

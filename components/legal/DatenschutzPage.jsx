@@ -672,7 +672,7 @@ export default function DatenschutzPage({ config }) {
             </p>
             <p>
               Erstellt mit <span className="text-blue-600 font-medium">CarBot</span> - 
-              Deutsche Automotive SaaS | GDPR-konform
+              Deutsche Automotive SaaS | carbot.chat | GDPR-konform
             </p>
           </div>
         </section>

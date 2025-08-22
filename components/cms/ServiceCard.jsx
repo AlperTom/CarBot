@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { getOptimizedImageUrl } from '../../lib/directus';
 import { formatPrice } from '../../lib/i18n';
 import { SERVICE_CATEGORIES } from '../../types/directus';
-import { FadeInOnScroll, ScaleOnScroll } from '../animations/ScrollAnimations';
+import { FadeInOnScroll, ScaleOnScroll, StaggeredFadeIn } from '../animations/ScrollAnimations';
 
 export default function ServiceCard({ 
   service, 

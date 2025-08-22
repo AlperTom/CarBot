@@ -1,10 +1,12 @@
+'use client'
+
 /**
  * Production Monitoring Dashboard Component
  * Real-time system health and performance metrics
  */
 
 import { useState, useEffect } from 'react'
-import { ChartBarIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, ClockIcon, ServerIcon, CpuChipIcon, DatabaseIcon } from '@heroicons/react/24/outline'
+import { ChartBarIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, ClockIcon, ServerIcon, CpuChipIcon, CircleStackIcon as DatabaseIcon } from '@heroicons/react/24/outline'
 
 export default function MonitoringDashboard() {
   const [data, setData] = useState(null)
