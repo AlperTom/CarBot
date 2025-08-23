@@ -150,361 +150,247 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-        <div style={{ fontSize: '24px', marginBottom: '20px' }}>🚗</div>
-        <div style={{ color: '#666' }}>Lade Dashboard...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">🚗</div>
+          <div className="text-gray-600">Lade Dashboard...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: '0 20px' }}>
-      {/* Welcome Header */}
-      <div style={{ marginBottom: '30px' }}>
-        <h1 style={{ 
-          fontSize: '32px', 
-          fontWeight: 'bold', 
-          color: '#1a202c',
-          margin: '0 0 10px 0'
-        }}>
-          Willkommen zurück, {workshop?.owner_name || 'Workshop-Besitzer'}! 👋
-        </h1>
-        <p style={{ 
-          fontSize: '16px', 
-          color: '#6b7280',
-          margin: 0
-        }}>
-          Hier ist eine Übersicht über Ihre CarBot Performance
-        </p>
-      </div>
-
-      {/* Setup Progress (if incomplete) */}
-      {setupProgress < 100 && (
-        <div style={{
-          background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)',
-          border: '1px solid #f59e0b',
-          borderRadius: '12px',
-          padding: '20px',
-          marginBottom: '30px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div>
-            <h3 style={{ margin: '0 0 8px 0', color: '#92400e' }}>
-              🚀 Setup vervollständigen
-            </h3>
-            <p style={{ margin: '0 0 10px 0', color: '#b45309', fontSize: '14px' }}>
-              Vervollständigen Sie Ihr Setup um das volle Potenzial von CarBot zu nutzen
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Welcome Header */}
+        <div className="mb-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+              Willkommen zurück, {workshop?.owner_name || 'Workshop-Besitzer'}! 👋
+            </h1>
+            <p className="text-base sm:text-lg text-gray-600">
+              Hier ist eine Übersicht über Ihre CarBot Performance
             </p>
-            <div style={{
-              background: 'rgba(0,0,0,0.1)',
-              borderRadius: '10px',
-              height: '8px',
-              width: '200px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                background: '#059669',
-                height: '100%',
-                width: `${setupProgress}%`,
-                transition: 'width 0.3s ease'
-              }} />
-            </div>
-            <div style={{ fontSize: '12px', color: '#92400e', marginTop: '5px' }}>
-              {setupProgress}% abgeschlossen
-            </div>
           </div>
-          <Link
-            href="/dashboard/onboarding"
-            style={{
-              background: '#059669',
-              color: 'white',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              fontSize: '14px'
-            }}
-          >
-            Setup fortsetzen
-          </Link>
         </div>
-      )}
 
-      {/* Usage Indicator for Basic/Professional plans */}
-      {packageInfo && workshop?.id && (
-        <div style={{ marginBottom: '30px' }}>
-          <UsageIndicator workshopId={workshop.id} compact={false} />
-        </div>
-      )}
-
-      {/* Dashboard Stats */}
-      <DashboardStats customerSlug={workshop?.slug} />
-
-      {/* Main Content Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-        gap: '30px',
-        marginTop: '30px'
-      }}>
-        {/* Recent Activity */}
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            padding: '20px 20px 10px 20px',
-            borderBottom: '1px solid #f1f5f9'
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: '18px', 
-              color: '#1a202c',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              📈 Neueste Aktivitäten
-            </h3>
-          </div>
-          
-          <div style={{ padding: '0 20px 20px 20px' }}>
-            {recentActivity.length > 0 ? (
-              recentActivity.map((activity, index) => (
-                <div key={index} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 0',
-                  borderBottom: index < recentActivity.length - 1 ? '1px solid #f1f5f9' : 'none'
-                }}>
-                  <div>
-                    <div style={{ fontWeight: '500', color: '#1a202c', fontSize: '14px' }}>
-                      Neuer Lead: {activity.name}
-                    </div>
-                    <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>
-                      {activity.anliegen.substring(0, 50)}...
-                    </div>
+        {/* Setup Progress (if incomplete) */}
+        {setupProgress < 100 && (
+          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-6 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-amber-800 mb-2">
+                  🚀 Setup vervollständigen
+                </h3>
+                <p className="text-sm text-amber-700 mb-4">
+                  Vervollständigen Sie Ihr Setup um das volle Potenzial von CarBot zu nutzen
+                </p>
+                <div className="w-full max-w-xs">
+                  <div className="flex justify-between text-xs text-amber-600 mb-1">
+                    <span>Fortschritt</span>
+                    <span>{setupProgress}%</span>
                   </div>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#9ca3af',
-                    textAlign: 'right'
-                  }}>
-                    {new Date(activity.created_at).toLocaleDateString('de-DE')}
+                  <div className="bg-amber-200 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${setupProgress}%` }}
+                    />
                   </div>
                 </div>
-              ))
-            ) : (
-              <div style={{
-                textAlign: 'center',
-                padding: '40px 20px',
-                color: '#6b7280'
-              }}>
-                <div style={{ fontSize: '24px', marginBottom: '10px' }}>📭</div>
-                <div>Noch keine Aktivitäten vorhanden</div>
               </div>
-            )}
-            
-            <Link
-              href="/dashboard/leads"
-              style={{
-                display: 'block',
-                textAlign: 'center',
-                marginTop: '15px',
-                color: '#0070f3',
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
-            >
-              Alle Leads ansehen →
-            </Link>
+              <Link
+                href="/dashboard/onboarding"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-colors duration-200 text-center"
+              >
+                Setup fortsetzen
+              </Link>
+            </div>
           </div>
+        )}
+
+        {/* Usage Indicator for Basic/Professional plans */}
+        {packageInfo && workshop?.id && (
+          <div className="mb-8">
+            <UsageIndicator workshopId={workshop.id} compact={false} />
+          </div>
+        )}
+
+        {/* Dashboard Stats */}
+        <div className="mb-8">
+          <DashboardStats customerSlug={workshop?.slug} />
         </div>
 
-        {/* Integration Status */}
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            padding: '20px 20px 10px 20px',
-            borderBottom: '1px solid #f1f5f9'
-          }}>
-            <h3 style={{ 
-              margin: 0, 
-              fontSize: '18px', 
-              color: '#1a202c',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              🔗 Integrationen
-            </h3>
-          </div>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           
-          <div style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <IntegrationItem
-                icon="🌐"
-                name="Website Widget"
-                status={integrations.website}
-                description="CarBot auf Ihrer Website eingebettet"
-              />
-              <IntegrationItem
-                icon="💬"
-                name="WhatsApp Business"
-                status={integrations.whatsapp}
-                description="Automatische WhatsApp Nachrichten"
-              />
-              <IntegrationItem
-                icon="🗺️"
-                name="Google My Business"
-                status={integrations.google}
-                description="Google Bewertungen und Standort"
-              />
-              <IntegrationItem
-                icon="💳"
-                name="Stripe Zahlungen"
-                status={integrations.stripe}
-                description="Online Zahlungen und Abonnements"
-              />
+          {/* Recent Activity */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                📈 Neueste Aktivitäten
+              </h3>
             </div>
             
-            <Link
+            <div className="p-6">
+              {recentActivity.length > 0 ? (
+                <div className="divide-y divide-gray-50">
+                  {recentActivity.map((activity, index) => (
+                    <div key={index} className="py-4 first:pt-0 last:pb-0">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 text-sm">
+                            Neuer Lead: {activity.name}
+                          </div>
+                          <div className="text-gray-500 text-sm mt-1">
+                            {activity.anliegen.substring(0, 50)}...
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-400 ml-4 flex-shrink-0">
+                          {new Date(activity.created_at).toLocaleDateString('de-DE')}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-4xl mb-4">📭</div>
+                  <div className="text-gray-500">Noch keine Aktivitäten vorhanden</div>
+                </div>
+              )}
+              
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <Link
+                  href="/dashboard/leads"
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium block text-center transition-colors"
+                >
+                  Alle Leads ansehen →
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Integration Status */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                🔗 Integrationen
+              </h3>
+            </div>
+            
+            <div className="p-6">
+              <div className="space-y-4">
+                <IntegrationItem
+                  icon="🌐"
+                  name="Website Widget"
+                  status={integrations.website}
+                  description="CarBot auf Ihrer Website eingebettet"
+                />
+                <IntegrationItem
+                  icon="💬"
+                  name="WhatsApp Business"
+                  status={integrations.whatsapp}
+                  description="Automatische WhatsApp Nachrichten"
+                />
+                <IntegrationItem
+                  icon="🗺️"
+                  name="Google My Business"
+                  status={integrations.google}
+                  description="Google Bewertungen und Standort"
+                />
+                <IntegrationItem
+                  icon="💳"
+                  name="Stripe Zahlungen"
+                  status={integrations.stripe}
+                  description="Online Zahlungen und Abonnements"
+                />
+              </div>
+              
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <Link
+                  href="/dashboard/settings"
+                  className="block text-center bg-gray-50 hover:bg-gray-100 text-blue-600 hover:text-blue-700 py-3 px-4 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Integrationen verwalten
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">
+            🚀 Schnellaktionen
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <QuickActionButton
               href="/dashboard/settings"
-              style={{
-                display: 'block',
-                textAlign: 'center',
-                marginTop: '20px',
-                background: '#f8fafc',
-                color: '#0070f3',
-                padding: '12px',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
+              icon="⚙️"
+              title="Bot konfigurieren"
+              description="Einstellungen anpassen"
+              disabled={false}
+            />
+            <QuickActionButton
+              href="/analytics"
+              icon="📊"
+              title="Analytics ansehen"
+              description={features.advancedAnalytics ? "Detaillierte Berichte" : "Upgrade für erweiterte Analysen"}
+              disabled={!features.advancedAnalytics}
+              upgradeRequired={!features.advancedAnalytics}
+            />
+            <QuickActionButton
+              href="/dashboard/leads"
+              icon="🎯"
+              title="Leads verwalten"
+              description="Kundenkontakte bearbeiten"
+              disabled={false}
+            />
+            {features.apiAccess && (
+              <QuickActionButton
+                href="/dashboard/client-keys"
+                icon="🔑"
+                title="API Keys verwalten"
+                description="API-Zugang konfigurieren"
+                disabled={false}
+              />
+            )}
+            <QuickActionButton
+              href="/dashboard/help"
+              icon="❓"
+              title="Hilfe & Support"
+              description={features.phoneSupport ? "Telefon & E-Mail Support" : "E-Mail Support"}
+              disabled={false}
+            />
+          </div>
+        </div>
+
+        {/* Help Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 sm:p-8 text-center">
+          <h3 className="text-xl font-semibold text-blue-800 mb-4">
+            💡 Brauchen Sie Hilfe?
+          </h3>
+          <p className="text-blue-700 mb-6">
+            Unser Support-Team steht Ihnen bei Fragen zur Verfügung
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/dashboard/help"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
-              Integrationen verwalten
+              📚 Dokumentation
+            </Link>
+            <Link
+              href="mailto:support@carbot.chat"
+              className="bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors"
+            >
+              💬 Support kontaktieren
             </Link>
           </div>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div style={{
-        marginTop: '30px',
-        background: 'white',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        padding: '20px'
-      }}>
-        <h3 style={{ 
-          margin: '0 0 20px 0', 
-          fontSize: '18px', 
-          color: '#1a202c'
-        }}>
-          🚀 Schnellaktionen
-        </h3>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '15px'
-        }}>
-          <QuickActionButton
-            href="/dashboard/settings"
-            icon="⚙️"
-            title="Bot konfigurieren"
-            description="Einstellungen anpassen"
-            disabled={false}
-          />
-          <QuickActionButton
-            href="/analytics"
-            icon="📊"
-            title="Analytics ansehen"
-            description={features.advancedAnalytics ? "Detaillierte Berichte" : "Upgrade für erweiterte Analysen"}
-            disabled={!features.advancedAnalytics}
-            upgradeRequired={!features.advancedAnalytics}
-          />
-          <QuickActionButton
-            href="/dashboard/leads"
-            icon="🎯"
-            title="Leads verwalten"
-            description="Kundenkontakte bearbeiten"
-            disabled={false}
-          />
-          {features.apiAccess && (
-            <QuickActionButton
-              href="/dashboard/client-keys"
-              icon="🔑"
-              title="API Keys verwalten"
-              description="API-Zugang konfigurieren"
-              disabled={false}
-            />
-          )}
-          <QuickActionButton
-            href="/dashboard/help"
-            icon="❓"
-            title="Hilfe & Support"
-            description={features.phoneSupport ? "Telefon & E-Mail Support" : "E-Mail Support"}
-            disabled={false}
-          />
-        </div>
-      </div>
-
-      {/* Help Section */}
-      <div style={{
-        marginTop: '40px',
-        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-        borderRadius: '12px',
-        padding: '30px',
-        textAlign: 'center'
-      }}>
-        <h3 style={{ margin: '0 0 15px 0', color: '#1e40af', fontSize: '20px' }}>
-          💡 Brauchen Sie Hilfe?
-        </h3>
-        <p style={{ margin: '0 0 20px 0', color: '#1e40af', fontSize: '16px' }}>
-          Unser Support-Team steht Ihnen bei Fragen zur Verfügung
-        </p>
-        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-          <Link
-            href="/dashboard/help"
-            style={{
-              background: '#2563eb',
-              color: 'white',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold'
-            }}
-          >
-            📚 Dokumentation
-          </Link>
-          <Link
-            href="mailto:support@carbot.chat"
-            style={{
-              background: 'white',
-              color: '#2563eb',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold',
-              border: '2px solid #2563eb'
-            }}
-          >
-            💬 Support kontaktieren
-          </Link>
-        </div>
       </div>
     </div>
   )
@@ -512,31 +398,23 @@ export default function DashboardPage() {
 
 function IntegrationItem({ icon, name, status, description }) {
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '12px 0'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span style={{ fontSize: '20px' }}>{icon}</span>
+    <div className="flex items-center justify-between py-3">
+      <div className="flex items-center gap-3">
+        <span className="text-xl">{icon}</span>
         <div>
-          <div style={{ fontWeight: '500', color: '#1a202c', fontSize: '14px' }}>
+          <div className="font-medium text-gray-900 text-sm">
             {name}
           </div>
-          <div style={{ color: '#6b7280', fontSize: '12px' }}>
+          <div className="text-gray-500 text-xs">
             {description}
           </div>
         </div>
       </div>
-      <div style={{
-        padding: '4px 8px',
-        borderRadius: '12px',
-        fontSize: '12px',
-        fontWeight: 'bold',
-        background: status ? '#dcfce7' : '#fef2f2',
-        color: status ? '#166534' : '#dc2626'
-      }}>
+      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+        status 
+          ? 'bg-green-100 text-green-800' 
+          : 'bg-gray-100 text-gray-600'
+      }`}>
         {status ? 'Aktiv' : 'Inaktiv'}
       </div>
     </div>
@@ -544,45 +422,28 @@ function IntegrationItem({ icon, name, status, description }) {
 }
 
 function QuickActionButton({ href, icon, title, description, disabled = false, upgradeRequired = false }) {
-  const buttonStyle = {
-    display: 'block',
-    padding: '20px',
-    background: disabled ? '#f9fafb' : '#f8fafc',
-    borderRadius: '8px',
-    textDecoration: 'none',
-    border: disabled ? '1px solid #e5e7eb' : '1px solid #e2e8f0',
-    transition: 'all 0.2s',
-    opacity: disabled ? 0.6 : 1,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    position: 'relative'
-  }
+  const baseClasses = `
+    block p-6 rounded-xl border transition-all duration-200
+    ${disabled 
+      ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60' 
+      : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md hover:-translate-y-1'
+    }
+  `
 
   const content = (
     <>
-      <div style={{ fontSize: '24px', marginBottom: '10px' }}>
+      <div className="text-2xl mb-3">
         {disabled && upgradeRequired ? '🔒' : icon}
       </div>
-      <div style={{ 
-        fontWeight: 'bold', 
-        color: disabled ? '#9ca3af' : '#1a202c', 
-        fontSize: '16px',
-        marginBottom: '5px'
-      }}>
+      <div className={`font-semibold text-base mb-2 ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>
         {title}
         {upgradeRequired && (
-          <span style={{
-            fontSize: '10px',
-            background: '#fbbf24',
-            color: '#92400e',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            marginLeft: '8px'
-          }}>
+          <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
             PRO
           </span>
         )}
       </div>
-      <div style={{ color: disabled ? '#9ca3af' : '#6b7280', fontSize: '14px' }}>
+      <div className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-600'}`}>
         {description}
       </div>
     </>
@@ -590,31 +451,14 @@ function QuickActionButton({ href, icon, title, description, disabled = false, u
 
   if (disabled) {
     return (
-      <div style={buttonStyle}>
+      <div className={baseClasses}>
         {content}
       </div>
     )
   }
 
   return (
-    <Link
-      href={href}
-      style={buttonStyle}
-      onMouseEnter={(e) => {
-        if (!disabled) {
-          e.target.style.background = '#f1f5f9'
-          e.target.style.transform = 'translateY(-2px)'
-          e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled) {
-          e.target.style.background = '#f8fafc'
-          e.target.style.transform = 'translateY(0)'
-          e.target.style.boxShadow = 'none'
-        }
-      }}
-    >
+    <Link href={href} className={baseClasses}>
       {content}
     </Link>
   )

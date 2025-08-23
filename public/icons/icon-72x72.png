@@ -1,0 +1,16 @@
+# This would be a binary PNG file - placeholder for documentation
+# In a real implementation, you would generate proper PNG icons using:
+# - AI image generation tools
+# - Design software like Figma/Adobe
+# - Icon generation services
+# - Or use existing CarBot logos
+
+# Required sizes for PWA:
+# - icon-72x72.png (Android Chrome)
+# - icon-96x96.png (Android Chrome)
+# - icon-128x128.png (Chrome Web Store)
+# - icon-144x144.png (Android Chrome)
+# - icon-152x152.png (iOS Safari)
+# - icon-192x192.png (Android Chrome)
+# - icon-384x384.png (Android Chrome)
+# - icon-512x512.png (Android Chrome, maskable)

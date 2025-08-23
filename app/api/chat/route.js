@@ -1,6 +1,9 @@
 import OpenAI from 'openai'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { performanceMonitor } from '@/lib/performance-monitor'
+import { cacheManager, CacheKeys, CacheTTL } from '@/lib/redis-cache'
+import { supabaseConnectionManager } from '@/lib/supabase-connection-manager'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -34,34 +37,40 @@ async function getCustomerContext(clientKey) {
   }
 
   try {
-    // Get customer data
-    const { data: customer } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('slug', clientKey)
-      .single()
+    // Use optimized database queries with connection manager
+    const result = await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
+      // Use Promise.all for parallel queries - major performance improvement
+      const [customerResult, servicesResult, faqResult] = await Promise.all([
+        // Get customer data
+        client.from('customers')
+          .select('*')
+          .eq('slug', clientKey)
+          .single(),
+          
+        // Get customer services
+        client.from('customer_services')
+          .select('*')
+          .eq('customer_slug', clientKey)
+          .eq('active', true),
+          
+        // Get relevant FAQ (global + customer-specific)
+        client.from('faq')
+          .select('*')
+          .or(`customer_id.is.null,customer_slug.eq.${clientKey}`)
+          .eq('active', true)
+          .order('sort_order')
+          .limit(10) // Limit FAQ for better performance
+      ])
 
-    // Get customer services
-    const { data: services } = await supabase
-      .from('customer_services')
-      .select('*')
-      .eq('customer_id', customer?.id)
-      .eq('active', true)
+      return {
+        customer: customerResult.data || null,
+        services: servicesResult.data || [],
+        faq: faqResult.data || [],
+        openingHours: customerResult.data?.opening_hours || null
+      }
+    })
 
-    // Get relevant FAQ (global + customer-specific)
-    const { data: faq } = await supabase
-      .from('faq')
-      .select('*')
-      .or(`customer_id.is.null,customer_id.eq.${customer?.id}`)
-      .eq('active', true)
-      .order('sort_order')
-
-    return {
-      customer: customer || null,
-      services: services || [],
-      faq: faq || [],
-      openingHours: customer?.opening_hours || null
-    }
+    return result
   } catch (error) {
     console.error('Error fetching customer context:', error)
     return { customer: null, services: [], faq: [], openingHours: null }
@@ -127,34 +136,41 @@ Client: ${clientKey || 'unknown'}`
 }
 
 export async function POST(request) {
+  const timerId = performanceMonitor.startApiTimer('/api/chat')
+  
   try {
     const { messages, clientKey, hasConsent, language, systemPrompt } = await request.json()
     
     // Validierung
     if (!messages || !Array.isArray(messages)) {
+      const metric = performanceMonitor.endApiTimer(timerId, 400)
       return NextResponse.json({ 
         error: 'Messages array is required' 
       }, { status: 400 })
     }
 
     if (!hasConsent) {
+      const metric = performanceMonitor.endApiTimer(timerId, 400)
       return NextResponse.json({ 
         error: 'GDPR consent required',
         message: 'Bitte stimmen Sie der Datenverarbeitung zu, um den Chat zu nutzen.' 
       }, { status: 400 })
     }
 
-    // Get customer context for enhanced responses
-    const context = await getCustomerContext(clientKey)
+    // Try to get customer context from cache first
+    const cacheKey = CacheKeys.workshop(clientKey)
+    const cachedResult = await cacheManager.cacheFunction(
+      cacheKey,
+      () => getCustomerContext(clientKey),
+      CacheTTL.MEDIUM
+    )
+    const context = cachedResult.data
     
     // Build enhanced system prompt with customer context
     const systemMessage = {
       role: 'system',
       content: systemPrompt || buildEnhancedSystemPrompt(clientKey, context, language)
     }
-
-    // Track API usage start time
-    const startTime = Date.now()
 
     // Choose model based on environment or customer subscription
     const model = process.env.OPENAI_MODEL || 'gpt-3.5-turbo'
@@ -195,42 +211,44 @@ Unser Fachteam hilft Ihnen gerne bei allen Fragen rund um Ihr Fahrzeug weiter!`
       usage = null
     }
 
-    // Track AI usage for cost optimization
-    try {
-      const responseTime = Date.now() - startTime
-      await supabase.from('ai_usage_logs').insert({
-        client_key: clientKey || 'anonymous',
-        model_name: model,
-        prompt_tokens: usage?.prompt_tokens || 0,
-        completion_tokens: usage?.completion_tokens || 0,
-        total_tokens: usage?.total_tokens || 0,
-        cost_cents: calculateCostCents(model, usage),
-        response_time_ms: responseTime,
-        language: language || 'de',
-        created_at: new Date().toISOString()
-      })
-    } catch (usageError) {
-      console.error('Error tracking AI usage:', usageError)
-      // Don't fail the request if usage tracking fails
-    }
-
-    // Track analytics event
-    try {
-      await supabase.from('analytics_events').insert({
-        event_type: 'chat_response_generated',
-        client_key: clientKey || 'anonymous',
-        event_data: {
-          message_count: messages.length,
-          response_length: aiResponse.length,
-          model_used: model,
+    // Track AI usage for cost optimization with database performance monitoring
+    const dbLogResult = await performanceMonitor.trackDatabaseQuery('ai_usage_log', async () => {
+      return await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
+        const responseTime = performance.now() - (timerId ? performance.now() - 1000 : performance.now())
+        return await adminClient.from('ai_usage_logs').insert({
+          client_key: clientKey || 'anonymous',
+          model_name: model,
+          prompt_tokens: usage?.prompt_tokens || 0,
+          completion_tokens: usage?.completion_tokens || 0,
+          total_tokens: usage?.total_tokens || 0,
+          cost_cents: calculateCostCents(model, usage),
+          response_time_ms: responseTime,
           language: language || 'de',
-          has_customer_context: !!context.customer
-        },
-        created_at: new Date().toISOString()
+          created_at: new Date().toISOString()
+        })
       })
-    } catch (analyticsError) {
-      console.error('Error tracking analytics:', analyticsError)
-    }
+    })
+
+    // Track analytics event with performance monitoring
+    const analyticsResult = await performanceMonitor.trackDatabaseQuery('analytics_event', async () => {
+      return await supabaseConnectionManager.executeQuery(async (client, adminClient) => {
+        return await adminClient.from('analytics_events').insert({
+          event_type: 'chat_response_generated',
+          client_key: clientKey || 'anonymous',
+          event_data: {
+            message_count: messages.length,
+            response_length: aiResponse.length,
+            model_used: model,
+            language: language || 'de',
+            has_customer_context: !!context.customer,
+            cache_hit: cachedResult.fromCache
+          },
+          created_at: new Date().toISOString()
+        })
+      })
+    })
+
+    const metric = performanceMonitor.endApiTimer(timerId, 200)
 
     return NextResponse.json({ 
       text: aiResponse,
@@ -240,13 +258,25 @@ Unser Fachteam hilft Ihnen gerne bei allen Fragen rund um Ihr Fahrzeug weiter!`
         has_services: context.services.length > 0,
         has_faq: context.faq.length > 0
       }
+    }, {
+      headers: {
+        'X-Response-Time': `${metric.duration.toFixed(2)}ms`,
+        'X-Cache-Status': cachedResult.fromCache ? 'HIT' : 'MISS'
+      }
     })
 
   } catch (error) {
     console.error('Chat API error:', error)
+    const metric = performanceMonitor.endApiTimer(timerId, 500, error)
+    
     return NextResponse.json({ 
       error: 'Internal server error',
       message: 'Entschuldigung, es gab einen Fehler beim Verarbeiten Ihrer Anfrage.' 
-    }, { status: 500 })
+    }, { 
+      status: 500,
+      headers: {
+        'X-Response-Time': `${metric.duration.toFixed(2)}ms`
+      }
+    })
   }
 }

@@ -1,0 +1,842 @@
+name: 🔍 Infrastructure Monitoring & Alerting
+on:
+  schedule:
+    # Run health checks every 15 minutes
+    - cron: '*/15 * * * *'
+    # Run performance checks every hour  
+    - cron: '0 * * * *'
+    # Run comprehensive checks daily at 6 AM
+    - cron: '0 6 * * *'
+    # Run backup validation weekly
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of monitoring check'
+        required: true
+        default: 'health'
+        type: choice
+        options:
+          - health
+          - performance
+          - security
+          - database
+          - email
+          - backup
+          - comprehensive
+      environment:
+        description: 'Environment to monitor'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - all
+      alert_level:
+        description: 'Alert severity level'
+        required: false
+        default: 'normal'
+        type: choice
+        options:
+          - low
+          - normal
+          - high
+          - critical
+
+env:
+  PRODUCTION_URL: https://car-gblttmonj-car-bot.vercel.app
+  STAGING_URL: https://carbot-staging.vercel.app
+  TARGET_DOMAIN: carbot.chat
+  
+  # Monitoring thresholds
+  RESPONSE_TIME_THRESHOLD: 3.0
+  ERROR_RATE_THRESHOLD: 5
+  UPTIME_THRESHOLD: 99.0
+  
+  # Alert configuration
+  ALERT_WEBHOOK: ${{ secrets.MONITORING_WEBHOOK_URL }}
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+jobs:
+  # Real-time health monitoring
+  health-monitoring:
+    name: 🏥 Health Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '*/15 * * * *' || github.event.inputs.check_type == 'health' || github.event.inputs.check_type == 'comprehensive'
+    
+    strategy:
+      matrix:
+        environment: [production, staging]
+        include:
+          - environment: production
+            url: https://car-gblttmonj-car-bot.vercel.app
+          - environment: staging  
+            url: https://carbot-staging.vercel.app
+    
+    outputs:
+      health_status: ${{ steps.health.outputs.status }}
+      response_time: ${{ steps.health.outputs.avg_response_time }}
+      failed_endpoints: ${{ steps.health.outputs.failed_count }}
+      
+    steps:
+      - name: 🔍 Comprehensive Health Check
+        id: health
+        run: |
+          echo "🔍 Running health check for ${{ matrix.environment }}..."
+          
+          TARGET_URL="${{ matrix.url }}"
+          
+          # Critical endpoints for monitoring
+          declare -a endpoints=(
+            ""                    # Homepage
+            "/api/health"         # Health endpoint
+            "/api/auth/check"     # Auth system
+            "/login"             # Login page
+            "/register"          # Registration
+            "/dashboard"         # Dashboard
+            "/api/webhooks/stripe" # Payment webhooks
+          )
+          
+          total_time=0
+          failed_count=0
+          success_count=0
+          endpoint_count=${#endpoints[@]}
+          
+          # Test each endpoint
+          for endpoint in "${endpoints[@]}"; do
+            url="$TARGET_URL$endpoint"
+            
+            # Perform request with timeout
+            response=$(timeout 30 curl -s -w "%{http_code},%{time_total},%{time_namelookup},%{time_connect},%{time_pretransfer},%{time_starttransfer}" -o /dev/null "$url" 2>/dev/null || echo "000,30.0,0,0,0,0")
+            
+            IFS=',' read -r http_code time_total time_dns time_connect time_pretransfer time_starttransfer <<< "$response"
+            
+            echo "🌐 $endpoint:"
+            echo "  Status: $http_code"
+            echo "  Total Time: ${time_total}s"
+            echo "  DNS: ${time_dns}s"
+            echo "  Connect: ${time_connect}s"
+            echo "  Transfer: ${time_starttransfer}s"
+            
+            # Check if endpoint is healthy
+            if [[ "$http_code" == "200" || "$http_code" == "302" || "$http_code" == "301" ]]; then
+              success_count=$((success_count + 1))
+              total_time=$(echo "$total_time + $time_total" | bc -l)
+            else
+              failed_count=$((failed_count + 1))
+              echo "❌ Endpoint failed: $endpoint ($http_code)"
+            fi
+          done
+          
+          # Calculate metrics
+          if [ $success_count -gt 0 ]; then
+            avg_response_time=$(echo "scale=3; $total_time / $success_count" | bc -l)
+          else
+            avg_response_time="999.000"
+          fi
+          
+          uptime_percentage=$(echo "scale=2; $success_count * 100 / $endpoint_count" | bc -l)
+          
+          echo "avg_response_time=$avg_response_time" >> $GITHUB_OUTPUT
+          echo "failed_count=$failed_count" >> $GITHUB_OUTPUT
+          echo "success_count=$success_count" >> $GITHUB_OUTPUT
+          echo "uptime_percentage=$uptime_percentage" >> $GITHUB_OUTPUT
+          
+          # Determine overall status
+          if [ $failed_count -eq 0 ] && (( $(echo "$avg_response_time < $RESPONSE_TIME_THRESHOLD" | bc -l) )); then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ ${{ matrix.environment }} is healthy"
+          elif [ $failed_count -le 1 ]; then
+            echo "status=degraded" >> $GITHUB_OUTPUT
+            echo "⚠️ ${{ matrix.environment }} performance degraded"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ ${{ matrix.environment }} is unhealthy"
+          fi
+          
+          echo "📊 Health Summary:"
+          echo "  Uptime: ${uptime_percentage}%"
+          echo "  Avg Response: ${avg_response_time}s"
+          echo "  Failed Endpoints: $failed_count/$endpoint_count"
+
+      - name: 🚨 Health Alert
+        if: steps.health.outputs.status == 'unhealthy' || steps.health.outputs.failed_count > 1
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.health.outputs.status }}';
+            const failedCount = '${{ steps.health.outputs.failed_count }}';
+            const responseTime = '${{ steps.health.outputs.avg_response_time }}';
+            const uptime = '${{ steps.health.outputs.uptime_percentage }}';
+            const environment = '${{ matrix.environment }}';
+            
+            const severity = failedCount > 2 ? 'P0' : 'P1';
+            const title = `🚨 Health Alert: ${environment.toUpperCase()} ${status} - ${new Date().toISOString()}`;
+            
+            const body = `## 🚨 Infrastructure Health Alert
+            
+            **Environment:** ${environment.toUpperCase()}
+            **Status:** ${status.toUpperCase()}
+            **Severity:** ${severity}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 📊 Metrics
+            - **Uptime:** ${uptime}% (Threshold: ${process.env.UPTIME_THRESHOLD}%)
+            - **Response Time:** ${responseTime}s (Threshold: ${process.env.RESPONSE_TIME_THRESHOLD}s)
+            - **Failed Endpoints:** ${failedCount}
+            
+            ### 🔍 Investigation Required
+            - [ ] Check server logs
+            - [ ] Verify deployment status  
+            - [ ] Test database connectivity
+            - [ ] Monitor resource utilization
+            - [ ] Check external dependencies
+            
+            ### 🛠️ Immediate Actions
+            ${failedCount > 2 ? '- [ ] **CRITICAL:** Consider emergency rollback' : ''}
+            - [ ] Investigate failed endpoints
+            - [ ] Monitor for recovery
+            - [ ] Prepare incident response if needed
+            
+            **Auto-generated by Infrastructure Monitoring**`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:' + severity, 'type:monitoring', 'component:infrastructure', 'environment:' + environment]
+            });
+
+  # Performance monitoring and analysis
+  performance-monitoring:
+    name: ⚡ Performance Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 * * * *' || github.event.inputs.check_type == 'performance' || github.event.inputs.check_type == 'comprehensive'
+    
+    strategy:
+      matrix:
+        environment: [production, staging]
+        include:
+          - environment: production
+            url: https://car-gblttmonj-car-bot.vercel.app
+          - environment: staging
+            url: https://carbot-staging.vercel.app
+    
+    steps:
+      - name: ⚡ Performance Analysis
+        id: performance
+        run: |
+          echo "⚡ Running performance analysis for ${{ matrix.environment }}..."
+          
+          TARGET_URL="${{ matrix.url }}"
+          
+          # Key pages for performance testing
+          declare -a pages=(
+            "/:Homepage"
+            "/login:Login"
+            "/register:Registration"  
+            "/dashboard:Dashboard"
+            "/pricing:Pricing"
+          )
+          
+          total_time=0
+          slow_pages=0
+          page_count=${#pages[@]}
+          
+          echo "📊 Performance Test Results:"
+          
+          for page_info in "${pages[@]}"; do
+            IFS=':' read -r page name <<< "$page_info"
+            url="$TARGET_URL$page"
+            
+            # Run multiple requests for average
+            times=()
+            for i in {1..3}; do
+              time=$(timeout 30 curl -s -w "%{time_total}" -o /dev/null "$url" 2>/dev/null || echo "30.0")
+              times+=($time)
+            done
+            
+            # Calculate average
+            avg_time=$(echo "${times[*]}" | awk '{sum=0; for(i=1;i<=NF;i++)sum+=$i; print sum/NF}')
+            total_time=$(echo "$total_time + $avg_time" | bc -l)
+            
+            echo "🌐 $name: ${avg_time}s"
+            
+            # Check if page is slow
+            if (( $(echo "$avg_time > $RESPONSE_TIME_THRESHOLD" | bc -l) )); then
+              slow_pages=$((slow_pages + 1))
+              echo "  ⚠️ Slow page detected"
+            fi
+          done
+          
+          # Calculate overall metrics
+          overall_avg=$(echo "scale=3; $total_time / $page_count" | bc -l)
+          performance_score=$(echo "scale=1; (($page_count - $slow_pages) * 100) / $page_count" | bc -l)
+          
+          echo "overall_avg=$overall_avg" >> $GITHUB_OUTPUT
+          echo "slow_pages=$slow_pages" >> $GITHUB_OUTPUT  
+          echo "performance_score=$performance_score" >> $GITHUB_OUTPUT
+          
+          echo "📈 Performance Summary:"
+          echo "  Overall Average: ${overall_avg}s"
+          echo "  Slow Pages: $slow_pages/$page_count"
+          echo "  Performance Score: ${performance_score}%"
+          
+          # Set status
+          if (( $(echo "$performance_score >= 90" | bc -l) )); then
+            echo "status=excellent" >> $GITHUB_OUTPUT
+          elif (( $(echo "$performance_score >= 80" | bc -l) )); then
+            echo "status=good" >> $GITHUB_OUTPUT
+          elif (( $(echo "$performance_score >= 70" | bc -l) )); then
+            echo "status=degraded" >> $GITHUB_OUTPUT
+          else
+            echo "status=poor" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔍 Resource Usage Analysis
+        run: |
+          echo "🔍 Analyzing resource usage..."
+          
+          TARGET_URL="${{ matrix.url }}"
+          
+          # Check for resource-heavy pages
+          echo "📦 Checking page sizes..."
+          
+          pages=("/" "/login" "/dashboard")
+          for page in "${pages[@]}"; do
+            url="$TARGET_URL$page"
+            
+            # Get page size and load time
+            response=$(timeout 30 curl -s -w "%{size_download},%{time_total}" -o /dev/null "$url" 2>/dev/null || echo "0,30.0")
+            IFS=',' read -r size time <<< "$response"
+            
+            size_kb=$(echo "scale=1; $size / 1024" | bc -l)
+            echo "📄 $page: ${size_kb}KB in ${time}s"
+            
+            # Alert on large pages
+            if (( $(echo "$size > 1048576" | bc -l) )); then
+              echo "  ⚠️ Large page size detected (>1MB)"
+            fi
+          done
+
+      - name: ⚠️ Performance Alert
+        if: steps.performance.outputs.status == 'poor' || steps.performance.outputs.slow_pages > 2
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.performance.outputs.status }}';
+            const slowPages = '${{ steps.performance.outputs.slow_pages }}';
+            const overallAvg = '${{ steps.performance.outputs.overall_avg }}';
+            const score = '${{ steps.performance.outputs.performance_score }}';
+            const environment = '${{ matrix.environment }}';
+            
+            const title = `⚡ Performance Alert: ${environment.toUpperCase()} degradation - ${new Date().toISOString()}`;
+            
+            const body = `## ⚡ Performance Degradation Alert
+            
+            **Environment:** ${environment.toUpperCase()}
+            **Status:** ${status.toUpperCase()}
+            **Performance Score:** ${score}%
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 📊 Performance Metrics
+            - **Overall Average Response:** ${overallAvg}s (Threshold: ${process.env.RESPONSE_TIME_THRESHOLD}s)
+            - **Slow Pages:** ${slowPages}
+            - **Performance Score:** ${score}%
+            
+            ### 🔍 Investigation Areas
+            - [ ] Database query performance
+            - [ ] CDN caching efficiency
+            - [ ] Server resource utilization
+            - [ ] Bundle size optimization
+            - [ ] Third-party service latency
+            
+            ### 🛠️ Optimization Recommendations
+            - [ ] Review database indexes
+            - [ ] Optimize bundle splitting  
+            - [ ] Implement service worker caching
+            - [ ] Consider image optimization
+            - [ ] Review API endpoint performance
+            
+            **Priority:** P2 - High
+            **Auto-generated by Performance Monitoring**`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P2', 'type:performance', 'component:monitoring', 'environment:' + environment]
+            });
+
+  # Database monitoring
+  database-monitoring:
+    name: 🗄️ Database Monitoring  
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'database' || github.event.inputs.check_type == 'comprehensive'
+    
+    steps:
+      - name: 🗄️ Database Health Check
+        id: db_check
+        run: |
+          echo "🗄️ Checking database connectivity and performance..."
+          
+          # Test database connectivity
+          DB_HEALTH=$(timeout 15 curl -s -w "%{http_code},%{time_total}" -o /dev/null "$PRODUCTION_URL/api/health/db" || echo "000,15.0")
+          IFS=',' read -r db_status db_time <<< "$DB_HEALTH"
+          
+          echo "Database Status: $db_status"
+          echo "Database Response Time: ${db_time}s"
+          
+          # Test read operations
+          READ_TEST=$(timeout 15 curl -s -w "%{http_code},%{time_total}" -o /dev/null "$PRODUCTION_URL/api/workshops?limit=1" || echo "000,15.0")
+          IFS=',' read -r read_status read_time <<< "$READ_TEST"
+          
+          echo "Read Test Status: $read_status"
+          echo "Read Test Time: ${read_time}s"
+          
+          # Calculate database health score
+          if [ "$db_status" == "200" ] && [ "$read_status" == "200" ]; then
+            if (( $(echo "$db_time < 1.0 && $read_time < 2.0" | bc -l) )); then
+              db_health="excellent"
+            elif (( $(echo "$db_time < 2.0 && $read_time < 4.0" | bc -l) )); then
+              db_health="good"  
+            else
+              db_health="slow"
+            fi
+          else
+            db_health="unhealthy"
+          fi
+          
+          echo "db_health=$db_health" >> $GITHUB_OUTPUT
+          echo "db_response_time=$db_time" >> $GITHUB_OUTPUT
+          echo "read_response_time=$read_time" >> $GITHUB_OUTPUT
+          
+          echo "🗄️ Database Health: $db_health"
+
+      - name: 🚨 Database Alert
+        if: steps.db_check.outputs.db_health == 'unhealthy' || steps.db_check.outputs.db_health == 'slow'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const health = '${{ steps.db_check.outputs.db_health }}';
+            const dbTime = '${{ steps.db_check.outputs.db_response_time }}';
+            const readTime = '${{ steps.db_check.outputs.read_response_time }}';
+            
+            const severity = health === 'unhealthy' ? 'P0' : 'P1';
+            const title = `🗄️ Database Alert: ${health.toUpperCase()} - ${new Date().toISOString()}`;
+            
+            const body = `## 🗄️ Database Performance Alert
+            
+            **Status:** ${health.toUpperCase()}
+            **Severity:** ${severity}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 📊 Database Metrics
+            - **Connection Time:** ${dbTime}s
+            - **Read Query Time:** ${readTime}s
+            - **Health Status:** ${health}
+            
+            ### 🔍 Investigation Required
+            - [ ] Check Supabase dashboard
+            - [ ] Review connection pool status
+            - [ ] Analyze slow queries
+            - [ ] Monitor connection limits
+            - [ ] Verify indexes are optimal
+            
+            ### 🛠️ Immediate Actions
+            ${health === 'unhealthy' ? '- [ ] **CRITICAL:** Check database connectivity' : ''}
+            - [ ] Review database performance metrics
+            - [ ] Check for long-running queries
+            - [ ] Verify backup status
+            
+            **Priority:** ${severity}
+            **Auto-generated by Database Monitoring**`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:' + severity, 'type:database', 'component:monitoring']
+            });
+
+  # Security monitoring
+  security-monitoring:
+    name: 🛡️ Security Monitoring
+    runs-on: ubuntu-latest  
+    if: github.event.inputs.check_type == 'security' || github.event.inputs.check_type == 'comprehensive'
+    
+    steps:
+      - name: 🛡️ Security Headers Check
+        run: |
+          echo "🛡️ Checking security headers..."
+          
+          TARGET_URL="$PRODUCTION_URL"
+          
+          # Get security headers
+          headers=$(timeout 10 curl -s -I "$TARGET_URL" || echo "")
+          
+          security_score=0
+          max_score=7
+          
+          # Check for security headers
+          if echo "$headers" | grep -qi "strict-transport-security"; then
+            echo "✅ HSTS header present"
+            security_score=$((security_score + 1))
+          else
+            echo "❌ HSTS header missing"
+          fi
+          
+          if echo "$headers" | grep -qi "x-frame-options"; then
+            echo "✅ X-Frame-Options header present"  
+            security_score=$((security_score + 1))
+          else
+            echo "❌ X-Frame-Options header missing"
+          fi
+          
+          if echo "$headers" | grep -qi "x-content-type-options"; then
+            echo "✅ X-Content-Type-Options header present"
+            security_score=$((security_score + 1))
+          else
+            echo "❌ X-Content-Type-Options header missing"
+          fi
+          
+          if echo "$headers" | grep -qi "content-security-policy"; then
+            echo "✅ Content-Security-Policy header present"
+            security_score=$((security_score + 1))
+          else
+            echo "❌ Content-Security-Policy header missing"
+          fi
+          
+          if echo "$headers" | grep -qi "referrer-policy"; then
+            echo "✅ Referrer-Policy header present"
+            security_score=$((security_score + 1))
+          else
+            echo "❌ Referrer-Policy header missing"
+          fi
+          
+          if echo "$headers" | grep -qi "permissions-policy"; then
+            echo "✅ Permissions-Policy header present"
+            security_score=$((security_score + 1))
+          else
+            echo "❌ Permissions-Policy header missing"
+          fi
+          
+          # Check HTTPS
+          if echo "$TARGET_URL" | grep -q "https://"; then
+            echo "✅ HTTPS enabled"
+            security_score=$((security_score + 1))
+          else
+            echo "❌ HTTPS not enforced"
+          fi
+          
+          security_percentage=$(echo "scale=1; $security_score * 100 / $max_score" | bc -l)
+          echo "🛡️ Security Score: $security_score/$max_score (${security_percentage}%)"
+          
+          if (( $(echo "$security_percentage < 70" | bc -l) )); then
+            echo "⚠️ Security score below recommended threshold"
+            exit 1
+          fi
+
+      - name: 🔐 SSL/TLS Check
+        run: |
+          echo "🔐 Checking SSL/TLS configuration..."
+          
+          # Extract domain from URL
+          DOMAIN=$(echo "$PRODUCTION_URL" | sed 's|https\?://||' | cut -d'/' -f1)
+          
+          # Check SSL certificate
+          ssl_info=$(timeout 10 openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" </dev/null 2>/dev/null | openssl x509 -noout -dates 2>/dev/null || echo "")
+          
+          if [ -n "$ssl_info" ]; then
+            echo "✅ SSL certificate is valid"
+            echo "$ssl_info"
+          else
+            echo "❌ SSL certificate check failed"
+          fi
+
+  # Email system monitoring
+  email-monitoring:
+    name: 📧 Email System Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'email' || github.event.inputs.check_type == 'comprehensive'
+    
+    steps:
+      - name: 📧 Email Service Health Check
+        id: email_check
+        run: |
+          echo "📧 Testing email service health..."
+          
+          # Test email service endpoint
+          EMAIL_HEALTH=$(timeout 10 curl -s -w "%{http_code},%{time_total}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"test": true, "skip_send": true}' \
+            "$PRODUCTION_URL/api/test/email" || echo "000,10.0")
+          
+          IFS=',' read -r email_status email_time <<< "$EMAIL_HEALTH"
+          
+          echo "Email Service Status: $email_status"
+          echo "Email Service Response: ${email_time}s"
+          
+          if [ "$email_status" == "200" ]; then
+            echo "email_health=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "email_health=unhealthy" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "email_response_time=$email_time" >> $GITHUB_OUTPUT
+
+      - name: 🚨 Email Service Alert
+        if: steps.email_check.outputs.email_health == 'unhealthy'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `📧 Email Service Alert - ${new Date().toISOString()}`;
+            const responseTime = '${{ steps.email_check.outputs.email_response_time }}';
+            
+            const body = `## 📧 Email Service Alert
+            
+            **Status:** UNHEALTHY
+            **Response Time:** ${responseTime}s
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 🔍 Impact
+            - New user registrations affected
+            - Welcome emails not being sent
+            - Password reset emails may fail
+            
+            ### 🛠️ Investigation Required
+            - [ ] Check Resend API status
+            - [ ] Verify API keys and configuration
+            - [ ] Test email templates
+            - [ ] Check rate limits
+            - [ ] Review email delivery logs
+            
+            **Priority:** P1 - High
+            **Auto-generated by Email Monitoring**`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P1', 'type:email', 'component:monitoring']
+            });
+
+  # Backup system monitoring
+  backup-monitoring:
+    name: 💾 Backup System Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 6 * * 1' || github.event.inputs.check_type == 'backup' || github.event.inputs.check_type == 'comprehensive'
+    
+    steps:
+      - name: 💾 Backup System Health Check
+        id: backup_check
+        run: |
+          echo "💾 Checking backup system health..."
+          
+          # Test backup endpoint
+          BACKUP_HEALTH=$(timeout 30 curl -s -w "%{http_code},%{time_total}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer test-token" \
+            -d '{"test": true, "dry_run": true}' \
+            "$PRODUCTION_URL/api/admin/backup" || echo "000,30.0")
+          
+          IFS=',' read -r backup_status backup_time <<< "$BACKUP_HEALTH"
+          
+          echo "Backup Service Status: $backup_status"
+          echo "Backup Service Response: ${backup_time}s"
+          
+          if [ "$backup_status" == "200" ]; then
+            echo "backup_health=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "backup_health=unhealthy" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🚨 Backup System Alert
+        if: steps.backup_check.outputs.backup_health == 'unhealthy'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `💾 Backup System Alert - ${new Date().toISOString()}`;
+            
+            const body = `## 💾 Backup System Alert
+            
+            **Status:** UNHEALTHY
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 🔍 Critical Impact
+            - Data backup system not responding
+            - Risk of data loss in disaster scenario
+            - Compliance requirements may not be met
+            
+            ### 🛠️ Immediate Actions Required
+            - [ ] **URGENT:** Investigate backup service
+            - [ ] Check backup storage accessibility
+            - [ ] Verify database connectivity for backups
+            - [ ] Test backup restore functionality
+            - [ ] Review backup schedule configuration
+            
+            ### 📋 Compliance Note
+            Regular backups are critical for:
+            - GDPR compliance
+            - Business continuity
+            - Disaster recovery
+            
+            **Priority:** P0 - Critical
+            **Auto-generated by Backup Monitoring**`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P0', 'type:backup', 'component:monitoring', 'compliance:gdpr']
+            });
+
+  # Comprehensive monitoring report
+  monitoring-report:
+    name: 📊 Monitoring Report
+    runs-on: ubuntu-latest
+    needs: [health-monitoring, performance-monitoring, database-monitoring]
+    if: always() && (github.event.inputs.check_type == 'comprehensive' || github.event.schedule == '0 6 * * *')
+    
+    steps:
+      - name: 📊 Generate Comprehensive Report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const healthResult = '${{ needs.health-monitoring.result }}';
+            const performanceResult = '${{ needs.performance-monitoring.result }}'; 
+            const databaseResult = '${{ needs.database-monitoring.result }}';
+            
+            const timestamp = new Date().toISOString();
+            const date = new Date().toISOString().split('T')[0];
+            
+            const title = `📊 Daily Infrastructure Report - ${date}`;
+            
+            // Calculate overall health score
+            const results = [healthResult, performanceResult, databaseResult];
+            const successCount = results.filter(r => r === 'success').length;
+            const totalChecks = results.length;
+            const healthPercentage = Math.round((successCount / totalChecks) * 100);
+            
+            const healthEmoji = healthPercentage >= 90 ? '🟢' : healthPercentage >= 70 ? '🟡' : '🔴';
+            
+            const body = `## 📊 Daily Infrastructure Monitoring Report
+            
+            **Date:** ${date}
+            **Overall Health:** ${healthEmoji} ${healthPercentage}%
+            **Report Generated:** ${timestamp}
+            
+            ### 🔍 System Status Overview
+            
+            | Component | Status | Result |
+            |-----------|---------|---------|
+            | 🏥 Health Monitoring | ${healthResult === 'success' ? '✅' : '❌'} | ${healthResult} |
+            | ⚡ Performance Monitoring | ${performanceResult === 'success' ? '✅' : '❌'} | ${performanceResult} |
+            | 🗄️ Database Monitoring | ${databaseResult === 'success' ? '✅' : '❌'} | ${databaseResult} |
+            
+            ### 📈 Key Metrics Summary
+            - **Uptime Status:** ${healthResult === 'success' ? 'All endpoints operational' : 'Issues detected'}
+            - **Performance Status:** ${performanceResult === 'success' ? 'Within thresholds' : 'Performance issues detected'}
+            - **Database Status:** ${databaseResult === 'success' ? 'Healthy' : 'Issues detected'}
+            
+            ### 🎯 Action Items
+            ${healthPercentage < 100 ? '- [ ] Address failed monitoring checks' : '- [x] All systems operational'}
+            - [ ] Review performance trends
+            - [ ] Verify backup completion
+            - [ ] Update monitoring thresholds if needed
+            
+            ### 📊 Trend Analysis
+            - Monitor for recurring patterns
+            - Identify performance bottlenecks
+            - Plan capacity scaling if needed
+            
+            ---
+            
+            **Next Report:** ${new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0]}
+            **Monitoring Dashboard:** [View Live Metrics](${process.env.PRODUCTION_URL}/monitoring)
+            
+            *Auto-generated by Infrastructure Monitoring System*`;
+            
+            // Create issue for the daily report
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['type:report', 'component:monitoring', 'schedule:daily']
+            });
+
+  # Alert aggregation and notification
+  alert-aggregation:
+    name: 🚨 Alert Management
+    runs-on: ubuntu-latest
+    needs: [health-monitoring, performance-monitoring, database-monitoring, email-monitoring, backup-monitoring]
+    if: always() && (failure() || contains(needs.*.result, 'failure'))
+    
+    steps:
+      - name: 🚨 Aggregate Alerts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              health: '${{ needs.health-monitoring.result }}',
+              performance: '${{ needs.performance-monitoring.result }}',
+              database: '${{ needs.database-monitoring.result }}', 
+              email: '${{ needs.email-monitoring.result }}',
+              backup: '${{ needs.backup-monitoring.result }}'
+            };
+            
+            const failedSystems = Object.entries(results)
+              .filter(([system, result]) => result === 'failure')
+              .map(([system, result]) => system);
+            
+            if (failedSystems.length > 0) {
+              const severity = failedSystems.includes('backup') || failedSystems.includes('database') ? 'P0' : 
+                             failedSystems.length > 2 ? 'P1' : 'P2';
+              
+              const title = `🚨 Multiple System Alert - ${failedSystems.length} systems affected`;
+              
+              const body = `## 🚨 Multiple System Alert
+              
+              **Affected Systems:** ${failedSystems.length}
+              **Severity:** ${severity}
+              **Timestamp:** ${new Date().toISOString()}
+              
+              ### ❌ Failed Systems
+              ${failedSystems.map(system => `- **${system.charAt(0).toUpperCase() + system.slice(1)}:** Failed monitoring check`).join('\n')}
+              
+              ### 🔥 Escalation Required
+              Multiple system failures detected. This may indicate:
+              - Infrastructure outage
+              - Network connectivity issues
+              - Service provider problems
+              - Configuration errors
+              
+              ### 🛠️ Emergency Response
+              - [ ] **IMMEDIATE:** Check system status dashboard
+              - [ ] Verify external service providers
+              - [ ] Review recent deployments
+              - [ ] Consider emergency maintenance mode
+              - [ ] Prepare incident response team
+              
+              **Priority:** ${severity} - ${severity === 'P0' ? 'Critical' : severity === 'P1' ? 'High' : 'Medium'}
+              **Response Time:** ${severity === 'P0' ? '< 15 minutes' : '< 1 hour'}`;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['priority:' + severity, 'type:incident', 'component:multiple', 'escalation:required']
+              });
+              
+              console.log(`🚨 Created ${severity} alert for ${failedSystems.length} failed systems`);
+            }

@@ -185,15 +185,37 @@ textarea:focus {
 /* Mobile button improvements */
 button,
 .button {
-  min-height: 44px; /* iOS recommended touch target */
-  min-width: 44px;
+  min-height: 48px; /* Enhanced touch target for better accessibility */
+  min-width: 48px;
   touch-action: manipulation;
   transition: all 0.2s ease;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
 }
 
+/* Enhanced mobile touch feedback */
 button:active,
 .button:active {
-  transform: scale(0.98);
+  transform: scale(0.95);
+  filter: brightness(0.9);
+}
+
+/* Ripple effect for touch feedback */
+button::before,
+.button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+button:active::before,
+.button:active::before {
+  opacity: 1;
 }
 
 /* PWA-specific styles */
@@ -400,7 +422,35 @@ button:active,
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Responsive text sizes */
+/* Enhanced responsive text sizes and spacing */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.125rem;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Mobile-first typography */
+  h1 { font-size: 1.875rem; line-height: 1.2; }
+  h2 { font-size: 1.5rem; line-height: 1.3; }
+  h3 { font-size: 1.25rem; line-height: 1.4; }
+  
+  /* Enhanced mobile spacing */
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  .mobile-margin {
+    margin: 1rem 0;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.5rem;
@@ -409,6 +459,17 @@ button:active,
   
   .hero-subtitle {
     font-size: 1.25rem;
+  }
+  
+  /* Mobile dashboard optimizations */
+  .dashboard-card {
+    padding: 1.5rem 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Mobile navigation improvements */
+  .mobile-nav-spacing {
+    padding: 0.75rem 1rem;
   }
 }
 
@@ -725,12 +786,35 @@ button:active,
   }
 }
 
-/* Touch improvements for mobile navigation */
+/* Enhanced touch improvements for mobile navigation */
 @media (pointer: coarse) {
   nav button, nav a {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 0.75rem 1rem;
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.875rem 1.25rem;
+    margin: 0.25rem 0;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+  
+  /* Enhanced mobile tap states */
+  nav button:active, nav a:active {
+    transform: scale(0.96);
+    background: rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Larger touch targets for mobile chat */
+  .chat-input, .chat-button {
+    min-height: 52px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Mobile form improvements */
+  input, textarea, select {
+    min-height: 48px;
+    padding: 12px 16px;
+    font-size: 16px; /* Prevent zoom on iOS */
+    border-radius: 12px;
   }
 }
 

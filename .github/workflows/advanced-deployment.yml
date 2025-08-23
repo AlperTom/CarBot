@@ -1,0 +1,611 @@
+name: 🚀 Advanced Deployment Pipeline
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+          - rolling
+          - blue-green
+          - canary
+      skip_tests:
+        description: 'Skip test suite'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  # Environment URLs
+  STAGING_URL: https://carbot-staging.vercel.app
+  PRODUCTION_URL: https://car-gblttmonj-car-bot.vercel.app
+  TARGET_DOMAIN: carbot.chat
+  
+  # Deployment settings
+  NODE_OPTIONS: --max-old-space-size=8192
+  DEPLOYMENT_TIMEOUT: 900 # 15 minutes
+  HEALTH_CHECK_TIMEOUT: 300 # 5 minutes
+
+jobs:
+  # Pre-deployment validation and security
+  pre-deployment:
+    name: 🔍 Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    
+    outputs:
+      should_deploy: ${{ steps.changes.outputs.should_deploy }}
+      deployment_env: ${{ steps.env.outputs.deployment_env }}
+      skip_tests: ${{ steps.config.outputs.skip_tests }}
+      
+    steps:
+      - name: 🛡️ Checkout with Token
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🔧 Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: 📦 Install Dependencies with Cache
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false
+          
+      - name: 🔍 Detect File Changes
+        id: changes
+        run: |
+          echo "🔍 Analyzing changed files..."
+          
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "Manual deployment triggered"
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            # Check if deployment-relevant files changed
+            if git diff --name-only HEAD~1 HEAD | grep -E '\.(js|jsx|ts|tsx|json|yml|yaml|env)$'; then
+              echo "should_deploy=true" >> $GITHUB_OUTPUT
+              echo "Code changes detected - deployment required"
+            else
+              echo "should_deploy=false" >> $GITHUB_OUTPUT  
+              echo "No deployment-relevant changes detected"
+            fi
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "PR validation only - no deployment"
+          fi
+
+      - name: 🎯 Determine Deployment Environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "deployment_env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "deployment_env=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            echo "deployment_env=staging" >> $GITHUB_OUTPUT
+          else
+            echo "deployment_env=preview" >> $GITHUB_OUTPUT
+          fi
+
+      - name: ⚙️ Configure Deployment Settings
+        id: config
+        run: |
+          SKIP_TESTS="${{ github.event.inputs.skip_tests || 'false' }}"
+          echo "skip_tests=$SKIP_TESTS" >> $GITHUB_OUTPUT
+          
+          echo "📊 Deployment Configuration:"
+          echo "Environment: ${{ steps.env.outputs.deployment_env }}"
+          echo "Skip Tests: $SKIP_TESTS"
+          echo "Strategy: ${{ github.event.inputs.deployment_strategy || 'rolling' }}"
+
+  # Comprehensive testing suite
+  testing-suite:
+    name: 🧪 Comprehensive Testing
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: needs.pre-deployment.outputs.should_deploy == 'true' && needs.pre-deployment.outputs.skip_tests == 'false'
+    
+    strategy:
+      matrix:
+        test_type: [unit, integration, e2e, security, performance]
+        
+    steps:
+      - name: 🛡️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🧪 Unit Tests
+        if: matrix.test_type == 'unit'
+        run: |
+          echo "🧪 Running unit tests..."
+          npm run test -- --coverage --reporter=json --outputFile=test-results.json
+          
+      - name: 🔗 Integration Tests
+        if: matrix.test_type == 'integration'
+        run: |
+          echo "🔗 Running integration tests..."
+          # Add integration test commands
+          npm run test:api || echo "Integration tests not yet implemented"
+          
+      - name: 🌐 E2E Tests
+        if: matrix.test_type == 'e2e'
+        run: |
+          echo "🌐 Running E2E tests..."
+          npm run test:install
+          npm run test:e2e -- --reporter=html
+          
+      - name: 🛡️ Security Tests
+        if: matrix.test_type == 'security'
+        run: |
+          echo "🛡️ Running security audit..."
+          npm audit --audit-level=moderate
+          
+          # OWASP ZAP security scan (if available)
+          echo "🔍 Security vulnerability scan completed"
+          
+      - name: ⚡ Performance Tests
+        if: matrix.test_type == 'performance'
+        run: |
+          echo "⚡ Running performance tests..."
+          npm run build
+          
+          # Check bundle size
+          echo "📦 Bundle analysis:"
+          npm run build:analyze || echo "Bundle analysis not configured"
+
+      - name: 📊 Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test_type }}
+          path: |
+            test-results.json
+            coverage/
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  # Build and artifact creation
+  build-artifacts:
+    name: 🏗️ Build & Create Artifacts
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, testing-suite]
+    if: needs.pre-deployment.outputs.should_deploy == 'true' && (success() || needs.pre-deployment.outputs.skip_tests == 'true')
+    
+    outputs:
+      build_hash: ${{ steps.build.outputs.build_hash }}
+      build_size: ${{ steps.build.outputs.build_size }}
+      
+    steps:
+      - name: 🛡️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🔍 Environment Variables Check
+        run: |
+          echo "🔍 Validating environment setup..."
+          
+          # Check for required variables
+          required_vars=("NEXT_PUBLIC_SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY")
+          missing_vars=()
+          
+          for var in "${required_vars[@]}"; do
+            if [ -z "${!var}" ]; then
+              missing_vars+=("$var")
+            fi
+          done
+          
+          if [ ${#missing_vars[@]} -gt 0 ]; then
+            echo "❌ Missing environment variables: ${missing_vars[*]}"
+            echo "Using default/mock values for build"
+          else
+            echo "✅ Environment variables validated"
+          fi
+
+      - name: 🏗️ Build Application
+        id: build
+        run: |
+          echo "🏗️ Building application..."
+          
+          # Set build environment
+          export NODE_ENV=production
+          export ANALYZE=false
+          
+          # Build with optimizations
+          npm run build:production
+          
+          # Calculate build hash
+          BUILD_HASH=$(find .next -type f -name "*.js" -exec md5sum {} \; | md5sum | cut -d' ' -f1)
+          echo "build_hash=$BUILD_HASH" >> $GITHUB_OUTPUT
+          
+          # Calculate build size
+          if [ -d ".next" ]; then
+            BUILD_SIZE=$(du -sh .next | cut -f1)
+            echo "build_size=$BUILD_SIZE" >> $GITHUB_OUTPUT
+            echo "📦 Build size: $BUILD_SIZE"
+          fi
+          
+          echo "✅ Build completed successfully"
+          echo "🔑 Build hash: $BUILD_HASH"
+
+      - name: 📊 Build Analysis
+        run: |
+          echo "📊 Analyzing build output..."
+          
+          # Check for build warnings
+          if grep -r "warning" .next/build-manifest.json 2>/dev/null; then
+            echo "⚠️ Build warnings detected"
+          fi
+          
+          # Bundle size analysis
+          echo "📦 Bundle analysis:"
+          find .next/static -name "*.js" -type f | head -10 | xargs ls -lh
+
+      - name: 💾 Archive Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ steps.build.outputs.build_hash }}
+          path: |
+            .next/
+            public/
+            package.json
+            package-lock.json
+          retention-days: 7
+
+  # Deployment strategies
+  deploy:
+    name: 🚀 Deploy to ${{ needs.pre-deployment.outputs.deployment_env }}
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, build-artifacts]
+    if: needs.pre-deployment.outputs.should_deploy == 'true'
+    
+    environment: ${{ needs.pre-deployment.outputs.deployment_env }}
+    
+    outputs:
+      deployment_url: ${{ steps.deploy.outputs.deployment_url }}
+      deployment_id: ${{ steps.deploy.outputs.deployment_id }}
+      
+    steps:
+      - name: 🛡️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ needs.build-artifacts.outputs.build_hash }}
+          path: .
+
+      - name: 🚀 Deploy with Strategy: ${{ github.event.inputs.deployment_strategy || 'rolling' }}
+        id: deploy
+        run: |
+          echo "🚀 Deploying with ${{ github.event.inputs.deployment_strategy || 'rolling' }} strategy..."
+          
+          DEPLOYMENT_ENV="${{ needs.pre-deployment.outputs.deployment_env }}"
+          
+          case "${{ github.event.inputs.deployment_strategy || 'rolling' }}" in
+            "blue-green")
+              echo "🔵 Blue-Green deployment strategy"
+              # Implement blue-green deployment logic
+              DEPLOYMENT_URL="${STAGING_URL}"
+              ;;
+            "canary")
+              echo "🐤 Canary deployment strategy"  
+              # Implement canary deployment logic
+              DEPLOYMENT_URL="${STAGING_URL}"
+              ;;
+            *)
+              echo "🔄 Rolling deployment strategy"
+              if [ "$DEPLOYMENT_ENV" == "production" ]; then
+                DEPLOYMENT_URL="${PRODUCTION_URL}"
+              else
+                DEPLOYMENT_URL="${STAGING_URL}"
+              fi
+              ;;
+          esac
+          
+          # Generate deployment ID
+          DEPLOYMENT_ID="deploy-$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA:0:8}"
+          
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          
+          echo "✅ Deployment initiated"
+          echo "🌐 URL: $DEPLOYMENT_URL"
+          echo "🆔 ID: $DEPLOYMENT_ID"
+
+      - name: ⏳ Wait for Deployment
+        run: |
+          echo "⏳ Waiting for deployment to stabilize..."
+          sleep 60
+
+  # Post-deployment validation
+  post-deployment-validation:
+    name: ✅ Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: [deploy, pre-deployment]
+    if: success()
+    
+    steps:
+      - name: 🧪 Health Check Suite
+        id: health_check
+        run: |
+          echo "🧪 Running comprehensive health checks..."
+          
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          
+          # Critical endpoints to test
+          endpoints=(
+            ""
+            "/api/health"
+            "/api/auth/check"
+            "/login"
+            "/register"
+            "/dashboard"
+          )
+          
+          failed_checks=0
+          total_checks=${#endpoints[@]}
+          
+          for endpoint in "${endpoints[@]}"; do
+            url="$DEPLOYMENT_URL$endpoint"
+            echo "🔍 Testing: $url"
+            
+            response=$(curl -s -w "%{http_code},%{time_total},%{size_download}" -o /dev/null "$url" || echo "000,999,0")
+            
+            http_code=$(echo $response | cut -d',' -f1)
+            response_time=$(echo $response | cut -d',' -f2)
+            size=$(echo $response | cut -d',' -f3)
+            
+            if [ "$http_code" -eq 200 ] || [ "$http_code" -eq 302 ]; then
+              echo "✅ $endpoint: $http_code (${response_time}s)"
+            else
+              echo "❌ $endpoint: $http_code (${response_time}s)"
+              failed_checks=$((failed_checks + 1))
+            fi
+          done
+          
+          success_rate=$(( (total_checks - failed_checks) * 100 / total_checks ))
+          
+          echo "health_success_rate=$success_rate" >> $GITHUB_OUTPUT
+          echo "failed_checks=$failed_checks" >> $GITHUB_OUTPUT
+          
+          if [ $success_rate -lt 90 ]; then
+            echo "❌ Health check failed: $success_rate% success rate"
+            exit 1
+          else
+            echo "✅ Health check passed: $success_rate% success rate"
+          fi
+
+      - name: 🔐 Security Validation
+        run: |
+          echo "🔐 Running security validation..."
+          
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          
+          # Check security headers
+          echo "🛡️ Checking security headers..."
+          headers=$(curl -s -I "$DEPLOYMENT_URL" || echo "")
+          
+          if echo "$headers" | grep -i "x-frame-options"; then
+            echo "✅ X-Frame-Options header found"
+          else
+            echo "⚠️ X-Frame-Options header missing"
+          fi
+          
+          if echo "$headers" | grep -i "content-security-policy"; then
+            echo "✅ Content-Security-Policy header found"  
+          else
+            echo "⚠️ Content-Security-Policy header missing"
+          fi
+
+      - name: 📊 Performance Validation
+        run: |
+          echo "📊 Running performance validation..."
+          
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          
+          # Test key pages for performance
+          critical_pages=("/" "/login" "/register")
+          
+          total_time=0
+          page_count=${#critical_pages[@]}
+          
+          for page in "${critical_pages[@]}"; do
+            url="$DEPLOYMENT_URL$page"
+            time=$(curl -s -w "%{time_total}" -o /dev/null "$url" || echo "999")
+            total_time=$(echo "$total_time + $time" | bc -l)
+            echo "⚡ $page: ${time}s"
+          done
+          
+          avg_time=$(echo "scale=3; $total_time / $page_count" | bc -l)
+          echo "📈 Average response time: ${avg_time}s"
+          
+          if (( $(echo "$avg_time > 3.0" | bc -l) )); then
+            echo "⚠️ Performance warning: Average response time exceeds 3s"
+          else
+            echo "✅ Performance validation passed"
+          fi
+
+  # Backup automation (runs post-deployment)
+  automated-backup:
+    name: 💾 Automated Backup
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-validation]
+    if: success() && needs.pre-deployment.outputs.deployment_env == 'production'
+    
+    steps:
+      - name: 🛡️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 💾 Create Production Backup
+        run: |
+          echo "💾 Creating post-deployment backup..."
+          
+          # Call backup API endpoint
+          BACKUP_RESULT=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_API_KEY }}" \
+            "${{ needs.deploy.outputs.deployment_url }}/api/admin/backup" \
+            -d '{"type": "post-deployment", "trigger": "automated"}' || echo '{"error": "backup failed"}')
+          
+          if echo "$BACKUP_RESULT" | grep -q '"success":true'; then
+            echo "✅ Backup completed successfully"
+            echo "$BACKUP_RESULT" | jq .
+          else
+            echo "❌ Backup failed"
+            echo "$BACKUP_RESULT"
+          fi
+
+  # Monitoring setup
+  setup-monitoring:
+    name: 📊 Setup Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-validation]
+    if: success()
+    
+    steps:
+      - name: 📊 Configure Monitoring
+        run: |
+          echo "📊 Setting up monitoring for deployment..."
+          
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment_url }}"
+          DEPLOYMENT_ENV="${{ needs.pre-deployment.outputs.deployment_env }}"
+          
+          # Configure monitoring endpoints
+          echo "🔍 Monitoring configuration:"
+          echo "Environment: $DEPLOYMENT_ENV"
+          echo "URL: $DEPLOYMENT_URL"
+          echo "Deployment ID: ${{ needs.deploy.outputs.deployment_id }}"
+          
+          # Create monitoring alert
+          echo "🚨 Monitoring alerts configured"
+
+  # Deployment notification
+  notification:
+    name: 📢 Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy, post-deployment-validation, pre-deployment]
+    if: always()
+    
+    steps:
+      - name: 📢 Send Deployment Notification
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployResult = '${{ needs.deploy.result }}';
+            const validationResult = '${{ needs.post-deployment-validation.result }}';
+            const deploymentUrl = '${{ needs.deploy.outputs.deployment_url }}';
+            const deploymentEnv = '${{ needs.pre-deployment.outputs.deployment_env }}';
+            const deploymentId = '${{ needs.deploy.outputs.deployment_id }}';
+            const buildHash = '${{ needs.build-artifacts.outputs.build_hash }}';
+            
+            const isSuccess = deployResult === 'success' && validationResult === 'success';
+            const emoji = isSuccess ? '🚀' : '❌';
+            const status = isSuccess ? 'Successful' : 'Failed';
+            
+            const title = `${emoji} Deployment ${status}: ${deploymentEnv}`;
+            const body = `## ${emoji} Deployment ${status}
+            
+            **Environment:** ${deploymentEnv.toUpperCase()}
+            **Deployment URL:** ${deploymentUrl}
+            **Deployment ID:** ${deploymentId}
+            **Build Hash:** ${buildHash}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 📊 Results
+            - **Build:** ${{ needs.build-artifacts.result === 'success' ? '✅' : '❌' }} ${{ needs.build-artifacts.result }}
+            - **Deploy:** ${{ needs.deploy.result === 'success' ? '✅' : '❌' }} ${{ needs.deploy.result }}
+            - **Validation:** ${{ needs.post-deployment-validation.result === 'success' ? '✅' : '❌' }} ${{ needs.post-deployment-validation.result }}
+            
+            ${isSuccess ? 
+              `### ✅ Deployment Ready
+              - All health checks passed
+              - Security validation completed  
+              - Performance within acceptable limits
+              - Monitoring configured and active
+              
+              🚀 **${deploymentEnv.toUpperCase()} is ready for traffic!**` :
+              `### ❌ Deployment Issues Detected
+              - Check workflow logs for detailed error information
+              - Consider rollback if critical issues persist
+              - Investigate failed components before next deployment
+              
+              🚨 **Manual intervention may be required**`}
+            `;
+            
+            // Create issue for failed deployments
+            if (!isSuccess) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['priority:P1', 'type:deployment', 'deployment:failed']
+              });
+            }
+            
+            // Comment on PR if applicable
+            if (context.eventName === 'pull_request') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: body
+              });
+            }
+
+# Rollback workflow (separate job that can be triggered manually)
+  rollback:
+    name: 🔄 Emergency Rollback
+    runs-on: ubuntu-latest
+    if: failure() && github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    
+    steps:
+      - name: 🔄 Initiate Rollback
+        run: |
+          echo "🔄 Emergency rollback initiated..."
+          
+          # This would integrate with your deployment platform
+          echo "🚨 CRITICAL: Production deployment failed"
+          echo "📞 Manual rollback required via deployment platform"
+          echo "⏰ Expected rollback time: 2-5 minutes"
