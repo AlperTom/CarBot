@@ -1,0 +1,315 @@
+name: 🔍 Production Monitoring
+on:
+  schedule:
+    # Run health checks every hour
+    - cron: '0 * * * *'
+    # Run performance checks every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of check to run'
+        required: true
+        default: 'health'
+        type: choice
+        options:
+          - health
+          - performance
+          - database
+          - email
+          - full
+
+env:
+  PRODUCTION_URL: https://car-gblttmonj-car-bot.vercel.app
+  TARGET_DOMAIN: carbot.chat
+
+jobs:
+  health-check:
+    name: 🏥 Health Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.check_type == 'health' || github.event.inputs.check_type == 'full'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🔍 Check Production Site
+        id: health
+        run: |
+          echo "🔍 Checking production site health..."
+          
+          # Check main site
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code},%{time_total},%{size_download}" $PRODUCTION_URL)
+          HTTP_CODE=$(echo $RESPONSE | cut -d',' -f1)
+          RESPONSE_TIME=$(echo $RESPONSE | cut -d',' -f2)
+          SIZE=$(echo $RESPONSE | cut -d',' -f3)
+          
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+          echo "response_time=$RESPONSE_TIME" >> $GITHUB_OUTPUT
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+          
+          # Check critical endpoints
+          AUTH_CHECK=$(curl -s -o /dev/null -w "%{http_code}" $PRODUCTION_URL/api/auth/check)
+          HEALTH_CHECK=$(curl -s -o /dev/null -w "%{http_code}" $PRODUCTION_URL/api/health)
+          
+          echo "auth_status=$AUTH_CHECK" >> $GITHUB_OUTPUT
+          echo "health_status=$HEALTH_CHECK" >> $GITHUB_OUTPUT
+          
+          # Performance thresholds
+          if (( $(echo "$RESPONSE_TIME > 3.0" | bc -l) )); then
+            echo "performance_alert=true" >> $GITHUB_OUTPUT
+          else
+            echo "performance_alert=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🚨 Create Alert for Failed Health Check
+        if: steps.health.outputs.http_code != '200' || steps.health.outputs.auth_status != '200'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const httpCode = '${{ steps.health.outputs.http_code }}';
+            const authStatus = '${{ steps.health.outputs.auth_status }}';
+            const responseTime = '${{ steps.health.outputs.response_time }}';
+            
+            const title = `🚨 Production Health Check Failed - ${new Date().toISOString()}`;
+            const body = `## 🚨 Production Site Health Check Failed
+            
+            **Site Status:** ${httpCode === '200' ? '✅ UP' : '❌ DOWN'}
+            **Auth Status:** ${authStatus === '200' ? '✅ Working' : '❌ Failed'}
+            **Response Time:** ${responseTime}s
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 🔍 Details
+            - **Production URL:** ${process.env.PRODUCTION_URL}
+            - **HTTP Status Code:** ${httpCode}
+            - **Auth Endpoint Status:** ${authStatus}
+            
+            ### 🛠️ Required Actions
+            - [ ] Investigate server logs
+            - [ ] Check Vercel deployment status
+            - [ ] Verify database connectivity
+            - [ ] Test authentication flow
+            - [ ] Notify stakeholders if outage persists > 5 minutes
+            
+            **Priority:** P0 - Critical`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P0', 'type:bug', 'component:production', 'monitoring:health-check']
+            });
+
+      - name: ⚡ Performance Alert
+        if: steps.health.outputs.performance_alert == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const responseTime = '${{ steps.health.outputs.response_time }}';
+            
+            const title = `⚡ Performance Degradation Detected - ${new Date().toISOString()}`;
+            const body = `## ⚡ Performance Alert
+            
+            **Response Time:** ${responseTime}s (Threshold: 3.0s)
+            **Status:** Performance degradation detected
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 🔍 Investigation Required
+            - [ ] Check server resource utilization
+            - [ ] Analyze database query performance
+            - [ ] Review CDN performance
+            - [ ] Check for traffic spikes
+            
+            **Priority:** P2 - High`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P2', 'type:performance', 'component:production', 'monitoring:performance']
+            });
+
+  database-check:
+    name: 🗄️ Database Connectivity
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'database' || github.event.inputs.check_type == 'full'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🔍 Test Database Connection
+        id: db_check
+        run: |
+          echo "🔍 Testing database connectivity..."
+          
+          # Test database endpoint (adjust URL based on your setup)
+          DB_CHECK=$(curl -s -o /dev/null -w "%{http_code}" "$PRODUCTION_URL/api/db/health")
+          echo "db_status=$DB_CHECK" >> $GITHUB_OUTPUT
+          
+          # Test read operation
+          READ_CHECK=$(curl -s -o /dev/null -w "%{http_code}" "$PRODUCTION_URL/api/workshops?limit=1")
+          echo "read_status=$READ_CHECK" >> $GITHUB_OUTPUT
+
+      - name: 🚨 Database Alert
+        if: steps.db_check.outputs.db_status != '200' || steps.db_check.outputs.read_status != '200'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const dbStatus = '${{ steps.db_check.outputs.db_status }}';
+            const readStatus = '${{ steps.db_check.outputs.read_status }}';
+            
+            const title = `🗄️ Database Connectivity Issue - ${new Date().toISOString()}`;
+            const body = `## 🚨 Database Connection Failed
+            
+            **DB Health Status:** ${dbStatus}
+            **Read Operation Status:** ${readStatus}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 🔍 Investigation Required
+            - [ ] Check Supabase dashboard
+            - [ ] Verify connection strings
+            - [ ] Test database queries manually
+            - [ ] Check connection pool status
+            
+            **Priority:** P1 - Critical`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P1', 'type:bug', 'component:database', 'monitoring:database']
+            });
+
+  email-check:
+    name: 📧 Email Delivery Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type == 'email' || github.event.inputs.check_type == 'full'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 📧 Test Email Service
+        id: email_check
+        run: |
+          echo "📧 Testing email service..."
+          
+          # Test email endpoint
+          EMAIL_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"test": true}' \
+            "$PRODUCTION_URL/api/email/test")
+          
+          echo "email_status=$EMAIL_CHECK" >> $GITHUB_OUTPUT
+
+      - name: 🚨 Email Service Alert
+        if: steps.email_check.outputs.email_status != '200'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const emailStatus = '${{ steps.email_check.outputs.email_status }}';
+            
+            const title = `📧 Email Service Issue - ${new Date().toISOString()}`;
+            const body = `## 📧 Email Service Failed
+            
+            **Email Test Status:** ${emailStatus}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 🔍 Investigation Required
+            - [ ] Check Resend API status
+            - [ ] Verify API keys
+            - [ ] Test email templates
+            - [ ] Check rate limits
+            
+            **Impact:** New user registrations affected
+            **Priority:** P1 - High`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P1', 'type:bug', 'component:email', 'monitoring:email']
+            });
+
+  performance-regression:
+    name: 📊 Performance Regression Detection
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 */6 * * *' || github.event.inputs.check_type == 'performance' || github.event.inputs.check_type == 'full'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 📊 Run Performance Tests
+        id: perf_test
+        run: |
+          echo "📊 Running performance tests..."
+          
+          # Test key pages
+          declare -a pages=("/" "/login" "/register" "/dashboard" "/workshops")
+          
+          total_time=0
+          failed_pages=0
+          
+          for page in "${pages[@]}"; do
+            url="$PRODUCTION_URL$page"
+            response=$(curl -s -o /dev/null -w "%{time_total},%{http_code}" "$url")
+            time=$(echo $response | cut -d',' -f1)
+            code=$(echo $response | cut -d',' -f2)
+            
+            echo "Page $page: ${time}s (${code})"
+            
+            if [ "$code" != "200" ]; then
+              failed_pages=$((failed_pages + 1))
+            fi
+            
+            total_time=$(echo "$total_time + $time" | bc -l)
+          done
+          
+          avg_time=$(echo "scale=3; $total_time / ${#pages[@]}" | bc -l)
+          
+          echo "average_time=$avg_time" >> $GITHUB_OUTPUT
+          echo "failed_pages=$failed_pages" >> $GITHUB_OUTPUT
+          
+          # Set alert thresholds
+          if (( $(echo "$avg_time > 2.0" | bc -l) )) || [ "$failed_pages" -gt 0 ]; then
+            echo "performance_regression=true" >> $GITHUB_OUTPUT
+          else
+            echo "performance_regression=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📊 Performance Regression Alert
+        if: steps.perf_test.outputs.performance_regression == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const avgTime = '${{ steps.perf_test.outputs.average_time }}';
+            const failedPages = '${{ steps.perf_test.outputs.failed_pages }}';
+            
+            const title = `📊 Performance Regression Detected - ${new Date().toISOString()}`;
+            const body = `## 📊 Performance Regression Alert
+            
+            **Average Response Time:** ${avgTime}s (Threshold: 2.0s)
+            **Failed Pages:** ${failedPages}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 🔍 Pages Tested
+            - Homepage (/)
+            - Login (/login)
+            - Registration (/register)
+            - Dashboard (/dashboard)
+            - Workshops (/workshops)
+            
+            ### 🛠️ Investigation Required
+            - [ ] Analyze server performance metrics
+            - [ ] Check database query performance
+            - [ ] Review recent deployments
+            - [ ] Monitor resource utilization
+            
+            **Priority:** P2 - High`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['priority:P2', 'type:performance', 'component:production', 'monitoring:regression']
+            });

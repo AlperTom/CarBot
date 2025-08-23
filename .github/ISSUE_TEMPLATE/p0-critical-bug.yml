@@ -1,0 +1,97 @@
+name: "P0 - CRITICAL: Production Blocker"
+description: "Critical production issue causing complete service disruption or revenue blockade"
+title: "[P0-CRITICAL] "
+labels: ["P0-Critical", "production", "bug", "revenue-impact"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚠️ CRITICAL PRODUCTION ISSUE
+        **Business Impact**: Complete service disruption or revenue blockade
+        **SLA**: Must be resolved within 4 hours
+        **Escalation**: Immediate notification to all stakeholders
+        
+  - type: input
+    id: business-impact
+    attributes:
+      label: "Business Impact Assessment"
+      description: "Quantify the revenue/customer impact (e.g., €41,667/month lost revenue)"
+      placeholder: "€X/month revenue loss, Y customers affected"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: impact-category
+    attributes:
+      label: "Impact Category"
+      options:
+        - Complete service unavailable
+        - Authentication/Access blocked
+        - Payment/Revenue system down
+        - Data loss or corruption
+        - Security breach
+    validations:
+      required: true
+      
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: "Problem Description"
+      description: "Clear description of the critical issue"
+      placeholder: "What exactly is broken? How is it affecting users/revenue?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: "Reproduction Steps"
+      description: "How to reproduce this critical issue"
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: "Expected Behavior"
+      description: "What should happen instead"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: current-workaround
+    attributes:
+      label: "Current Workaround"
+      description: "Any temporary workaround to mitigate business impact"
+      placeholder: "If any workaround exists to reduce immediate impact"
+      
+  - type: textarea
+    id: environment-info
+    attributes:
+      label: "Environment Information"
+      description: "Production environment details"
+      placeholder: |
+        - URL: https://car-gblttmonj-car-bot.vercel.app
+        - Browser: All browsers affected
+        - Time discovered: YYYY-MM-DD HH:MM
+        - Error logs: [paste relevant errors]
+    validations:
+      required: true
+      
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "Acceptance Criteria for Resolution"
+      description: "What must be working to consider this resolved"
+      placeholder: |
+        - [ ] All customers can access the application
+        - [ ] Authentication flow works end-to-end
+        - [ ] Revenue systems are fully operational
+        - [ ] No error logs in production
+    validations:
+      required: true

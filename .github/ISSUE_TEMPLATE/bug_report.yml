@@ -1,0 +1,162 @@
+name: 🐛 Bug Report
+description: Report a bug or issue with CarBot
+title: "[BUG] "
+labels: ["type:bug", "priority:P2"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug! Please fill out the information below to help us resolve the issue quickly.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How critical is this bug?
+      options:
+        - P3 - Low (Minor inconvenience)
+        - P2 - Medium (Affects functionality)
+        - P1 - High (Blocks important features)
+        - P0 - Critical (Production down/security)
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the system is affected?
+      options:
+        - Authentication (Login/Register)
+        - Dashboard
+        - Workshop Management
+        - Email System
+        - Payment/Billing
+        - Database
+        - Frontend/UI
+        - Backend/API
+        - Deployment
+        - Performance
+        - Security
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clear description of the bug
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the bug
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. Enter...
+        4. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: Describe the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where did this bug occur?
+      options:
+        - Production (car-gblttmonj-car-bot.vercel.app)
+        - Staging
+        - Local Development
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & Version
+      description: Which browser and version are you using?
+      placeholder: e.g., Chrome 120.0, Firefox 121.0, Safari 17.0
+
+  - type: input
+    id: device
+    attributes:
+      label: Device & OS
+      description: What device and operating system?
+      placeholder: e.g., Desktop Windows 11, iPhone iOS 17, Android 14
+
+  - type: textarea
+    id: error_logs
+    attributes:
+      label: Error Messages/Logs
+      description: Any error messages, console logs, or screenshots
+      placeholder: Paste error messages, console output, or describe what you see
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Business Impact
+      description: How does this affect business operations?
+      options:
+        - label: Affects customer registration/login
+        - label: Prevents workshop operations
+        - label: Impacts payment processing
+        - label: Affects email notifications
+        - label: Causes data loss
+        - label: Security vulnerability
+        - label: GDPR compliance issue
+
+  - type: checkboxes
+    id: german_market
+    attributes:
+      label: German Market Specific
+      description: Is this related to German market requirements?
+      options:
+        - label: German language/localization issue
+        - label: GDPR/DSGVO compliance
+        - label: German payment methods
+        - label: German legal requirements
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other information that might be helpful
+      placeholder: Screenshots, related issues, workarounds, etc.
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        **For Urgent Issues (P0/P1):**
+        - P0 (Critical): Contact the team immediately via emergency channels
+        - P1 (High): Expected response within 4 hours during business hours
+        
+        **German Support:** For issues specific to the German market, please include German language details where relevant.

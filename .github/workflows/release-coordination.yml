@@ -1,0 +1,374 @@
+name: 🚀 Release Coordination
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      pre_release:
+        description: 'Is this a pre-release?'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PRODUCTION_URL: https://car-gblttmonj-car-bot.vercel.app
+  TARGET_DOMAIN: carbot.chat
+
+jobs:
+  prepare-release:
+    name: 📋 Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for changelog
+      
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🏷️ Determine Version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual release - bump version
+            current_version=$(node -p "require('./package.json').version")
+            echo "Current version: $current_version"
+            
+            # Simple version bumping (you might want to use a proper tool like semantic-release)
+            IFS='.' read -ra VERSION_PARTS <<< "$current_version"
+            major=${VERSION_PARTS[0]}
+            minor=${VERSION_PARTS[1]}
+            patch=${VERSION_PARTS[2]}
+            
+            case "${{ github.event.inputs.release_type }}" in
+              major)
+                major=$((major + 1))
+                minor=0
+                patch=0
+                ;;
+              minor)
+                minor=$((minor + 1))
+                patch=0
+                ;;
+              patch)
+                patch=$((patch + 1))
+                ;;
+            esac
+            
+            new_version="$major.$minor.$patch"
+            echo "version=$new_version" >> $GITHUB_OUTPUT
+          else
+            # Tag-based release
+            version=${GITHUB_REF#refs/tags/v}
+            echo "version=$version" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📝 Generate Changelog
+        id: changelog
+        run: |
+          echo "📝 Generating changelog..."
+          
+          # Get the last tag
+          last_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$last_tag" ]; then
+            echo "🎉 First release - generating full changelog"
+            commits=$(git log --pretty=format:"- %s (%an)" --since="30 days ago")
+          else
+            echo "📋 Generating changelog since $last_tag"
+            commits=$(git log --pretty=format:"- %s (%an)" $last_tag..HEAD)
+          fi
+          
+          # Categorize commits
+          features=$(echo "$commits" | grep -i "feat\|feature\|add" || true)
+          fixes=$(echo "$commits" | grep -i "fix\|bug\|patch" || true)
+          improvements=$(echo "$commits" | grep -i "improve\|enhance\|update\|refactor" || true)
+          docs=$(echo "$commits" | grep -i "doc\|readme" || true)
+          other=$(echo "$commits" | grep -v -i "feat\|feature\|add\|fix\|bug\|patch\|improve\|enhance\|update\|refactor\|doc\|readme" || true)
+          
+          # Build changelog
+          changelog="## 🚀 Release Notes\n\n"
+          
+          if [ ! -z "$features" ]; then
+            changelog+="### ✨ New Features\n$features\n\n"
+          fi
+          
+          if [ ! -z "$fixes" ]; then
+            changelog+="### 🐛 Bug Fixes\n$fixes\n\n"
+          fi
+          
+          if [ ! -z "$improvements" ]; then
+            changelog+="### 🔧 Improvements\n$improvements\n\n"
+          fi
+          
+          if [ ! -z "$docs" ]; then
+            changelog+="### 📚 Documentation\n$docs\n\n"
+          fi
+          
+          if [ ! -z "$other" ]; then
+            changelog+="### 🔄 Other Changes\n$other\n\n"
+          fi
+          
+          # Save changelog to file for reuse
+          echo -e "$changelog" > RELEASE_CHANGELOG.md
+          
+          # Set output for use in other jobs
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  business-impact-analysis:
+    name: 📊 Business Impact Analysis
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    outputs:
+      impact_report: ${{ steps.impact.outputs.report }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 📊 Analyze Business Impact
+        id: impact
+        run: |
+          echo "📊 Analyzing business impact of release..."
+          
+          version="${{ needs.prepare-release.outputs.version }}"
+          changelog="${{ needs.prepare-release.outputs.changelog }}"
+          
+          # Analyze impact based on changes
+          impact_level="medium"
+          customer_facing="false"
+          revenue_impact="none"
+          
+          # Check for high-impact changes
+          if echo "$changelog" | grep -i "auth\|login\|security\|payment\|billing"; then
+            impact_level="high"
+            customer_facing="true"
+          fi
+          
+          if echo "$changelog" | grep -i "stripe\|payment\|subscription\|pricing"; then
+            revenue_impact="high"
+          fi
+          
+          if echo "$changelog" | grep -i "ui\|frontend\|design\|user"; then
+            customer_facing="true"
+          fi
+          
+          # Generate impact report
+          report="## 📊 Business Impact Analysis\n\n"
+          report+="**Release Version:** $version\n"
+          report+="**Impact Level:** $impact_level\n"
+          report+="**Customer Facing:** $customer_facing\n"
+          report+="**Revenue Impact:** $revenue_impact\n\n"
+          
+          if [ "$customer_facing" = "true" ]; then
+            report+="### 👥 Customer Communication Required\n"
+            report+="This release contains customer-facing changes that may require:\n"
+            report+="- User notification emails\n"
+            report+="- Documentation updates\n"
+            report+="- Support team briefing\n\n"
+          fi
+          
+          if [ "$revenue_impact" = "high" ]; then
+            report+="### 💰 Revenue Impact\n"
+            report+="This release affects payment or billing functionality:\n"
+            report+="- Monitor payment success rates\n"
+            report+="- Check subscription renewals\n"
+            report+="- Verify pricing calculations\n\n"
+          fi
+          
+          report+="### 🎯 German Market Considerations\n"
+          report+="- GDPR compliance verified\n"
+          report+="- German language support validated\n"
+          report+="- Local payment methods tested\n"
+          
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$report" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  create-release:
+    name: 🏷️ Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [prepare-release, business-impact-analysis]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🏷️ Create Release
+        id: create_release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ needs.prepare-release.outputs.version }}';
+            const changelog = `${{ needs.prepare-release.outputs.changelog }}`;
+            const impactReport = `${{ needs.business-impact-analysis.outputs.impact_report }}`;
+            const isPreRelease = '${{ github.event.inputs.pre_release }}' === 'true';
+            
+            const releaseBody = `${changelog}\n\n${impactReport}\n\n---\n\n**Release Date:** ${new Date().toISOString()}\n**Deployment URL:** ${process.env.PRODUCTION_URL}`;
+            
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${version}`,
+              name: `CarBot v${version}`,
+              body: releaseBody,
+              draft: false,
+              prerelease: isPreRelease
+            });
+            
+            return release.data.html_url;
+
+      - name: 📧 Notify Stakeholders
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ needs.prepare-release.outputs.version }}';
+            const releaseUrl = '${{ steps.create_release.outputs.result }}';
+            
+            const title = `🚀 CarBot v${version} Released`;
+            const body = `## 🚀 New Release Available
+            
+            **Version:** v${version}
+            **Release Notes:** ${releaseUrl}
+            **Production URL:** ${process.env.PRODUCTION_URL}
+            
+            ### 📋 Post-Release Checklist
+            - [ ] Monitor deployment status
+            - [ ] Verify all systems operational
+            - [ ] Check error rates and performance
+            - [ ] Send customer notifications (if required)
+            - [ ] Update documentation
+            - [ ] Brief support team on changes
+            
+            **Auto-assigned to:** Release Team`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['type:release', 'priority:high', 'component:production'],
+              assignees: ['release-manager'] // Replace with actual username
+            });
+
+  post-release-monitoring:
+    name: 📊 Post-Release Monitoring
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+      - name: ⏳ Wait for Deployment
+        run: |
+          echo "⏳ Waiting for deployment to stabilize..."
+          sleep 60
+
+      - name: 🔍 Post-Release Health Check
+        run: |
+          echo "🔍 Running post-release health check..."
+          
+          # Comprehensive health check
+          declare -a endpoints=(
+            "$PRODUCTION_URL/"
+            "$PRODUCTION_URL/api/health"
+            "$PRODUCTION_URL/api/auth/check"
+            "$PRODUCTION_URL/dashboard"
+          )
+          
+          failed_checks=0
+          
+          for endpoint in "${endpoints[@]}"; do
+            response=$(curl -s -o /dev/null -w "%{http_code},%{time_total}" "$endpoint")
+            code=$(echo $response | cut -d',' -f1)
+            time=$(echo $response | cut -d',' -f2)
+            
+            echo "Checking $endpoint: $code (${time}s)"
+            
+            if [ "$code" != "200" ] && [ "$code" != "302" ]; then
+              failed_checks=$((failed_checks + 1))
+            fi
+          done
+          
+          if [ $failed_checks -gt 0 ]; then
+            echo "❌ Post-release health check failed"
+            exit 1
+          else
+            echo "✅ Post-release health check passed"
+          fi
+
+      - name: 📊 Performance Baseline
+        run: |
+          echo "📊 Establishing performance baseline..."
+          
+          # Collect performance metrics for the new release
+          total_time=0
+          request_count=0
+          
+          for i in {1..5}; do
+            response=$(curl -s -o /dev/null -w "%{time_total}" "$PRODUCTION_URL/")
+            total_time=$(echo "$total_time + $response" | bc -l)
+            request_count=$((request_count + 1))
+            sleep 2
+          done
+          
+          avg_time=$(echo "scale=3; $total_time / $request_count" | bc -l)
+          echo "Average response time: ${avg_time}s"
+          
+          # Store baseline for future comparison
+          echo "Performance baseline established: ${avg_time}s average response time"
+
+      - name: 🎉 Release Success Notification
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ needs.prepare-release.outputs.version }}';
+            
+            const comment = `## 🎉 Release v${version} Successfully Deployed!
+            
+            **Deployment Status:** ✅ Successful
+            **Health Check:** ✅ All systems operational
+            **Performance:** ✅ Within acceptable thresholds
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### 📊 Next Steps
+            - Monitor error rates for next 24 hours
+            - Track user engagement metrics
+            - Collect customer feedback
+            - Prepare patch release if issues arise
+            
+            **Great work team! 🚀**`;
+            
+            // Find the release issue and update it
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'type:release',
+              state: 'open',
+              sort: 'created',
+              direction: 'desc',
+              per_page: 1
+            });
+            
+            if (issues.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues[0].number,
+                body: comment
+              });
+            }

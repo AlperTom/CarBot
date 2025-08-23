@@ -1,0 +1,319 @@
+name: 🔄 Reusable Workflow Templates
+on:
+  workflow_call:
+    inputs:
+      workflow_type:
+        required: true
+        type: string
+        description: 'Type of workflow to run'
+      environment:
+        required: false
+        type: string
+        default: 'production'
+      notify_stakeholders:
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PRODUCTION_URL: https://car-gblttmonj-car-bot.vercel.app
+  STAGING_URL: https://carbot-staging.vercel.app
+
+jobs:
+  # Reusable health check template
+  health-check-template:
+    name: 🏥 Health Check Template
+    runs-on: ubuntu-latest
+    if: inputs.workflow_type == 'health-check'
+    outputs:
+      status: ${{ steps.health.outputs.status }}
+      response_time: ${{ steps.health.outputs.response_time }}
+    steps:
+      - name: 🔍 Execute Health Check
+        id: health
+        run: |
+          TARGET_URL="${{ inputs.environment == 'production' && env.PRODUCTION_URL || env.STAGING_URL }}"
+          echo "🔍 Health checking: $TARGET_URL"
+          
+          # Comprehensive health check
+          declare -a endpoints=(
+            "$TARGET_URL/"
+            "$TARGET_URL/api/health"
+            "$TARGET_URL/api/auth/check"
+          )
+          
+          total_time=0
+          failed_count=0
+          
+          for endpoint in "${endpoints[@]}"; do
+            response=$(curl -s -o /dev/null -w "%{http_code},%{time_total}" "$endpoint")
+            code=$(echo $response | cut -d',' -f1)
+            time=$(echo $response | cut -d',' -f2)
+            
+            echo "Endpoint $endpoint: $code (${time}s)"
+            total_time=$(echo "$total_time + $time" | bc -l)
+            
+            if [ "$code" != "200" ] && [ "$code" != "302" ]; then
+              failed_count=$((failed_count + 1))
+            fi
+          done
+          
+          avg_time=$(echo "scale=3; $total_time / ${#endpoints[@]}" | bc -l)
+          
+          if [ $failed_count -eq 0 ]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "response_time=$avg_time" >> $GITHUB_OUTPUT
+
+  # Reusable performance test template
+  performance-test-template:
+    name: ⚡ Performance Test Template
+    runs-on: ubuntu-latest
+    if: inputs.workflow_type == 'performance-test'
+    outputs:
+      performance_score: ${{ steps.perf.outputs.score }}
+    steps:
+      - name: ⚡ Execute Performance Test
+        id: perf
+        run: |
+          TARGET_URL="${{ inputs.environment == 'production' && env.PRODUCTION_URL || env.STAGING_URL }}"
+          echo "⚡ Performance testing: $TARGET_URL"
+          
+          # Load test simulation
+          total_time=0
+          success_count=0
+          total_requests=10
+          
+          for i in $(seq 1 $total_requests); do
+            response=$(curl -s -o /dev/null -w "%{http_code},%{time_total}" "$TARGET_URL")
+            code=$(echo $response | cut -d',' -f1)
+            time=$(echo $response | cut -d',' -f2)
+            
+            total_time=$(echo "$total_time + $time" | bc -l)
+            
+            if [ "$code" = "200" ] || [ "$code" = "302" ]; then
+              success_count=$((success_count + 1))
+            fi
+            
+            sleep 0.5
+          done
+          
+          avg_time=$(echo "scale=3; $total_time / $total_requests" | bc -l)
+          success_rate=$(echo "scale=2; $success_count / $total_requests * 100" | bc -l)
+          
+          # Calculate performance score (0-100)
+          if (( $(echo "$avg_time < 1.0" | bc -l) )); then
+            time_score=100
+          elif (( $(echo "$avg_time < 2.0" | bc -l) )); then
+            time_score=80
+          elif (( $(echo "$avg_time < 3.0" | bc -l) )); then
+            time_score=60
+          else
+            time_score=40
+          fi
+          
+          perf_score=$(echo "scale=0; ($time_score * 0.6) + ($success_rate * 0.4)" | bc -l)
+          
+          echo "Average response time: ${avg_time}s"
+          echo "Success rate: ${success_rate}%"
+          echo "Performance score: $perf_score/100"
+          
+          echo "score=$perf_score" >> $GITHUB_OUTPUT
+
+  # Reusable security scan template
+  security-scan-template:
+    name: 🛡️ Security Scan Template
+    runs-on: ubuntu-latest
+    if: inputs.workflow_type == 'security-scan'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🛡️ Execute Security Scan
+        run: |
+          echo "🛡️ Running security scan..."
+          
+          # Basic security checks
+          security_score=100
+          
+          # Check for secrets in code
+          if grep -r -E "(password|secret|key|token).*=.*['\"][^'\"]{8,}['\"]" --include="*.js" --include="*.ts" --include="*.json" . --exclude-dir=node_modules --exclude-dir=.git; then
+            echo "❌ Potential secrets found in code"
+            security_score=$((security_score - 30))
+          fi
+          
+          # Check for insecure protocols
+          if grep -r "http://" --include="*.js" --include="*.ts" . --exclude-dir=node_modules | grep -v localhost; then
+            echo "⚠️ Insecure HTTP protocols found"
+            security_score=$((security_score - 20))
+          fi
+          
+          # Check package vulnerabilities
+          npm audit --audit-level=high --json > audit.json
+          vuln_count=$(cat audit.json | jq '.metadata.vulnerabilities.total // 0')
+          
+          if [ "$vuln_count" -gt 0 ]; then
+            echo "⚠️ $vuln_count vulnerabilities found"
+            security_score=$((security_score - vuln_count * 10))
+          fi
+          
+          echo "Security score: $security_score/100"
+
+  # Reusable deployment validation template
+  deployment-validation-template:
+    name: 🚀 Deployment Validation Template
+    runs-on: ubuntu-latest
+    if: inputs.workflow_type == 'deployment-validation'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🚀 Validate Deployment
+        run: |
+          TARGET_URL="${{ inputs.environment == 'production' && env.PRODUCTION_URL || env.STAGING_URL }}"
+          echo "🚀 Validating deployment: $TARGET_URL"
+          
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Test critical user flows
+          declare -a critical_flows=(
+            "$TARGET_URL/"
+            "$TARGET_URL/login"
+            "$TARGET_URL/register" 
+            "$TARGET_URL/dashboard"
+          )
+          
+          validation_passed=true
+          
+          for flow in "${critical_flows[@]}"; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" "$flow")
+            
+            if [ "$response" != "200" ] && [ "$response" != "302" ]; then
+              echo "❌ Failed: $flow (Status: $response)"
+              validation_passed=false
+            else
+              echo "✅ Passed: $flow (Status: $response)"
+            fi
+          done
+          
+          if [ "$validation_passed" = false ]; then
+            echo "❌ Deployment validation failed"
+            exit 1
+          else
+            echo "✅ Deployment validation passed"
+          fi
+
+  # Reusable notification template
+  notification-template:
+    name: 📢 Notification Template
+    runs-on: ubuntu-latest
+    if: inputs.notify_stakeholders
+    needs: [health-check-template, performance-test-template, security-scan-template, deployment-validation-template]
+    steps:
+      - name: 📢 Send Notifications
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const workflowType = '${{ inputs.workflow_type }}';
+            const environment = '${{ inputs.environment }}';
+            
+            let title = '';
+            let body = '';
+            let labels = [];
+            
+            switch (workflowType) {
+              case 'health-check':
+                const healthStatus = '${{ needs.health-check-template.outputs.status }}';
+                const responseTime = '${{ needs.health-check-template.outputs.response_time }}';
+                
+                title = `🏥 Health Check ${healthStatus === 'healthy' ? 'Passed' : 'Failed'} - ${environment}`;
+                body = `## Health Check Results
+                
+                **Environment:** ${environment}
+                **Status:** ${healthStatus === 'healthy' ? '✅ Healthy' : '❌ Unhealthy'}
+                **Average Response Time:** ${responseTime}s
+                **Timestamp:** ${new Date().toISOString()}
+                
+                ${healthStatus === 'healthy' ? 
+                  '### ✅ All Systems Operational\nAll health checks passed successfully.' : 
+                  '### ❌ Action Required\nHealth checks failed. Immediate investigation needed.'}`;
+                
+                labels = healthStatus === 'healthy' ? 
+                  ['monitoring:health-check', 'status:healthy'] : 
+                  ['monitoring:health-check', 'status:unhealthy', 'priority:P1'];
+                break;
+                
+              case 'performance-test':
+                const perfScore = '${{ needs.performance-test-template.outputs.performance_score }}';
+                
+                title = `⚡ Performance Test Results - ${environment}`;
+                body = `## Performance Test Results
+                
+                **Environment:** ${environment}
+                **Performance Score:** ${perfScore}/100
+                **Status:** ${perfScore >= 80 ? '✅ Good' : perfScore >= 60 ? '⚠️ Fair' : '❌ Poor'}
+                **Timestamp:** ${new Date().toISOString()}
+                
+                ${perfScore >= 80 ? 
+                  '### ✅ Performance Within Acceptable Range' : 
+                  '### ⚠️ Performance Optimization Recommended'}`;
+                
+                labels = ['monitoring:performance', `score:${perfScore}`];
+                break;
+                
+              default:
+                title = `🔄 Workflow Completed - ${workflowType}`;
+                body = `Workflow ${workflowType} completed for ${environment}`;
+                labels = ['workflow:automated'];
+            }
+            
+            if (title && body) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: labels
+              });
+            }
+
+  # Reusable German market compliance check
+  german-compliance-template:
+    name: 🇩🇪 German Compliance Check
+    runs-on: ubuntu-latest
+    if: inputs.workflow_type == 'german-compliance'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🇩🇪 Check German Market Compliance
+        run: |
+          echo "🇩🇪 Checking German market compliance..."
+          
+          compliance_score=100
+          issues=()
+          
+          # Check for GDPR compliance indicators
+          if ! grep -r -i "gdpr\|dsgvo\|datenschutz" --include="*.js" --include="*.ts" --include="*.tsx" . --exclude-dir=node_modules; then
+            issues+=("Missing GDPR/DSGVO references")
+            compliance_score=$((compliance_score - 20))
+          fi
+          
+          # Check for German language support
+          if ! grep -r -i "deutsch\|german" --include="*.js" --include="*.ts" --include="*.tsx" . --exclude-dir=node_modules; then
+            issues+=("No German language indicators found")
+            compliance_score=$((compliance_score - 15))
+          fi
+          
+          # Check for proper umlaut handling
+          if ! grep -r "ä\|ö\|ü\|Ä\|Ö\|Ü\|ß" --include="*.js" --include="*.ts" --include="*.tsx" . --exclude-dir=node_modules; then
+            echo "ℹ️ No umlauts found - may indicate missing German content"
+          fi
+          
+          echo "German compliance score: $compliance_score/100"
+          
+          if [ ${#issues[@]} -gt 0 ]; then
+            echo "Issues found:"
+            printf '%s\n' "${issues[@]}"
+          fi

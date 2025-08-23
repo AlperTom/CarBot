@@ -1,0 +1,164 @@
+name: Issue Lifecycle Automation
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled, assigned, unassigned]
+  issue_comment:
+    types: [created]
+
+jobs:
+  issue-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Priority-based automation
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(label => label.name);
+            
+            // Auto-assign based on priority
+            if (labels.includes('P0-Critical')) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                assignees: ['${{ github.repository_owner }}']
+              });
+              
+              // Add to Emergency Project Board
+              await github.rest.projects.createCard({
+                column_id: process.env.EMERGENCY_COLUMN_ID,
+                content_id: issue.id,
+                content_type: 'Issue'
+              });
+              
+              // Create emergency notification comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `🚨 **CRITICAL ISSUE DETECTED** 🚨
+                
+**SLA**: Must be resolved within 4 hours
+**Business Impact**: ${labels.includes('revenue-impact') ? 'Revenue blocking issue' : 'Critical system failure'}
+**Next Steps**: 
+1. Immediate triage required
+2. Stakeholder notification sent
+3. Resolution priority: HIGHEST
+
+**Automated Actions Taken**:
+- Assigned to repository owner
+- Added to Emergency project board
+- Priority escalation triggered`
+              });
+            }
+            
+            if (labels.includes('P1-High')) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                assignees: ['${{ github.repository_owner }}']
+              });
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `⚡ **HIGH PRIORITY ISSUE** ⚡
+                
+**SLA**: Must be resolved within 24 hours
+**Business Impact**: Major feature or business impact
+**Planning**: Added to current sprint for immediate attention`
+              });
+            }
+            
+      - name: Update project boards
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(label => label.name);
+            
+            // Map priorities to project board columns
+            const priorityColumnMap = {
+              'P0-Critical': process.env.P0_COLUMN_ID,
+              'P1-High': process.env.P1_COLUMN_ID,
+              'P2-Medium': process.env.P2_COLUMN_ID,
+              'P3-Low': process.env.P3_COLUMN_ID
+            };
+            
+            // Add to appropriate column based on priority
+            for (const [priority, columnId] of Object.entries(priorityColumnMap)) {
+              if (labels.includes(priority) && columnId) {
+                await github.rest.projects.createCard({
+                  column_id: columnId,
+                  content_id: issue.id,
+                  content_type: 'Issue'
+                });
+                break;
+              }
+            }
+            
+      - name: Revenue impact tracking
+        uses: actions/github-script@v7
+        if: contains(github.event.issue.labels.*.name, 'revenue-impact')
+        with:
+          script: |
+            const issue = context.payload.issue;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `💰 **REVENUE IMPACT DETECTED** 💰
+              
+This issue has been flagged as having revenue impact.
+
+**Automated Tracking Enabled**:
+- Revenue impact metrics will be tracked
+- Business stakeholder notifications activated
+- Resolution time will be monitored for SLA compliance
+- Post-resolution revenue recovery analysis will be conducted
+
+**Current Business Context**:
+- Potential ARR: €500K+
+- Monthly impact: €41,667 potential revenue
+- Market: German automotive workshops
+- Status: Revenue system needs immediate access restoration`
+            });
+            
+      - name: Auto-label enhancement
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = issue.body ? issue.body.toLowerCase() : '';
+            
+            const autoLabels = [];
+            
+            // Technology-based labels
+            if (title.includes('vercel') || body.includes('vercel')) autoLabels.push('vercel');
+            if (title.includes('database') || body.includes('supabase')) autoLabels.push('database');
+            if (title.includes('auth') || body.includes('authentication')) autoLabels.push('authentication');
+            if (title.includes('dns') || body.includes('domain')) autoLabels.push('dns');
+            if (title.includes('email') || body.includes('email')) autoLabels.push('email');
+            
+            // Business impact labels
+            if (body.includes('revenue') || body.includes('€')) autoLabels.push('business-impact');
+            if (body.includes('customer') || body.includes('user')) autoLabels.push('customer-facing');
+            
+            // Add auto-detected labels
+            if (autoLabels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: autoLabels
+              });
+            }

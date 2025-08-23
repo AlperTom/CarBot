@@ -1,0 +1,77 @@
+name: "P2 - MEDIUM: Enhancement/Improvement"
+description: "Medium priority enhancement or improvement with moderate business impact"
+title: "[P2-MEDIUM] "
+labels: ["P2-Medium", "enhancement", "improvement"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📈 MEDIUM PRIORITY ISSUE
+        **Business Impact**: Feature enhancement or moderate business improvement
+        **SLA**: Should be resolved within 1 week
+        **Planning**: Include in next sprint planning
+        
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: "Issue Type"
+      options:
+        - Feature Enhancement
+        - Performance Improvement
+        - UX/UI Improvement
+        - Code Quality
+        - Documentation
+        - Process Improvement
+    validations:
+      required: true
+      
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Detailed description of the enhancement or improvement"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: business-value
+    attributes:
+      label: "Business Value"
+      description: "How does this improvement benefit the business or users"
+      placeholder: "What business problem does this solve? What value does it provide?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: "Current Behavior"
+      description: "How things work currently"
+      
+  - type: textarea
+    id: proposed-behavior
+    attributes:
+      label: "Proposed Behavior"
+      description: "How things should work after the improvement"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: "Definition of done"
+      placeholder: |
+        - [ ] Specific requirement 1
+        - [ ] Specific requirement 2
+        - [ ] Tests added/updated
+        - [ ] Documentation updated
+    validations:
+      required: true
+      
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: "Technical Notes"
+      description: "Any technical considerations or constraints"

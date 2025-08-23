@@ -1,0 +1,93 @@
+name: "P1 - HIGH: Major Feature/Business Impact"
+description: "High priority issue affecting major features or having significant business impact"
+title: "[P1-HIGH] "
+labels: ["P1-High", "major-impact", "business-critical"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔥 HIGH PRIORITY ISSUE
+        **Business Impact**: Major feature disruption or significant revenue impact
+        **SLA**: Must be resolved within 24 hours
+        **Escalation**: Daily stakeholder updates required
+        
+  - type: input
+    id: business-impact
+    attributes:
+      label: "Business Impact Assessment"
+      description: "Quantify the business impact (revenue, customers, market opportunity)"
+      placeholder: "€X potential revenue, Y% of features affected"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: impact-category
+    attributes:
+      label: "Impact Category"
+      options:
+        - Major feature unavailable
+        - Performance degradation
+        - Integration failure
+        - DNS/Domain issues
+        - Security vulnerability
+        - Data inconsistency
+    validations:
+      required: true
+      
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: "Problem Description"
+      description: "Detailed description of the high priority issue"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: user-impact
+    attributes:
+      label: "User/Customer Impact"
+      description: "How does this affect users and their experience"
+      placeholder: "Which user journeys are broken? What functionality is unavailable?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: "Reproduction Steps"
+      description: "Step by step reproduction"
+      placeholder: |
+        1. Navigate to...
+        2. Perform action...
+        3. Observe issue...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: "Expected Behavior"
+      description: "What should happen instead"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: technical-details
+    attributes:
+      label: "Technical Details"
+      description: "Error messages, logs, technical context"
+      placeholder: "Include relevant error messages, stack traces, or technical details"
+      
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: "Definition of done for this issue"
+      placeholder: |
+        - [ ] Feature works as expected
+        - [ ] No performance degradation
+        - [ ] All tests pass
+        - [ ] Documentation updated if needed
+    validations:
+      required: true

@@ -1,0 +1,240 @@
+name: 🚨 Production Issue
+description: Report a critical production issue requiring immediate attention
+title: "[PRODUCTION] "
+labels: ["priority:P0", "type:bug", "component:production"]
+assignees: ["tech-lead"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🚨 **CRITICAL PRODUCTION ISSUE** 🚨
+        
+        This template is for urgent production issues that affect live services.
+        For non-critical issues, please use the regular bug report template.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity Level
+      description: How severe is this production issue?
+      options:
+        - "P0 - CRITICAL: Complete service outage"
+        - "P0 - CRITICAL: Security vulnerability"
+        - "P0 - CRITICAL: Data loss/corruption"
+        - "P1 - HIGH: Major functionality broken"
+        - "P1 - HIGH: Performance severely degraded"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected_service
+    attributes:
+      label: Affected Service/Component
+      description: Which part of the production system is affected?
+      options:
+        - "Website/Frontend (car-gblttmonj-car-bot.vercel.app)"
+        - "Authentication System"
+        - "Dashboard"
+        - "Workshop Management"
+        - "Payment Processing"
+        - "Email Service"
+        - "Database"
+        - "API Endpoints"
+        - "Deployment/Infrastructure"
+        - "Multiple Components"
+        - "Unknown/Under Investigation"
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact_description
+    attributes:
+      label: Impact Description
+      description: Describe the current impact on users and business operations
+      placeholder: |
+        - What functionality is affected?
+        - How many users/customers are impacted?
+        - What business operations are disrupted?
+        - Any customer reports or complaints?
+    validations:
+      required: true
+
+  - type: input
+    id: incident_start
+    attributes:
+      label: Incident Start Time
+      description: When did this issue start? (Include timezone)
+      placeholder: "e.g., 2024-01-15 14:30 CET or 'Unknown - just discovered'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: symptoms
+    attributes:
+      label: Symptoms Observed
+      description: What symptoms are you seeing?
+      placeholder: |
+        Describe what you're observing:
+        - Error messages displayed to users
+        - Failed requests or timeouts
+        - Slow response times
+        - System behavior abnormalities
+        - Monitoring alerts triggered
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_details
+    attributes:
+      label: Error Messages/Logs
+      description: Any specific error messages, stack traces, or log entries
+      placeholder: |
+        Include relevant technical details:
+        - Browser console errors
+        - Server error responses
+        - Log file entries
+        - Monitoring system alerts
+        - Stack traces
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can the issue be reproduced?
+      placeholder: |
+        If reproducible:
+        1. Go to...
+        2. Attempt to...
+        3. Error occurs...
+        
+        If not consistently reproducible, describe when/how it occurs.
+
+  - type: checkboxes
+    id: customer_impact
+    attributes:
+      label: Customer Impact Areas
+      description: Which customer operations are affected?
+      options:
+        - label: "Cannot register new accounts"
+        - label: "Cannot log in to existing accounts"
+        - label: "Cannot access dashboard"
+        - label: "Cannot manage workshops"
+        - label: "Cannot process payments"
+        - label: "Not receiving email notifications"
+        - label: "Data appears incorrect/missing"
+        - label: "System extremely slow"
+        - label: "Security/privacy concerns"
+
+  - type: checkboxes
+    id: business_impact
+    attributes:
+      label: Business Impact
+      description: Business consequences of this issue
+      options:
+        - label: "Revenue loss (payment processing affected)"
+        - label: "Customer acquisition blocked (registration down)"
+        - label: "Customer retention risk (service unavailable)"
+        - label: "Brand reputation risk"
+        - label: "GDPR/compliance violation potential"
+        - label: "Security breach potential"
+        - label: "German market operations affected"
+
+  - type: textarea
+    id: immediate_actions
+    attributes:
+      label: Immediate Actions Taken
+      description: What steps have already been taken to address this issue?
+      placeholder: |
+        List actions already performed:
+        - Restarted services
+        - Checked deployment status
+        - Reviewed recent changes
+        - Contacted team members
+        - Implemented temporary workarounds
+
+  - type: input
+    id: monitoring_links
+    attributes:
+      label: Monitoring/Dashboard Links
+      description: Links to relevant monitoring dashboards or logs
+      placeholder: "e.g., Vercel dashboard URL, error monitoring links"
+
+  - type: textarea
+    id: recent_changes
+    attributes:
+      label: Recent Changes
+      description: Any recent deployments, configuration changes, or updates?
+      placeholder: |
+        Consider recent changes that might be related:
+        - Code deployments (when, what was deployed)
+        - Environment variable changes
+        - Database migrations
+        - Third-party service updates
+        - Infrastructure changes
+
+  - type: dropdown
+    id: escalation_needed
+    attributes:
+      label: Escalation Required
+      description: Who needs to be immediately notified?
+      options:
+        - "Tech Lead Only"
+        - "Full Engineering Team"
+        - "Product Owner"
+        - "Customer Success Team"
+        - "All Stakeholders"
+        - "External Vendor Support"
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Temporary Workaround
+      description: Is there any temporary workaround for users?
+      placeholder: |
+        If available, describe workarounds:
+        - Alternative ways for users to accomplish tasks
+        - Temporary solutions while fixing
+        - Manual processes to maintain operations
+
+  - type: input
+    id: contact_info
+    attributes:
+      label: Reporter Contact Information
+      description: Best way to reach you for immediate updates
+      placeholder: "email, phone, Slack handle, etc."
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## 🚨 Immediate Response Protocol
+        
+        **P0 Critical Issues:**
+        - **Response Time:** 15 minutes
+        - **Resolution Target:** 1-4 hours
+        - **Communication:** Updates every 30 minutes
+        
+        **P1 High Issues:**
+        - **Response Time:** 1 hour
+        - **Resolution Target:** 24 hours
+        - **Communication:** Updates every 2 hours
+        
+        ## 📞 Emergency Contacts
+        - **Tech Lead:** [Contact info to be filled]
+        - **DevOps:** [Contact info to be filled]
+        - **Product Owner:** [Contact info to be filled]
+        
+        ## 🇩🇪 German Market Impact
+        If this affects German customers, additional compliance and communication considerations apply.
+        
+        **This issue will be automatically:**
+        - Assigned to the Tech Lead
+        - Labeled as P0/Critical
+        - Added to production monitoring board
+        - Generate customer communication templates (if customer-facing)

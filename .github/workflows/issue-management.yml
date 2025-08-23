@@ -1,0 +1,235 @@
+name: 🎯 Issue Management Automation
+on:
+  issues:
+    types: [opened, edited, labeled, assigned]
+  issue_comment:
+    types: [created]
+
+jobs:
+  auto-label:
+    name: 🏷️ Auto-Label Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || github.event.action == 'edited'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🔍 Analyze Issue Content
+        id: analyze
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const content = `${title} ${body}`;
+            
+            const labels = [];
+            
+            // Priority labeling
+            if (content.includes('production') && (content.includes('down') || content.includes('error') || content.includes('critical'))) {
+              labels.push('priority:P0');
+            } else if (content.includes('urgent') || content.includes('blocking') || content.includes('broken')) {
+              labels.push('priority:P1');
+            } else if (content.includes('bug') || content.includes('issue') || content.includes('problem')) {
+              labels.push('priority:P2');
+            } else {
+              labels.push('priority:P3');
+            }
+            
+            // Component labeling
+            if (content.includes('auth') || content.includes('login') || content.includes('register')) {
+              labels.push('component:authentication');
+            }
+            if (content.includes('email') || content.includes('notification') || content.includes('resend')) {
+              labels.push('component:email');
+            }
+            if (content.includes('database') || content.includes('supabase') || content.includes('db')) {
+              labels.push('component:database');
+            }
+            if (content.includes('ui') || content.includes('frontend') || content.includes('react')) {
+              labels.push('component:frontend');
+            }
+            if (content.includes('api') || content.includes('backend') || content.includes('server')) {
+              labels.push('component:backend');
+            }
+            if (content.includes('payment') || content.includes('stripe') || content.includes('billing')) {
+              labels.push('component:payments');
+            }
+            if (content.includes('deploy') || content.includes('vercel') || content.includes('build')) {
+              labels.push('component:deployment');
+            }
+            if (content.includes('performance') || content.includes('slow') || content.includes('optimization')) {
+              labels.push('component:performance');
+            }
+            if (content.includes('security') || content.includes('vulnerability') || content.includes('exploit')) {
+              labels.push('component:security');
+            }
+            if (content.includes('test') || content.includes('testing') || content.includes('qa')) {
+              labels.push('component:testing');
+            }
+            
+            // Type labeling
+            if (content.includes('bug') || content.includes('error') || content.includes('broken')) {
+              labels.push('type:bug');
+            } else if (content.includes('feature') || content.includes('enhancement') || content.includes('improve')) {
+              labels.push('type:feature');
+            } else if (content.includes('documentation') || content.includes('docs') || content.includes('readme')) {
+              labels.push('type:documentation');
+            } else if (content.includes('refactor') || content.includes('cleanup') || content.includes('technical debt')) {
+              labels.push('type:refactor');
+            }
+            
+            // German market specific
+            if (content.includes('german') || content.includes('deutsch') || content.includes('gdpr') || content.includes('dsgvo')) {
+              labels.push('market:german');
+            }
+            
+            // Business impact
+            if (content.includes('customer') || content.includes('revenue') || content.includes('arr')) {
+              labels.push('impact:business');
+            }
+            
+            return labels;
+
+      - name: 🏷️ Apply Auto Labels
+        if: steps.analyze.outputs.result != '[]'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = ${{ steps.analyze.outputs.result }};
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labels
+              });
+            }
+
+  auto-assign:
+    name: 👥 Auto-Assign Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' && github.event.issue.assignee == null
+    steps:
+      - name: 🎯 Auto-Assign Based on Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(label => label.name);
+            
+            let assignee = null;
+            
+            // Priority-based assignment
+            if (labels.includes('priority:P0')) {
+              assignee = 'tech-lead'; // Replace with actual username
+            } else if (labels.some(label => label.includes('component:authentication'))) {
+              assignee = 'auth-expert'; // Replace with actual username
+            } else if (labels.some(label => label.includes('component:frontend'))) {
+              assignee = 'frontend-dev'; // Replace with actual username
+            } else if (labels.some(label => label.includes('component:backend'))) {
+              assignee = 'backend-dev'; // Replace with actual username
+            } else if (labels.some(label => label.includes('component:database'))) {
+              assignee = 'db-admin'; // Replace with actual username
+            } else if (labels.some(label => label.includes('component:deployment'))) {
+              assignee = 'devops-engineer'; // Replace with actual username
+            }
+            
+            if (assignee) {
+              try {
+                await github.rest.issues.addAssignees({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  assignees: [assignee]
+                });
+              } catch (error) {
+                console.log(`Could not assign to ${assignee}: ${error.message}`);
+              }
+            }
+
+  escalate-critical:
+    name: 🚨 Escalate Critical Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'labeled' && contains(github.event.label.name, 'priority:P0')
+    steps:
+      - name: 📢 Notify Team Leads
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const comment = `🚨 **CRITICAL ISSUE DETECTED** 🚨
+            
+            This issue has been marked as P0 (Critical Priority) and requires immediate attention.
+            
+            **Auto-assigned team leads have been notified:**
+            - Technical Lead
+            - Product Owner
+            - DevOps Team
+            
+            **Expected Response Time:** Within 1 hour
+            **Expected Resolution Time:** Within 4 hours
+            
+            Please update this issue with progress every 30 minutes until resolved.`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+  close-duplicates:
+    name: 🔄 Close Duplicate Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    steps:
+      - name: 🔍 Check for Duplicates
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const currentIssue = context.payload.issue;
+            const currentTitle = currentIssue.title.toLowerCase();
+            const currentBody = (currentIssue.body || '').toLowerCase();
+            
+            // Get all open issues
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            // Check for similar titles (simple duplicate detection)
+            for (const issue of issues) {
+              if (issue.number === currentIssue.number) continue;
+              
+              const similarity = calculateSimilarity(currentTitle, issue.title.toLowerCase());
+              
+              if (similarity > 0.8) {
+                // Close as duplicate
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: currentIssue.number,
+                  state: 'closed',
+                  state_reason: 'not_planned'
+                });
+                
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: currentIssue.number,
+                  body: `🔄 This issue appears to be a duplicate of #${issue.number}. Closing as duplicate.`
+                });
+                
+                break;
+              }
+            }
+            
+            function calculateSimilarity(str1, str2) {
+              const words1 = str1.split(' ');
+              const words2 = str2.split(' ');
+              const commonWords = words1.filter(word => words2.includes(word));
+              return commonWords.length / Math.max(words1.length, words2.length);
+            }

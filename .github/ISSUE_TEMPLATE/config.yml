@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📧 Technical Support
+    url: https://github.com/CarBot/issues/discussions
+    about: For general questions and technical support
+  - name: 💡 Feature Request Discussion
+    url: https://github.com/CarBot/issues/discussions/categories/ideas
+    about: Discuss new feature ideas before creating issues
+  - name: 🚨 Emergency Production Issue
+    url: mailto:support@carbot.chat
+    about: For immediate production emergencies outside GitHub
