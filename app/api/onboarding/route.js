@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { Resend } from 'resend'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend only if API key is available
+let resend = null
+try {
+  if (process.env.RESEND_API_KEY) {
+    const { Resend } = await import('resend')
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+} catch (error) {
+  console.warn('Resend email service not available:', error.message)
+}
 
 export async function POST(request) {
   try {
@@ -58,53 +66,57 @@ export async function POST(request) {
       // In production, these would be saved to workshop_specializations table
     }
 
-    // Send welcome email
+    // Send welcome email if Resend is available
     try {
-      const emailHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Willkommen bei CarBot!</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #1f2937;">Willkommen bei CarBot, ${formData.ownerName}!</h1>
-            
-            <p>Vielen Dank für die Anmeldung bei CarBot. Ihre Werkstatt <strong>${formData.workshopName}</strong> ist jetzt erfolgreich eingerichtet!</p>
-            
-            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0;">Ihre Zugangsdaten:</h3>
-              <p><strong>Client-Key:</strong> ${clientKey}</p>
-              <p><strong>E-Mail:</strong> ${formData.email}</p>
-              <p><strong>Dashboard:</strong> <a href="https://carbot.chat/dashboard">https://carbot.chat/dashboard</a></p>
+      if (resend) {
+        const emailHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Willkommen bei CarBot!</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #1f2937;">Willkommen bei CarBot, ${formData.ownerName}!</h1>
+              
+              <p>Vielen Dank für die Anmeldung bei CarBot. Ihre Werkstatt <strong>${formData.workshopName}</strong> ist jetzt erfolgreich eingerichtet!</p>
+              
+              <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">Ihre Zugangsdaten:</h3>
+                <p><strong>Client-Key:</strong> ${clientKey}</p>
+                <p><strong>E-Mail:</strong> ${formData.email}</p>
+                <p><strong>Dashboard:</strong> <a href="https://carbot.chat/dashboard">https://carbot.chat/dashboard</a></p>
+              </div>
+
+              <h3>Nächste Schritte:</h3>
+              <ol>
+                <li>Loggen Sie sich in Ihr Dashboard ein</li>
+                <li>Konfigurieren Sie Ihren ChatBot</li>
+                <li>Fügen Sie Ihre Services und Preise hinzu</li>
+                <li>Integrieren Sie den ChatBot auf Ihrer Website</li>
+              </ol>
+
+              <p>Bei Fragen stehen wir Ihnen gerne zur Verfügung!</p>
+              
+              <p>Ihr CarBot-Team<br>
+              <a href="https://carbot.chat">carbot.chat</a></p>
             </div>
+          </body>
+          </html>
+        `
 
-            <h3>Nächste Schritte:</h3>
-            <ol>
-              <li>Loggen Sie sich in Ihr Dashboard ein</li>
-              <li>Konfigurieren Sie Ihren ChatBot</li>
-              <li>Fügen Sie Ihre Services und Preise hinzu</li>
-              <li>Integrieren Sie den ChatBot auf Ihrer Website</li>
-            </ol>
+        await resend.emails.send({
+          from: 'CarBot <noreply@carbot.chat>',
+          to: [formData.email],
+          subject: 'Willkommen bei CarBot - Ihre Werkstatt ist eingerichtet!',
+          html: emailHtml
+        })
 
-            <p>Bei Fragen stehen wir Ihnen gerne zur Verfügung!</p>
-            
-            <p>Ihr CarBot-Team<br>
-            <a href="https://carbot.chat">carbot.chat</a></p>
-          </div>
-        </body>
-        </html>
-      `
-
-      await resend.emails.send({
-        from: 'CarBot <noreply@carbot.chat>',
-        to: [formData.email],
-        subject: 'Willkommen bei CarBot - Ihre Werkstatt ist eingerichtet!',
-        html: emailHtml
-      })
-
-      console.log('Welcome email sent successfully to:', formData.email)
+        console.log('Welcome email sent successfully to:', formData.email)
+      } else {
+        console.log('Email service not configured, skipping welcome email for:', formData.email)
+      }
     } catch (emailError) {
       console.error('Welcome email error:', emailError)
       // Don't fail the entire request if email fails
