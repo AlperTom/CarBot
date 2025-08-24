@@ -68,7 +68,7 @@ export default function BlogPage({ searchParams }) {
   ];
 
   const categories = ['Alle', 'KI & Technologie', 'Workflow', 'Marketing', 'Trends', 'Recht'];
-  const selectedCategory = searchParams.category || 'Alle';
+  const selectedCategory = searchParams?.category || 'Alle';
   
   const filteredPosts = selectedCategory === 'Alle' 
     ? staticPosts 
@@ -458,4 +458,4 @@ function getCategoryColor(category) {
     'Recht': '#ef4444'
   };
   return colors[category] || '#6b7280';
-}
+}// Force refresh

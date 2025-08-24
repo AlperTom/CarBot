@@ -200,9 +200,65 @@ export default function ChatWidget({
 
     } catch (error) {
       console.error('Chat error:', error)
+      
+      // Enhanced error handling for different API error types
+      let errorMessage = getTranslation(language, 'common.error')
+      
+      // Check if it's a fetch error (network issues, server down, etc.)
+      if (error.message.includes('Failed to fetch') || error.message.includes('network')) {
+        errorMessage = language === 'de' ? 
+          'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.' :
+          language === 'en' ? 
+          'Network error. Please check your internet connection and try again.' :
+          language === 'tr' ? 
+          'Ağ hatası. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.' :
+          'Błąd sieci. Sprawdź połączenie internetowe i spróbuj ponownie.'
+      }
+      // Check if it's an HTTP error (4xx, 5xx status codes)
+      else if (error.message.includes('HTTP error') || error.message.includes('status:')) {
+        const statusMatch = error.message.match(/status: (\d+)/)
+        const status = statusMatch ? statusMatch[1] : 'unknown'
+        
+        if (status === '401') {
+          errorMessage = language === 'de' ? 
+            'Authentifizierungsfehler. Bitte kontaktieren Sie den Support.' :
+            language === 'en' ? 
+            'Authentication error. Please contact support.' :
+            language === 'tr' ? 
+            'Kimlik doğrulama hatası. Lütfen desteğe başvurun.' :
+            'Błąd uwierzytelnienia. Skontaktuj się z pomocą techniczną.'
+        } else if (status === '429') {
+          errorMessage = language === 'de' ? 
+            'Zu viele Anfragen. Bitte warten Sie einen Moment und versuchen Sie es erneut.' :
+            language === 'en' ? 
+            'Too many requests. Please wait a moment and try again.' :
+            language === 'tr' ? 
+            'Çok fazla istek. Lütfen bir dakika bekleyin ve tekrar deneyin.' :
+            'Za dużo zapytań. Poczekaj chwilę i spróbuj ponownie.'
+        } else if (status.startsWith('5')) {
+          errorMessage = language === 'de' ? 
+            'Serverfehler. Unser technisches Team wurde benachrichtigt. Bitte versuchen Sie es später erneut.' :
+            language === 'en' ? 
+            'Server error. Our technical team has been notified. Please try again later.' :
+            language === 'tr' ? 
+            'Sunucu hatası. Teknik ekibimize bildirildi. Lütfen daha sonra tekrar deneyin.' :
+            'Błąd serwera. Nasz zespół techniczny został powiadomiony. Spróbuj ponownie później.'
+        }
+      }
+      // Check for timeout errors
+      else if (error.message.includes('timeout') || error.message.includes('aborted')) {
+        errorMessage = language === 'de' ? 
+          'Die Anfrage ist zu lange gelaufen. Bitte versuchen Sie es mit einer kürzeren Nachricht.' :
+          language === 'en' ? 
+          'Request timed out. Please try with a shorter message.' :
+          language === 'tr' ? 
+          'İstek zaman aştı. Lütfen daha kısa bir mesajla deneyin.' :
+          'Żądanie przekroczyło limit czasu. Spróbuj z krótszą wiadomością.'
+      }
+      
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: getTranslation(language, 'common.error') 
+        content: errorMessage
       }])
     } finally {
       setLoading(false)

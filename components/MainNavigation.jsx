@@ -126,37 +126,21 @@ export default function MainNavigation({ variant = 'home' }) {
             {/* Logo */}
             <Link 
               href="/" 
-              className="flex items-center gap-3 text-decoration-none hover:opacity-80 transition-opacity"
+              className="flex items-center text-decoration-none hover:opacity-80 transition-opacity"
               aria-label="CarBot Homepage"
-              style={{ textDecoration: 'none', color: 'white' }}
+              style={{ textDecoration: 'none' }}
             >
-              <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="fallbackNavGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor:'#F59E0B', stopOpacity:1}} />
-                    <stop offset="100%" style={{stopColor:'#EF4444', stopOpacity:1}} />
-                  </linearGradient>
-                  <linearGradient id="fallbackNavBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor:'#1E293B', stopOpacity:1}} />
-                    <stop offset="100%" style={{stopColor:'#334155', stopOpacity:1}} />
-                  </linearGradient>
-                </defs>
-                <rect x="2" y="2" width="28" height="28" rx="4" fill="url(#fallbackNavBg)"/>
-                <g transform="translate(6, 8)">
-                  <path d="M2 12 Q2 10 4 10 L16 10 Q18 10 18 12 L18 14 Q18 16 16 16 L4 16 Q2 16 2 14 Z" 
-                        fill="url(#fallbackNavGrad)"/>
-                  <path d="M4.5 10 Q6 8 8 8 L12 8 Q14 8 15.5 10" fill="url(#fallbackNavGrad)" opacity="0.7"/>
-                  <circle cx="6" cy="16" r="2" fill="white" stroke="url(#fallbackNavGrad)" strokeWidth="1"/>
-                  <circle cx="14" cy="16" r="2" fill="white" stroke="url(#fallbackNavGrad)" strokeWidth="1"/>
-                  <circle cx="6" cy="16" r="1" fill="url(#fallbackNavGrad)"/>
-                  <circle cx="14" cy="16" r="1" fill="url(#fallbackNavGrad)"/>
-                  <circle cx="10" cy="6" r="2" fill="white" opacity="0.9"/>
-                  <circle cx="10" cy="6" r="1" fill="url(#fallbackNavGrad)"/>
-                </g>
-              </svg>
-              <span className="text-xl font-bold" style={{ color: 'white' }}>
-                CarBot
-              </span>
+              <div style={{ height: '40px', width: '144px' }}>
+                <img
+                  src="/CarBot_Logo_Professional_Short.svg"
+                  alt="CarBot - KI-gestützte Kundenberatung für Autowerkstätten"
+                  style={{ 
+                    height: '100%', 
+                    width: '100%', 
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
@@ -239,41 +223,26 @@ export default function MainNavigation({ variant = 'home' }) {
             <div className="flex-shrink-0 flex items-center">
               <Link 
                 href="/" 
-                className="flex items-center gap-3 text-decoration-none hover:opacity-80 transition-opacity"
+                className="flex items-center text-decoration-none hover:opacity-90 transition-opacity"
                 aria-label="CarBot Homepage"
               >
-                <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="mainNavGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" style={{stopColor:'#F59E0B', stopOpacity:1}} />
-                      <stop offset="100%" style={{stopColor:'#EF4444', stopOpacity:1}} />
-                    </linearGradient>
-                    <linearGradient id="mainNavBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" style={{stopColor:'#1E293B', stopOpacity:1}} />
-                      <stop offset="100%" style={{stopColor:'#334155', stopOpacity:1}} />
-                    </linearGradient>
-                  </defs>
-                  <rect x="2" y="2" width="28" height="28" rx="4" fill="url(#mainNavBg)"/>
-                  <g transform="translate(6, 8)">
-                    <path d="M2 12 Q2 10 4 10 L16 10 Q18 10 18 12 L18 14 Q18 16 16 16 L4 16 Q2 16 2 14 Z" 
-                          fill="url(#mainNavGrad)"/>
-                    <path d="M4.5 10 Q6 8 8 8 L12 8 Q14 8 15.5 10" fill="url(#mainNavGrad)" opacity="0.7"/>
-                    <circle cx="6" cy="16" r="2" fill="white" stroke="url(#mainNavGrad)" strokeWidth="1"/>
-                    <circle cx="14" cy="16" r="2" fill="white" stroke="url(#mainNavGrad)" strokeWidth="1"/>
-                    <circle cx="6" cy="16" r="1" fill="url(#mainNavGrad)"/>
-                    <circle cx="14" cy="16" r="1" fill="url(#mainNavGrad)"/>
-                    <circle cx="10" cy="6" r="2" fill="white" opacity="0.9"/>
-                    <circle cx="10" cy="6" r="1" fill="url(#mainNavGrad)"/>
-                  </g>
-                </svg>
-                <span 
-                  className="text-xl font-bold"
-                  style={{ 
-                    color: variant === 'home' ? 'white' : '#1f2937' 
-                  }}
-                >
-                  CarBot
-                </span>
+                <div style={{ height: '40px', width: '144px' }}>
+                  <img
+                    src="/CarBot_Logo_Professional_Short.svg"
+                    alt="CarBot - KI-gestützte Kundenberatung für Autowerkstätten"
+                    style={{ 
+                      height: '100%', 
+                      width: '100%', 
+                      objectFit: 'contain',
+                      filter: variant === 'home' ? 'none' : 'brightness(0.8)'
+                    }}
+                    onLoad={(e) => {
+                      if (variant !== 'home') {
+                        e.target.style.filter = 'brightness(0.8)'
+                      }
+                    }}
+                  />
+                </div>
               </Link>
             </div>
 
