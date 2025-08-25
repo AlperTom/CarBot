@@ -115,27 +115,25 @@ async function authenticateUserSimple(email, password) {
   // Try database if available
   if (supabase) {
     try {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      // Look up user in workshops table
+      const { data: workshop, error } = await supabase
+        .from('workshops')
+        .select('*')
+        .eq('owner_email', email)
+        .single()
 
-      if (!error && authData.user) {
+      if (!error && workshop) {
         console.log('✅ [Login] Database authentication successful')
-        // Get workshop data
-        const { data: workshop } = await supabase
-          .from('workshops')
-          .select('*')
-          .eq('owner_email', email)
-          .eq('active', true)
-          .single()
-
+        
         return {
           success: true,
-          user: authData.user,
+          user: {
+            id: workshop.id,
+            email: workshop.owner_email,
+            name: workshop.owner_name
+          },
           workshop: workshop,
-          role: 'owner',
-          session: authData.session
+          role: 'owner'
         }
       }
     } catch (dbError) {

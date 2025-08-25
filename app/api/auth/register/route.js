@@ -73,7 +73,7 @@ function initializeSupabase() {
                            supabaseServiceKey.includes('your-production-supabase') || 
                            supabaseServiceKey.includes('placeholder') ||
                            supabaseServiceKey.includes('your_') ||
-                           supabaseServiceKey.length < 50 // Real Supabase service keys are much longer
+                           supabaseServiceKey === 'your_supabase_service_role_key_here'
   
   const hasPlaceholderUrl = !supabaseUrl || supabaseUrl.includes('placeholder')
 
@@ -421,15 +421,11 @@ export async function POST(request) {
         const { data: workshop, error: workshopError } = await supabase
           .from('workshops')
           .insert({
-            business_name: businessName,
             name: businessName,
+            owner_name: name,
             owner_email: email,
             phone: phone || null,
-            template_type: templateType,
-            active: true,
-            verified: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            email: email
           })
           .select()
           .single()

@@ -24,10 +24,9 @@ export async function GET() {
     
     console.log('Testing Supabase connection...')
     // Try a simple query to test connection
-    const { data, error } = await supabaseAdmin
+    const { data, error, count } = await supabaseAdmin
       .from('workshops')
-      .select('count(*)', { count: 'exact' })
-      .limit(0)
+      .select('*', { count: 'exact', head: true })
 
     if (error) {
       console.error('Supabase query error:', error)
@@ -41,7 +40,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       message: 'Supabase connection working',
-      workshopCount: data
+      workshopCount: count || 0,
+      hasData: data && data.length > 0
     })
 
   } catch (error) {

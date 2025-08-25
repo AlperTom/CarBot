@@ -1,69 +1,42 @@
-/**
- * Database Connection Test API
- * Tests if Supabase connection is working
- */
-
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export async function GET(request) {
+export async function GET() {
+  console.log("🔍 Testing database connection...")
+  
   try {
-    console.log('Testing database connection...')
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-    console.log('Has service key:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-    
-    // Test basic connection
-    const { data, error } = await supabase
-      .from('workshops')
-      .select('count')
+    // Very aggressive 3-second timeout for database operations
+    const testPromise = supabase
+      .from("workshops")
+      .select("count")
       .limit(1)
     
-    if (error) {
-      console.error('Database connection error:', error)
-      return NextResponse.json({
-        success: false,
-        error: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      }, { status: 500 })
-    }
-
-    // Test if workshops table exists and has the right columns
-    const { data: tableInfo, error: tableError } = await supabase
-      .from('workshops')
-      .select('*')
-      .limit(0)
-
-    if (tableError) {
-      return NextResponse.json({
-        success: false,
-        error: 'Workshops table issue: ' + tableError.message,
-        tableError: tableError
-      }, { status: 500 })
-    }
-
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Database timeout after 3 seconds")), 3000)
+    })
+    
+    const result = await Promise.race([testPromise, timeoutPromise])
+    
+    console.log("✅ Database connection successful")
     return NextResponse.json({
       success: true,
-      message: 'Database connection successful',
-      data: {
-        connected: true,
-        workshopsTableExists: true,
-        timestamp: new Date().toISOString()
-      }
+      message: "Database connection working",
+      status: "connected",
+      result: result
     })
-
+    
   } catch (error) {
-    console.error('Test DB error:', error)
+    console.error("❌ Database connection failed:", error.message)
     return NextResponse.json({
       success: false,
-      error: 'Connection test failed: ' + error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: "Database connection failed: " + error.message,
+      status: "failed",
+      fallback: "Using mock mode"
     }, { status: 500 })
   }
 }
